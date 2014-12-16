@@ -1,17 +1,29 @@
 {
-	"require": {
-		"magento-hackathon/magento-composer-installer": "*",
-		"connect20/mage_all_latest": "*"
-	},
-	"repositories": [
-		{
-			"type": "composer",
-			"url": "http://packages.firegento.com"
-		}
-	],
-	"extra":{
-		"magento-deploystrategy": "copy",
-		"magento-force": "override",
-		"magento-root-dir": "../htdocs/"
-	}
+    "repositories": [
+        {
+            "type": "composer",
+            "url": "http://packages.firegento.com"
+        },
+        {
+            "type": "artifact",
+            "url": "../artifact/"
+        }
+    ],
+    "extra": {
+        "magento-deploystrategy": "copy",
+        "magento-deploy-ignore": {
+            "*": ["/index.php"],
+            "connect20/mage_downloader": ["/shell/log.php"],
+            "connect20/mage_core_modules": ["/shell/compiler.php"]
+        },
+        "auto-append-gitignore": true,
+        "magento-force": "override",
+        "magento-root-dir": "../htdocs/"
+    },
+    "require": {
+        "magento-hackathon/magento-composer-installer": "*",
+        "theseer/autoload": "~1.14",
+        "zetacomponents/console-tools": "dev-master",
+        "connect20/mage_all_latest": "*"
+    }
 }

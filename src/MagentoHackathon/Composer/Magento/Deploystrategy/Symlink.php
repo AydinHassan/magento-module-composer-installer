@@ -79,7 +79,7 @@ class Symlink extends DeploystrategyAbstract
             } else {
                 $destPath .= '/' . basename($source);
             }
-            return $this->create($source, substr($destPath, strlen($this->getDestDir())+1));
+            return $this->create($source, substr($destPath, strlen($this->getDestDir()) + 1));
         }
 
         // From now on $destPath can't be a directory, that case is already handled
@@ -94,22 +94,30 @@ class Symlink extends DeploystrategyAbstract
             }
         }
 
-        // Windows doesn't allow relative symlinks
-        if (strtoupper(substr(PHP_OS, 0, 3)) !== 'WIN') {
-            $sourcePath = $this->getRelativePath($destPath, $sourcePath);
-        }
+        $relSourcePath = $this->getRelativePath($destPath, $sourcePath);
 
         // Create symlink
-        if(false === symlink($sourcePath, $destPath)) {
-            throw new \ErrorException("An error occured while creating symlink" . $sourcePath);
+        if (false === $this->_symlink($relSourcePath, $destPath, $sourcePath)) {
+            throw new \ErrorException("An error occured while creating symlink" . $relSourcePath);
         }
 
         // Check we where able to create the symlink
-        if(false === $destPath = readlink($destPath)){
+        if (false === $destPath = @readlink($destPath)) {
             throw new \ErrorException("Symlink $destPath points to target $destPath");
         }
 
         return true;
+    }
+
+    protected function _symlink($relSourcePath, $destPath, $absSourcePath)
+    {
+        if (strtoupper(substr(PHP_OS, 0, 3)) == 'WIN') {
+            $relSourcePath = str_replace('/', '\\', $relSourcePath);
+            $param = is_dir($absSourcePath) ? ' /D' : '';
+            exec('mklink' . $param . ' "' . $destPath . '" "' . $relSourcePath . '"');
+        } else {
+            symlink($relSourcePath, $destPath);
+        }
     }
 
     /**
@@ -120,11 +128,13 @@ class Symlink extends DeploystrategyAbstract
      */
     public function getRelativePath($from, $to)
     {
-        // Can't use realpath() here since the destination doesn't exist yet
-        $from = str_replace(array('/./', '//'), '/', $from);
-        $from = explode('/', $from);
+        $from = str_replace('\\', '/', $from);
+        $to = str_replace('\\', '/', $to);
 
+        $from = str_replace(array('/./', '//'), '/', $from);
         $to = str_replace(array('/./', '//'), '/', $to);
+
+        $from = explode('/', $from);
         $to = explode('/', $to);
 
         $relPath = $to;
