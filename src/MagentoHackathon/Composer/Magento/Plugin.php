@@ -32,13 +32,6 @@ use Symfony\Component\Process\Process;
 
 class Plugin implements PluginInterface, EventSubscriberInterface
 {
-    const VENDOR_DIR_KEY = 'vendor-dir';
-
-    const BIN_DIR_KEY = 'bin-dir';
-
-    const THESEER_AUTOLOAD_EXEC_BIN_PATH = '/phpab';
-
-    const THESEER_AUTOLOAD_EXEC_REL_PATH = '/theseer/autoload/composer/bin/phpab';
 
     /**
      * @var IOInterface
@@ -132,11 +125,6 @@ class Plugin implements PluginInterface, EventSubscriberInterface
         $this->initDeployManager($composer, $io, $this->getEventManager());
 
         $this->writeDebug('activate magento plugin');
-
-        $moduleInstaller = new ModuleInstaller($io, $composer, $this->entryFactory);
-        $moduleInstaller->setDeployManager($this->deployManager);
-
-        $composer->getInstallationManager()->addInstaller($moduleInstaller);
     }
 
     /**
@@ -198,125 +186,6 @@ class Plugin implements PluginInterface, EventSubscriberInterface
 
         $this->writeDebug('start magento module deploy via deployManager');
         $this->deployManager->doDeploy();
-        $this->deployLibraries();
-    }
-
-    /**
-     * deploy Libraries
-     */
-    protected function deployLibraries()
-    {
-        $packages = $this->composer->getRepositoryManager()->getLocalRepository()->getPackages();
-        $autoloadDirectories = array();
-
-        $libraryPath = $this->config->getLibraryPath();
-
-        if ($libraryPath === null) {
-            $this->writeDebug('jump over deployLibraries as no Magento libraryPath is set');
-
-            return;
-        }
-
-        $vendorDir = rtrim($this->composer->getConfig()->get(self::VENDOR_DIR_KEY), '/');
-
-        $this->filesystem->removeDirectory($libraryPath);
-        $this->filesystem->ensureDirectoryExists($libraryPath);
-
-        foreach ($packages as $package) {
-            /** @var PackageInterface $package */
-            $packageConfig = $this->config->getLibraryConfigByPackagename($package->getName());
-            if ($packageConfig === null) {
-                continue;
-            }
-            if (!isset($packageConfig['autoload'])) {
-                $packageConfig['autoload'] = array('/');
-            }
-            foreach ($packageConfig['autoload'] as $path) {
-                $autoloadDirectories[] = $libraryPath . '/' . $package->getName() . "/" . $path;
-            }
-            $this->writeDebug(sprintf('Magento deployLibraries executed for %s', $package->getName()));
-
-            $libraryTargetPath = $libraryPath . '/' . $package->getName();
-            $this->filesystem->removeDirectory($libraryTargetPath);
-            $this->filesystem->ensureDirectoryExists($libraryTargetPath);
-            $this->copyRecursive($vendorDir . '/' . $package->getPrettyName(), $libraryTargetPath);
-        }
-
-        if (false !== ($executable = $this->getTheseerAutoloadExecutable())) {
-            $this->writeDebug('Magento deployLibraries executes autoload generator');
-
-            $params = $this->getTheseerAutoloadParams($libraryPath, $autoloadDirectories);
-
-            $process = new Process($executable . $params);
-            $process->run();
-        }
-    }
-
-    /**
-     * return the autoload generator binary path or false if not found
-     *
-     * @return bool|string
-     */
-    protected function getTheseerAutoloadExecutable()
-    {
-        $executable = $this->composer->getConfig()->get(self::BIN_DIR_KEY)
-            . self::THESEER_AUTOLOAD_EXEC_BIN_PATH;
-
-        if (!file_exists($executable)) {
-            $executable = $this->composer->getConfig()->get(self::VENDOR_DIR_KEY)
-                . self::THESEER_AUTOLOAD_EXEC_REL_PATH;
-        }
-
-        if (!file_exists($executable)) {
-            $this->writeDebug(
-                'Magento deployLibraries autoload generator not available, you should require "theseer/autoload"',
-                $executable
-            );
-
-            return false;
-        }
-
-        return $executable;
-    }
-
-    /**
-     * get Theseer Autoload Generator Params
-     *
-     * @param string $libraryPath
-     * @param array  $autoloadDirectories
-     *
-     * @return string
-     */
-    protected function getTheseerAutoloadParams($libraryPath, $autoloadDirectories)
-    {
-        return " -o {$libraryPath}/autoload.php  " . implode(' ', $autoloadDirectories);
-    }
-
-    /**
-     * Copy then delete is a non-atomic version of {@link rename}.
-     *
-     * Some systems can't rename and also don't have proc_open,
-     * which requires this solution.
-     *
-     * copied from \Composer\Util\Filesystem::copyThenRemove and removed the remove part
-     *
-     * @param string $source
-     * @param string $target
-     */
-    protected function copyRecursive($source, $target)
-    {
-        $it = new RecursiveDirectoryIterator($source, RecursiveDirectoryIterator::SKIP_DOTS);
-        $ri = new RecursiveIteratorIterator($it, RecursiveIteratorIterator::SELF_FIRST);
-        $this->filesystem->ensureDirectoryExists($target);
-
-        foreach ($ri as $file) {
-            $targetPath = $target . DIRECTORY_SEPARATOR . $ri->getSubPathName();
-            if ($file->isDir()) {
-                $this->filesystem->ensureDirectoryExists($targetPath);
-            } else {
-                copy($file->getPathname(), $targetPath);
-            }
-        }
     }
 
     /**
@@ -324,14 +193,10 @@ class Plugin implements PluginInterface, EventSubscriberInterface
      *
      * @param $message
      */
-    private function writeDebug($message, $varDump = null)
+    private function writeDebug($message)
     {
         if ($this->io->isDebug()) {
             $this->io->write($message);
-
-            if (!is_null($varDump)) {
-                var_dump($varDump);
-            }
         }
     }
 
