@@ -1,97 +1,70 @@
 <?php
-
 /**
- * Composer Magento Installer
+ *
+ *
+ *
+ *
  */
 
 namespace MagentoHackathon\Composer\Magento\Command;
 
-use MagentoHackathon\Composer\Magento\Deploy\Manager\Entry;
+use MagentoHackathon\Composer\Helper;
 use MagentoHackathon\Composer\Magento\DeployManager;
+use MagentoHackathon\Composer\Magento\Factory;
+use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use Composer\Downloader\VcsDownloader;
-use MagentoHackathon\Composer\Magento\Installer;
 
-/**
- * @author Tiago Ribeiro <tiago.ribeiro@seegno.com>
- * @author Rui Marinho <rui.marinho@seegno.com>
- */
-class DeployCommand extends \Composer\Command\Command
+class DeployCommand extends Command
 {
+
     protected function configure()
     {
         $this
-            ->setName('magento-module-deploy')
-            ->setDescription('Deploy all Magento modules loaded via composer.json')
-            ->setDefinition(array(
-            // we dont need to define verbose, because composer already defined it internal
-            //new InputOption('verbose', 'v', InputOption::VALUE_NONE, 'Show modified files for each directory that contains changes.'),
-        ))
-            ->setHelp(<<<EOT
-This command deploys all magento Modules
-
-EOT
-        )
+            ->setName('deploy')
+            ->setDescription('triggers deploy of a package')
+            ->addArgument(
+                'package',
+                InputArgument::REQUIRED,
+                'the package to deploy'
+            )
         ;
     }
 
+
+
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        // init repos
-        $composer = $this->getComposer();
-        $installedRepo = $composer->getRepositoryManager()->getLocalRepository();
+        $packageName = $input->getArgument('package');
 
-        $dm = $composer->getDownloadManager();
-        $im = $composer->getInstallationManager();
-
-        /**
-         * @var $moduleInstaller \MagentoHackathon\Composer\Magento\Installer
-         */
-        $moduleInstaller = $im->getInstaller("magento-module");
-
-
-        $deployManager = new DeployManager( $this->getIO() );
-
-        $extra          = $composer->getPackage()->getExtra();
-        $sortPriority   = isset($extra['magento-deploy-sort-priority']) ? $extra['magento-deploy-sort-priority'] : array();
-        $deployManager->setSortPriority( $sortPriority );
-
-
-
-        $moduleInstaller->setDeployManager( $deployManager );
+        $composerHelper = new Helper(new \SplFileInfo(getcwd()));
+        $package = $composerHelper->getPackageByName($packageName);
+        $output->writeln('deploy '.$packageName);
+        //var_dump($package);
         
+        if ($package['type'] !== 'magento-module') {
+            $output->writeln('<error>this package is not of type "magento module"</error>');
+        } else {
+            $packageDir = $composerHelper->getVendorDirectory()->getPathname().'/'.$package['name']; // @todo not secure
+            
+            $deployStrategy = Factory::getDeployStrategyObject(
+                $composerHelper->getMagentoProjectConfig()->getDeployStrategy(),
+                $packageDir,
+                realpath($composerHelper->getMagentoProjectConfig()->getMagentoRootDir())
+            );
+            $mappingParser = Factory::getMappingParser(
+                $composerHelper->getMagentoProjectConfig(),
+                $package,
+                $packageDir
+            );
+            $deployStrategy->setMappings($mappingParser->getMappings());
 
-        foreach ($installedRepo->getPackages() as $package) {
-
-            if ($input->getOption('verbose')) {
-                $output->writeln( $package->getName() );
-                $output->writeln( $package->getType() );
-            }
-
-            if( $package->getType() != "magento-module" ){
-                continue;
-            }
-            if ($input->getOption('verbose')) {
-                $output->writeln("package {$package->getName()} recognized");
-            }
-
-            $strategy = $moduleInstaller->getDeployStrategy($package);
-            if ($input->getOption('verbose')) {
-                $output->writeln("used " . get_class($strategy) . " as deploy strategy");
-            }
-            $strategy->setMappings($moduleInstaller->getParser($package)->getMappings());
-
-            $deployManagerEntry = new Entry();
-            $deployManagerEntry->setPackageName($package->getName());
-            $deployManagerEntry->setDeployStrategy($strategy);
-            $deployManager->addPackage($deployManagerEntry);
+            $deployStrategy->deploy();
+            
             
         }
-
-        $deployManager->doDeploy();
-
-        return;
+        
     }
 }

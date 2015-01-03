@@ -13,6 +13,7 @@ matrix:
     - php: hhvm
 
 install:
+  - pecl install SPL_Types
   - curl -sS https://getcomposer.org/installer | php
   - chmod +x ./composer.phar
   - ./composer.phar --version
@@ -20,6 +21,8 @@ install:
   
 script:
   - ./vendor/bin/phpunit
+  - ./vendor/bin/phpcs --standard=PSR2 ./src/
+  - ./vendor/bin/phpcs --standard=PSR2 ./tests/MagentoHackathon
 
 notifications:
   email:

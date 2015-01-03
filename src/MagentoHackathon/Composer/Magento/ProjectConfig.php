@@ -21,12 +21,12 @@ class ProjectConfig
     const SORT_PRIORITY_KEY = 'magento-deploy-sort-priority';
 
     const MAGENTO_ROOT_DIR_KEY = 'magento-root-dir';
-    const MODMAN_ROOT_DIR_KEY = 'modman-root-dir';
 
     const MAGENTO_PROJECT_KEY = 'magento-project';
 
     const MAGENTO_DEPLOY_STRATEGY_KEY = 'magento-deploystrategy';
     const MAGENTO_DEPLOY_STRATEGY_OVERWRITE_KEY = 'magento-deploystrategy-overwrite';
+    const MAGENTO_MAP_OVERWRITE_KEY = 'magento-map-overwrite';
     const MAGENTO_DEPLOY_IGNORE_KEY = 'magento-deploy-ignore';
 
     const MAGENTO_FORCE_KEY = 'magento-force';
@@ -61,6 +61,7 @@ class ProjectConfig
      */
     protected function fetchVarFromConfigArray($array, $key, $default = null)
     {
+        $array = (array)$array;
         $result = $default;
         if (isset($array[$key])) {
             $result = $array[$key];
@@ -145,32 +146,10 @@ class ProjectConfig
     {
         return $this->hasExtraField(self::MAGENTO_ROOT_DIR_KEY);
     }
-
-    /**
-     * @return string
-     */
-    public function getModmanRootDir()
+    
+    public function getMagentoVarDir()
     {
-        return rtrim(
-            trim($this->fetchVarFromExtraConfig(self::MODMAN_ROOT_DIR_KEY)),
-            DIRECTORY_SEPARATOR
-        );
-    }
-
-    /**
-     * @param $rootDir
-     */
-    public function setModmanRootDir($rootDir)
-    {
-        $this->updateExtraConfig(self::MODMAN_ROOT_DIR_KEY, rtrim(trim($rootDir), DIRECTORY_SEPARATOR));
-    }
-
-    /**
-     * @return bool
-     */
-    public function hasModmanRootDir()
-    {
-        return $this->hasExtraField(self::MODMAN_ROOT_DIR_KEY);
+        return $this->getMagentoRootDir().'var'.DIRECTORY_SEPARATOR;
     }
 
     /**
@@ -226,6 +205,29 @@ class ProjectConfig
     }
 
     /**
+     * @param $packagename
+     *
+     * @return array
+     */
+    public function getModuleSpecificDeployIgnores($packagename)
+    {
+        $moduleSpecificDeployIgnores = array();
+        if ($this->hasMagentoDeployIgnore()) {
+            $magentoDeployIgnore = $this->getMagentoDeployIgnore();
+            if (isset($magentoDeployIgnore['*'])) {
+                $moduleSpecificDeployIgnores = $magentoDeployIgnore['*'];
+            }
+            if (isset($magentoDeployIgnore[$packagename])) {
+                $moduleSpecificDeployIgnores = array_merge(
+                    $moduleSpecificDeployIgnores,
+                    $magentoDeployIgnore[$packagename]
+                );
+            }
+        }
+        return $moduleSpecificDeployIgnores;
+    }
+
+    /**
      * @return bool
      */
     public function hasMagentoDeployIgnore()
@@ -255,6 +257,11 @@ class ProjectConfig
     public function hasMagentoForce()
     {
         return $this->hasExtraField(self::MAGENTO_FORCE_KEY);
+    }
+    
+    public function getMagentoForceByPackageName($packagename)
+    {
+        return $this->getMagentoForce();
     }
 
     /**
@@ -291,6 +298,12 @@ class ProjectConfig
         );
     }
 
+    public function getMagentoMapOverwrite()
+    {
+        return $this->transformArrayKeysToLowerCase(
+            (array)$this->fetchVarFromExtraConfig(self::MAGENTO_MAP_OVERWRITE_KEY)
+        );
+    }
     protected function hasExtraField($key)
     {
         return (bool)!is_null($this->fetchVarFromExtraConfig($key));
@@ -368,17 +381,12 @@ class ProjectConfig
     }
 
     /**
-     * @param $array
+     * @param array $array
      *
      * @return array
      */
-    public function transformArrayKeysToLowerCase($array)
+    public function transformArrayKeysToLowerCase(array $array)
     {
-        $arrayNew = array();
-        foreach ($array as $key => $value) {
-            $arrayNew[strtolower($key)] = $value;
-        }
-
-        return $arrayNew;
+        return array_change_key_case($array, CASE_LOWER);
     }
 }

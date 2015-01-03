@@ -39,27 +39,28 @@
         }
     ],
     "require":{
+        "php": ">=5.3.2",
         "eloquent/composer-config-reader": "2.*",
+        "symfony/console": "~2.5",
         "composer-plugin-api": "1.0.0"
     },
     "require-dev":{
-        "phpunit/phpunit":"*",
-        "phpunit/phpunit-mock-objects": "dev-master",
-        "squizlabs/php_codesniffer": "1.4.7",
-        "firegento/phpcs": "1.1.0",
-        "composer/composer":"*@dev",
-        "symfony/process":"*",
-        "mikey179/vfsStream":"*"
+        "ext-SPL_Types":"*",
+        "phpunit/phpunit":"~4.3",
+        "phpunit/phpunit-mock-objects": "~2.3",
+        "squizlabs/php_codesniffer": "~2.1",
+        "cotya/composer-test-framework": "dev-master",
+        "composer/composer":"1.0.*@dev",
+        "symfony/process":"~2.5",
+        "mikey179/vfsStream":"~1.4"
     },
     "suggest":{
         "theseer/autoload": "~1.14",
-        "zetacomponents/console-tools": "dev-master",
-        "colinmollenhour/modman": "*",
-        "magento-hackathon/composer-command-integrator":"*"
+        "colinmollenhour/modman": "*"
     },
     "autoload":{
         "psr-0":{
-            "MagentoHackathon\\Composer\\Magento":"src/"
+            "MagentoHackathon\\Composer":"src/"
         }
     },
     "autoload-dev":{
@@ -67,6 +68,9 @@
             "MagentoHackathon\\Composer\\Magento":"tests/"
         }
     },
+    "bin": [
+        "bin/magento-composer-installer.php"
+    ],
     "archive": {
         "exclude": [
             "vendor",
@@ -75,7 +79,7 @@
     },
     "test_version":"999.0.0",
     "extra":{
-        "composer-command-registry": [ "MagentoHackathon\\Composer\\Magento\\Command\\DeployCommand" ],
+        "composer-command-registry": [ "MagentoHackathon\\Composer\\Magento\\Command\\ComposerDeployCommand" ],
         "class":"MagentoHackathon\\Composer\\Magento\\Plugin"
     }
 }

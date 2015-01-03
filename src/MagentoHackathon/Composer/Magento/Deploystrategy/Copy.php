@@ -94,8 +94,10 @@ class Copy extends DeploystrategyAbstract
         }
         mkdir($destPath, 0777, true);
 
-        $iterator = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($sourcePath),
-            \RecursiveIteratorIterator::SELF_FIRST);
+        $iterator = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($sourcePath),
+            \RecursiveIteratorIterator::SELF_FIRST
+        );
 
         foreach ($iterator as $item) {
             $subDestPath = $destPath . '/' . $iterator->getSubPathName();
@@ -105,6 +107,7 @@ class Copy extends DeploystrategyAbstract
                 }
             } else {
                 copy($item, $subDestPath);
+                $this->addDeployedFile($subDestPath);
             }
             if (!is_readable($subDestPath)) {
                 throw new \ErrorException("Could not create $subDestPath");

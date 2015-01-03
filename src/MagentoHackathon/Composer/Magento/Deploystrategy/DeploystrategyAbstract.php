@@ -5,6 +5,8 @@
 
 namespace MagentoHackathon\Composer\Magento\Deploystrategy;
 
+use Composer\Util\Filesystem;
+
 /**
  * Abstract deploy strategy
  */
@@ -54,6 +56,27 @@ abstract class DeploystrategyAbstract
     protected $isForced = false;
 
     /**
+     * List of files/folders which were
+     * created via any of the deploy methods
+     *
+     * @var array
+     */
+    protected $deployedFiles = array();
+
+    /**
+     * List of files/folders which were
+     * remove via this remove operation
+     *
+     * @var array
+     */
+    protected $removedFiles = array();
+
+    /**
+     * @var Filesystem
+     */
+    protected $filesystem;
+
+    /**
      * Constructor
      *
      * @param string $sourceDir
@@ -61,8 +84,9 @@ abstract class DeploystrategyAbstract
      */
     public function __construct($sourceDir, $destDir)
     {
-        $this->destDir = $destDir;
-        $this->sourceDir = $sourceDir;
+        $this->destDir      = $destDir;
+        $this->sourceDir    = $sourceDir;
+        $this->filesystem   = new Filesystem;
     }
 
     /**
@@ -267,9 +291,31 @@ abstract class DeploystrategyAbstract
         $this->mappings[] = array($key, $value);
     }
 
+    /**
+     * @param string $path
+     * @return string
+     */
+    protected function removeLeadingSlash($path)
+    {
+        return ltrim($path, '\\/');
+    }
+
+    /**
+     * @param string $path
+     * @return string
+     */
     protected function removeTrailingSlash($path)
     {
         return rtrim($path, '\\/');
+    }
+
+    /**
+     * @param string $path
+     * @return string
+     */
+    protected function removeLeadingAndTrailingSlash($path)
+    {
+        return trim($path, '\\/');
     }
 
     /**
@@ -289,8 +335,8 @@ abstract class DeploystrategyAbstract
             return;
         }
 
-        $sourcePath = $this->getSourceDir() . '/' . $this->removeTrailingSlash($source);
-        $destPath = $this->getDestDir() . '/' . $dest;
+        $sourcePath = $this->getSourceDir() . '/' . $this->removeLeadingSlash($source);
+        $destPath = $this->getDestDir() . '/' . $this->removeLeadingSlash($dest);
 
         /* List of possible cases, keep around for now, might come in handy again
 
@@ -326,9 +372,12 @@ abstract class DeploystrategyAbstract
             $matches = glob($sourcePath);
             if ($matches) {
                 foreach ($matches as $match) {
-                    $newDest = substr($destPath . '/' . basename($match), strlen($this->getDestDir()));
-                    $newDest = ltrim($newDest, ' \\/');
-                    $this->create(substr($match, strlen($this->getSourceDir()) + 1), $newDest);
+                    $absolutePath           = sprintf('%s/%s', $this->removeTrailingSlash($destPath), basename($match));
+                    $relativeDestination    = substr($absolutePath, strlen($this->getDestDir())); //strip off dest dir
+                    $relativeDestination    = $this->removeLeadingSlash($relativeDestination);
+                    $relativeSource         = substr($match, strlen($this->getSourceDir()) + 1);
+
+                    $this->create($relativeSource, $relativeDestination);
                 }
                 return true;
             }
@@ -349,8 +398,8 @@ abstract class DeploystrategyAbstract
      */
     public function remove($source, $dest)
     {
-        $sourcePath = $this->getSourceDir() . '/' . $this->removeTrailingSlash($source);
-        $destPath = $this->getDestDir() . '/' . $dest;
+        $sourcePath = $this->getSourceDir() . '/' . ltrim($this->removeTrailingSlash($source), '\\/');
+        $destPath = $this->getDestDir() . '/' . ltrim($dest, '\\/');
 
         // If source doesn't exist, check if it's a glob expression, otherwise we have nothing we can do
         if (!file_exists($sourcePath)) {
@@ -370,11 +419,13 @@ abstract class DeploystrategyAbstract
         }
 
         // MP Avoid removing whole folders in case the modman file is not 100% well-written
-        // e.g. app/etc/modules/Testmodule.xml  app/etc/modules/ installs correctly, but would otherwise delete the whole app/etc/modules folder!
+        // e.g. app/etc/modules/Testmodule.xml  app/etc/modules/ installs correctly,
+        // but would otherwise delete the whole app/etc/modules folder!
         if (basename($sourcePath) !== basename($destPath)) {
             $destPath .= '/' . basename($source);
         }
-        self::rmdirRecursive($destPath);
+        $this->filesystem->remove($destPath);
+        $this->addRemovedFile($destPath);
     }
 
     /**
@@ -388,19 +439,15 @@ abstract class DeploystrategyAbstract
         $absoluteDir = $this->getDestDir() . '/' . $dir;
         if (is_dir($absoluteDir)) {
             $iterator = new \RecursiveIteratorIterator(
-                new \RecursiveDirectoryIterator($absoluteDir),
+                new \RecursiveDirectoryIterator($absoluteDir, \RecursiveDirectoryIterator::SKIP_DOTS),
                 \RecursiveIteratorIterator::CHILD_FIRST
             );
 
-            foreach ($iterator as $item) {
-                /** @var SplFileInfo $item */
-                $path = (string)$item;
-                if (!strcmp($item->getFilename(), '.') || !strcmp($item->getFilename(), '..')) {
-                    continue;
-                }
+            if (iterator_count($iterator) > 0) {
                 // The directory contains something, do not remove
                 return;
             }
+
             // RecursiveIteratorIterator have opened handle on $absoluteDir
             // that cause Windows to block the directory and not remove it until
             // the iterator will be destroyed.
@@ -420,24 +467,6 @@ abstract class DeploystrategyAbstract
     }
 
     /**
-     * Recursively removes the specified directory or file
-     *
-     * @param $dir
-     */
-    public static function rmdirRecursive($dir)
-    {
-        $fs = new \Composer\Util\Filesystem();
-        if(is_dir($dir)){
-            $result = $fs->removeDirectory($dir);
-        }else{
-            @unlink($dir);
-        }
-
-        return;
-    }
-
-
-    /**
      * Create the module's files in the given destination.
      *
      * NOTE: source and dest have to be passed as relative directories, like they are listed in the mapping
@@ -449,4 +478,45 @@ abstract class DeploystrategyAbstract
      */
     abstract protected function createDelegate($source, $dest);
 
+    /**
+     * Add a file/folder to the list of deployed files
+     * @param string $file
+     */
+    public function addDeployedFile($file)
+    {
+        //strip of destination deploy location
+        $file = preg_replace(sprintf('/^%s/', preg_quote($this->getDestDir(), '/')), '', $file);
+        $this->deployedFiles[] = $file;
+    }
+
+    /**
+     * Add a file/folder to the list of removed files
+     * @param string $file
+     */
+    public function addRemovedFile($file)
+    {
+        //strip of destination deploy location
+        $file = preg_replace(sprintf('/^%s/', preg_quote($this->getDestDir(), '/')), '', $file);
+        $this->removedFiles[] = $file;
+    }
+
+    /**
+     * Get all the deployed files
+     *
+     * @return array
+     */
+    public function getDeployedFiles()
+    {
+        return $this->deployedFiles;
+    }
+
+    /**
+     * Get all the removed files
+     *
+     * @return array
+     */
+    public function getRemovedFiles()
+    {
+        return $this->removedFiles;
+    }
 }

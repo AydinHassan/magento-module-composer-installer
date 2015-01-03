@@ -1,7 +1,9 @@
 <?php
 namespace MagentoHackathon\Composer\Magento\Deploystrategy;
 
-if (! defined('DS')) define('DS', DIRECTORY_SEPARATOR);
+if (! defined('DS')) {
+    define('DS', DIRECTORY_SEPARATOR);
+}
 
 abstract class AbstractTest extends \PHPUnit_Framework_TestCase
 {
@@ -33,14 +35,14 @@ abstract class AbstractTest extends \PHPUnit_Framework_TestCase
      * @param string $dest
      * @return DeploystrategyAbstract
      */
-    abstract function getTestDeployStrategy($src, $dest);
+    abstract public function getTestDeployStrategy($src, $dest);
 
     /**
      * @abstract
      * @param bool $isDir
      * @return string
      */
-    abstract function getTestDeployStrategyFiletype($isDir = false);
+    abstract public function getTestDeployStrategyFiletype($isDir = false);
 
     /**
      * Sets up the fixture, for example, opens a network connection.
@@ -104,7 +106,7 @@ abstract class AbstractTest extends \PHPUnit_Framework_TestCase
                 $realType = 'unknown';
             }
             throw new \PHPUnit_Framework_AssertionFailedError(
-              "Failed to assert that the $file is of type $type, found type $realType instead."
+                "Failed to assert that the $file is of type $type, found type $realType instead."
             );
         }
     }
@@ -408,5 +410,32 @@ abstract class AbstractTest extends \PHPUnit_Framework_TestCase
             $this->assertFileExists($testTargetContent);
             $this->assertFileType($testTargetContent, self::TEST_FILETYPE_FILE);
         }
+    }
+
+    public function testCleanStoresAllRemovedFiles()
+    {
+        $directory  = '/app/code/Vendor/Module';
+        $file1      = $directory . '/file1.txt';
+        $file2      = $directory . '/file2.txt';
+        $this->mkdir($this->sourceDir . $directory);
+        touch($this->sourceDir . $file1);
+        touch($this->sourceDir . $file2);
+        $this->strategy->setMappings(array(array($file1, $file1), array($file2, $file2)));
+
+        $this->strategy->deploy();
+
+        $this->assertFileExists($this->destDir . $file1);
+        $this->assertFileExists($this->destDir . $file2);
+
+        $this->strategy->clean();
+
+        $this->assertFileNotExists($this->destDir . $file1);
+        $this->assertFileNotExists($this->destDir . $file2);
+        $this->assertFileNotExists($this->destDir . $directory);
+
+        $this->assertEquals(
+            array($file1, $file2),
+            $this->strategy->getRemovedFiles()
+        );
     }
 }

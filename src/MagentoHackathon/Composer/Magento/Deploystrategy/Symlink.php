@@ -72,7 +72,7 @@ class Symlink extends DeploystrategyAbstract
         if (file_exists($destPath) && is_dir($destPath)) {
             if (basename($sourcePath) === basename($destPath)) {
                 if ($this->isForced()) {
-                    $this->rmdirRecursive($destPath);
+                    $this->filesystem->remove($destPath);
                 } else {
                     throw new \ErrorException("Target $dest already exists (set extra.magento-force to override)");
                 }
@@ -90,26 +90,29 @@ class Symlink extends DeploystrategyAbstract
             if ($this->isForced()) {
                 unlink($destPath);
             } else {
-                throw new \ErrorException("Target $dest already exists and is not a symlink (set extra.magento-force to override)");
+                throw new \ErrorException(
+                    "Target $dest already exists and is not a symlink (set extra.magento-force to override)"
+                );
             }
         }
 
         $relSourcePath = $this->getRelativePath($destPath, $sourcePath);
 
         // Create symlink
-        if (false === $this->_symlink($relSourcePath, $destPath, $sourcePath)) {
+        if (false === $this->symlink($relSourcePath, $destPath, $sourcePath)) {
             throw new \ErrorException("An error occured while creating symlink" . $relSourcePath);
         }
 
         // Check we where able to create the symlink
-        if (false === $destPath = @readlink($destPath)) {
-            throw new \ErrorException("Symlink $destPath points to target $destPath");
-        }
+//        if (false === $destPath = @readlink($destPath)) {
+//            throw new \ErrorException("Symlink $destPath points to target $destPath");
+//        }
+        $this->addDeployedFile($destPath);
 
         return true;
     }
 
-    protected function _symlink($relSourcePath, $destPath, $absSourcePath)
+    protected function symlink($relSourcePath, $destPath, $absSourcePath)
     {
         if (strtoupper(substr(PHP_OS, 0, 3)) == 'WIN') {
             $relSourcePath = str_replace('/', '\\', $relSourcePath);
