@@ -53,6 +53,14 @@ class InstalledPackage
     }
 
     /**
+     * @return string
+     */
+    public function getUniqueName()
+    {
+        return sprintf('%s-%s', $this->getName(), $this->getVersion());
+    }
+
+    /**
      * @return array
      */
     public function getInstalledFiles()

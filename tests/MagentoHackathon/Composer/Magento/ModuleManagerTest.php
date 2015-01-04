@@ -2,7 +2,10 @@
 
 namespace MagentoHackathon\Composer\Magento;
 use Composer\Package\Package;
+use MagentoHackathon\Composer\Magento\Deploystrategy\None;
 use MagentoHackathon\Composer\Magento\Event\EventManager;
+use MagentoHackathon\Composer\Magento\Factory\InstallStrategyFactory;
+use MagentoHackathon\Composer\Magento\Factory\ParserFactory;
 use MagentoHackathon\Composer\Magento\Repository\InstalledPackageFileSystemRepository;
 use org\bovigo\vfs\vfsStream;
 
@@ -15,6 +18,8 @@ class ModuleManagerTest extends \PHPUnit_Framework_TestCase
 {
     protected $moduleManager;
     protected $installedPackageRepository;
+    protected $unInstallStrategy;
+    protected $installStrategyFactory;
 
     public function setUp()
     {
@@ -24,7 +29,24 @@ class ModuleManagerTest extends \PHPUnit_Framework_TestCase
             new InstalledPackageDumper()
         );
 
-        $this->moduleManager = new ModuleManager($this->installedPackageRepository, new EventManager);
+        $config = new ProjectConfig(array(), array('vendor-dir' => 'vendor'));
+        $this->unInstallStrategy =
+            $this->getMock('MagentoHackathon\Composer\Magento\UnInstallStrategy\UnInstallStrategyInterface');
+
+        $parserFactory = $this->getMock('MagentoHackathon\Composer\Magento\Factory\ParserFactoryInterface');
+        $parserFactory
+            ->expects($this->any())
+            ->method('make')
+            ->will($this->returnValue(new None('src', 'dest')));
+
+        $this->installStrategyFactory = new InstallStrategyFactory($config, $parserFactory);
+        $this->moduleManager = new ModuleManager(
+            $this->installedPackageRepository,
+            new EventManager,
+            $config,
+            $this->unInstallStrategy,
+            $this->installStrategyFactory
+        );
     }
 
     public function testPackagesRemovedFromComposerAreMarkedForUninstall()
@@ -44,7 +66,7 @@ class ModuleManagerTest extends \PHPUnit_Framework_TestCase
         $result = $this->moduleManager->updateInstalledPackages($composerInstalledPackages);
 
         $this->assertEmpty($result[1]);
-        $this->assertSame(array($installedMagentoPackages[1]), $result[0]);
+        $this->assertSame(array($installedMagentoPackages[1]), array_values($result[0]));
     }
 
     public function testPackagesNotInstalledAreMarkedForInstall()

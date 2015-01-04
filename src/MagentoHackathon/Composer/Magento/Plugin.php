@@ -118,7 +118,7 @@ class Plugin implements PluginInterface, EventSubscriberInterface
         $this->composer = $composer;
 
         $this->filesystem = new Filesystem();
-        $this->config = new ProjectConfig($composer->getPackage()->getExtra());
+        $this->config = new ProjectConfig($composer->getPackage()->getExtra(), $composer->getConfig()->all());
 
         $this->entryFactory = new EntryFactory(
             $this->config,

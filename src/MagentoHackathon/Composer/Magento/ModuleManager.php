@@ -4,28 +4,61 @@ namespace MagentoHackathon\Composer\Magento;
 
 use Composer\Package\PackageInterface;
 use MagentoHackathon\Composer\Magento\Event\EventManager;
+use MagentoHackathon\Composer\Magento\Factory\InstallStrategyFactory;
 use MagentoHackathon\Composer\Magento\Repository\InstalledPackageRepositoryInterface;
+use MagentoHackathon\Composer\Magento\UnInstallStrategy\UnInstallStrategyInterface;
 
+/**
+ * Class ModuleManager
+ * @package MagentoHackathon\Composer\Magento
+ * @author  Aydin Hassan <aydin@hotmail.co.uk>
+ */
 class ModuleManager
 {
+    /**
+     * @var InstalledPackageRepositoryInterface
+     */
     protected $installedPackageRepository;
 
+    /**
+     * @var EventManager
+     */
     protected $eventManager;
 
-    protected $packageRemover;
+    /**
+     * @var ProjectConfig
+     */
+    protected $config;
 
+    /**
+     * @var UnInstallStrategyInterface
+     */
+    protected $unInstallStrategy;
+
+    /**
+     * @var InstallStrategyFactory
+     */
     protected $installStrategyFactory;
 
+    /**
+     * @param InstalledPackageRepositoryInterface $installedRepository
+     * @param EventManager $eventManager
+     * @param ProjectConfig $config
+     * @param UnInstallStrategyInterface $unInstallStrategy
+     * @param InstallStrategyFactory $installStrategyFactory
+     */
     public function __construct(
         InstalledPackageRepositoryInterface $installedRepository,
-        EventManager $eventManager
-        //UnInstallStrategy $unInstallStrategy,
-        //InstallStrategyFactory $installStrategyFactory
+        EventManager $eventManager,
+        ProjectConfig $config,
+        UnInstallStrategyInterface $unInstallStrategy,
+        InstallStrategyFactory $installStrategyFactory
     ) {
         $this->installedPackageRepository = $installedRepository;
         $this->eventManager = $eventManager;
-        //$this->unInstallStrategy = $unInstallStrategy;
-        //$this->installStrategyFactory = $installStrategyFactory;
+        $this->config = $config;
+        $this->unInstallStrategy = $unInstallStrategy;
+        $this->installStrategyFactory = $installStrategyFactory;
     }
 
     /**
@@ -38,11 +71,22 @@ class ModuleManager
         $packagesToInstall  = $this->getInstalls($currentComposerInstalledPackages);
 
         foreach ($packagesToRemove as $remove) {
-            $this->unInstallStrategy->unInstall($remove);
+            $this->unInstallStrategy->unInstall($remove->getInstalledFiles());
+            $this->installedPackageRepository->remove($remove);
         }
 
         foreach ($packagesToInstall as $install) {
-            $this->installStrategyFactory->make($install)->deploy();
+            $installStrategy = $this->installStrategyFactory->make(
+                $install,
+                $this->getPackageSourceDirectory($install)
+            );
+
+            $files = $installStrategy->deploy()->getDeployedFiles();
+            $this->installedPackageRepository->add(new InstalledPackage(
+                $install->getName(),
+                $install->getVersion(),
+                $files
+            ));
         }
 
         return array(
@@ -57,39 +101,20 @@ class ModuleManager
      */
     public function getRemoves(array $currentComposerInstalledPackages)
     {
-        $packagesToRemove = array();
-        foreach ($this->installedPackageRepository->findAll() as $key => $package) {
-            if ($this->shouldPackageBeRemoved($package, $currentComposerInstalledPackages)) {
-                $packagesToRemove[] = $package;
-            }
-        }
-        return $packagesToRemove;
-    }
+        //make the package names as the array keys
+        $currentComposerInstalledPackages = array_combine(array_map(function (PackageInterface $package) {
+            return $package->getPrettyName();
+        }, $currentComposerInstalledPackages), $currentComposerInstalledPackages);
 
-    /**
-     * @param InstalledPackage $package
-     * @param PackageInterface[] $currentComposerInstalledPackages
-     * @return bool
-     */
-    private function shouldPackageBeRemoved(InstalledPackage $package, array $currentComposerInstalledPackages)
-    {
-        foreach ($currentComposerInstalledPackages as $installedPackage) {
-            if ($this->isPackageIdentical($package, $installedPackage)) {
-                return false;
+        $packages = $this->installedPackageRepository->findAll();
+        return array_filter($packages, function (InstalledPackage $package) use ($currentComposerInstalledPackages) {
+            if (!isset($currentComposerInstalledPackages[$package->getName()])) {
+                return true;
             }
-        }
-        return true;
-    }
 
-    /**
-     * @param InstalledPackage $installedPackage
-     * @param PackageInterface $composerPackage
-     * @return bool
-     */
-    private function isPackageIdentical(InstalledPackage $installedPackage, PackageInterface $composerPackage)
-    {
-        return $installedPackage->getName() === $composerPackage->getName()
-        && $installedPackage->getVersion() === $composerPackage->getVersion();
+            $composerPackage = $currentComposerInstalledPackages[$package->getName()];
+            return $package->getUniqueName() !== $composerPackage->getUniqueName();
+        });
     }
 
     /**
@@ -98,12 +123,25 @@ class ModuleManager
      */
     public function getInstalls(array $currentComposerInstalledPackages)
     {
-        $packagesToInstall = array();
-        foreach ($currentComposerInstalledPackages as $package) {
-            if (!$this->installedPackageRepository->has($package->getName(), $package->getVersion())) {
-                $packagesToInstall[] = $package;
-            }
+        $repo = $this->installedPackageRepository;
+        return array_filter($currentComposerInstalledPackages, function(PackageInterface $package) use ($repo) {
+            return !$repo->has($package->getName(), $package->getVersion());
+        });
+    }
+
+    /**
+     * @param PackageInterface $package
+     * @return string
+     */
+    private function getPackageSourceDirectory(PackageInterface $package)
+    {
+        $path = sprintf("%s/%s", $this->config->getVendorDir(), $package->getPrettyName());
+        $targetDir = $package->getTargetDir();
+
+        if ($targetDir) {
+            $path = sprintf("%s/%s", $path, $targetDir);
         }
-        return $packagesToInstall;
+
+        return $path;
     }
 }

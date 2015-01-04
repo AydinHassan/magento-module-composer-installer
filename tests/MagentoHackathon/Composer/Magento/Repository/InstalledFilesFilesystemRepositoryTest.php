@@ -72,6 +72,7 @@ class InstalledFilesFilesystemRepositoryTest extends \PHPUnit_Framework_TestCase
 
         $data = array(array(
             'packageName' => 'some-package',
+            'version' => '1.0.0',
             'installedFiles' => $files,
         ));
         file_put_contents($this->filePath, json_encode($data));
@@ -85,7 +86,7 @@ class InstalledFilesFilesystemRepositoryTest extends \PHPUnit_Framework_TestCase
     {
         $this->setExpectedException('Exception', 'Package: "some-package" is already installed');
 
-        $package = new InstalledPackage('some-package', array());
+        $package = new InstalledPackage('some-package', '1.0.0', array());
         $this->repository->add($package);
         $this->repository->add($package);
     }
@@ -100,9 +101,10 @@ class InstalledFilesFilesystemRepositoryTest extends \PHPUnit_Framework_TestCase
 
         $expected = array(array(
             'packageName' => 'some-package',
+            'version' => '1.0.0',
             'installedFiles' => $files,
         ));
-        $package = new InstalledPackage('some-package', $files);
+        $package = new InstalledPackage('some-package', '1.0.0', $files);
         $this->repository->add($package);
         unset($this->repository);
         $this->assertEquals($expected, json_decode(file_get_contents($this->filePath), true));
@@ -111,12 +113,12 @@ class InstalledFilesFilesystemRepositoryTest extends \PHPUnit_Framework_TestCase
     public function testExceptionIsThrownIfRemovingMappingsWhichDoNotExist()
     {
         $this->setExpectedException('Exception', 'Package: "some-package" not found');
-        $this->repository->remove(new InstalledPackage('some-package', array()));
+        $this->repository->remove(new InstalledPackage('some-package', '1.0.0', array()));
     }
 
     public function testCanSuccessfullyRemovePackageMappings()
     {
-        $package = new InstalledPackage('some-package', array());
+        $package = new InstalledPackage('some-package', '1.0.0', array());
         $this->repository->add($package);
         $this->repository->remove($package);
     }
@@ -145,7 +147,7 @@ class InstalledFilesFilesystemRepositoryTest extends \PHPUnit_Framework_TestCase
     public function testFindAllPackages()
     {
         $this->assertEmpty($this->repository->findAll());
-        $package = new InstalledPackage('some-package', array());
+        $package = new InstalledPackage('some-package', '1.0.0', array());
         $this->repository->add($package);
         $this->assertCount(1, $this->repository->findAll());
         $this->assertSame(array($package), $this->repository->findAll());
