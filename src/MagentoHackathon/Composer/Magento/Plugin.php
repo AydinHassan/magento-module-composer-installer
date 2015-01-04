@@ -32,6 +32,10 @@ use Symfony\Component\Process\Process;
 
 class Plugin implements PluginInterface, EventSubscriberInterface
 {
+    /**
+     * The type of packages this plugin supports
+     */
+    const PACKAGE_TYPE = 'magento-module';
 
     /**
      * @var IOInterface
@@ -164,6 +168,14 @@ class Plugin implements PluginInterface, EventSubscriberInterface
      */
     public function onNewCodeEvent(CommandEvent $event)
     {
+
+        $magentoModules = array_map(function(PackageInterface $package) {
+            return $package->getType() === static::PACKAGE_TYPE;
+        }, $this->composer->getRepositoryManager()->getLocalRepository()->getPackages());
+
+
+
+
         $this->writeDebug('iterate over packages to find missing ones');
         $addedPackageNames = array();
         foreach ($this->deployManager->getEntries() as $entry) {
