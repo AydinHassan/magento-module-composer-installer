@@ -33,6 +33,11 @@ final class GlobExpander
      */
     public function __construct($source, $destination, array $mappings)
     {
+        //enforce type safety - each record should be an array
+        array_map(function (array $map) {
+        }, $mappings);
+
+
         $this->source = $source;
         $this->destination = $destination;
         $this->mappings = $mappings;
