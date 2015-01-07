@@ -4,6 +4,8 @@ namespace MagentoHackathon\Composer\Magento;
 
 use Composer\Package\PackageInterface;
 use MagentoHackathon\Composer\Magento\Event\EventManager;
+use MagentoHackathon\Composer\Magento\Event\PackageDeployEvent;
+use MagentoHackathon\Composer\Magento\Event\PackageUnInstallEvent;
 use MagentoHackathon\Composer\Magento\Factory\InstallStrategyFactory;
 use MagentoHackathon\Composer\Magento\Repository\InstalledPackageRepositoryInterface;
 use MagentoHackathon\Composer\Magento\UnInstallStrategy\UnInstallStrategyInterface;
@@ -67,13 +69,17 @@ class ModuleManager
      */
     public function updateInstalledPackages(array $currentComposerInstalledPackages)
     {
-        $packagesToRemove   = $this->getRemoves($currentComposerInstalledPackages);
+        $packagesToRemove = $this->getRemoves(
+            $currentComposerInstalledPackages,
+            $this->installedPackageRepository->findAll()
+        );
+
         $packagesToInstall  = $this->getInstalls($currentComposerInstalledPackages);
 
-        foreach ($packagesToRemove as $remove) {
-            $this->unInstallStrategy->unInstall($remove->getInstalledFiles());
-            $this->installedPackageRepository->remove($remove);
-        }
+        $this->doRemoves($packagesToRemove);
+        //$this->doInstalls($packagesToInstall);
+
+
 
         foreach ($packagesToInstall as $install) {
             $installStrategy = $this->installStrategyFactory->make(
@@ -96,25 +102,47 @@ class ModuleManager
     }
 
     /**
+     * @param array $packagesToRemove
+     */
+    public function doRemoves(array $packagesToRemove)
+    {
+        foreach ($packagesToRemove as $remove) {
+            //$this->eventManager->dispatch(new PackageUnInstallEvent('pre-package-uninstall', $remove));
+            $this->unInstallStrategy->unInstall($remove->getInstalledFiles());
+            //$this->eventManager->dispatch(new PackageUnInstallEvent('post-package-uninstall', $remove));
+            $this->installedPackageRepository->remove($remove);
+        }
+    }
+
+    /**
      * @param PackageInterface[] $currentComposerInstalledPackages
+     * @param InstalledPackage[] $magentoInstalledPackages
      * @return InstalledPackage[]
      */
-    public function getRemoves(array $currentComposerInstalledPackages)
+    public function getRemoves(array $currentComposerInstalledPackages, array $magentoInstalledPackages)
     {
         //make the package names as the array keys
-        $currentComposerInstalledPackages = array_combine(array_map(function (PackageInterface $package) {
-            return $package->getPrettyName();
-        }, $currentComposerInstalledPackages), $currentComposerInstalledPackages);
+        $currentComposerInstalledPackages = array_combine(
+            array_map(
+                function (PackageInterface $package) {
+                    return $package->getPrettyName();
+                },
+                $currentComposerInstalledPackages
+            ),
+            $currentComposerInstalledPackages
+        );
 
-        $packages = $this->installedPackageRepository->findAll();
-        return array_filter($packages, function (InstalledPackage $package) use ($currentComposerInstalledPackages) {
-            if (!isset($currentComposerInstalledPackages[$package->getName()])) {
-                return true;
+        return array_filter(
+            $magentoInstalledPackages,
+            function (InstalledPackage $package) use ($currentComposerInstalledPackages) {
+                if (!isset($currentComposerInstalledPackages[$package->getName()])) {
+                    return true;
+                }
+
+                $composerPackage = $currentComposerInstalledPackages[$package->getName()];
+                return $package->getUniqueName() !== $composerPackage->getUniqueName();
             }
-
-            $composerPackage = $currentComposerInstalledPackages[$package->getName()];
-            return $package->getUniqueName() !== $composerPackage->getUniqueName();
-        });
+        );
     }
 
     /**
