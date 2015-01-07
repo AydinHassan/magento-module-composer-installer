@@ -52,19 +52,22 @@ class CopyTest extends AbstractTest
 
     public function testWildcardCopyToExistingDir()
     {
-        $sourceContents = "app/code/test.php";
+        $file1 = "app/code/test.php";
         
         //create target directory before
-        $this->mkdir($this->destDir . DS . 'app' . DS . 'code');
+        $this->mkdir(sprintf('%s/app/code', $this->destDir));
+        $this->mkdir(sprintf('%s/app/code', $this->sourceDir));
 
-        $this->mkdir($this->sourceDir . DS . dirname($sourceContents));
-        touch($this->sourceDir . DS . $sourceContents);
+        touch(sprintf('%s/%s', $this->sourceDir, $file1));
 
-        $dest = "dest/root";
-        $this->mkdir($this->destDir . DS . $dest);
+        $this->mkdir(sprintf('%s/dest/dir', $this->destDir));
+        $testTarget = sprintf('%s/%s', $this->destDir, $file1);
 
-        $testTarget = $this->destDir . DS . $sourceContents;
-        $this->strategy->setMappings(array(array('*', '/')));
+        $globExpander = new GlobExpander($this->sourceDir, $this->destDir, array(array('*', '/')));
+
+        //$this->strategy->setMappings($mappings);
+        //$this->strategy->setMappings(array(array('*', '/')));
+        $this->strategy->setMappings($globExpander->expand());
 
         $this->strategy->deploy();
         $this->assertFileExists($testTarget);
@@ -72,8 +75,7 @@ class CopyTest extends AbstractTest
         $this->strategy->setIsForced(true);
         $this->strategy->deploy();
 
-        $this->assertFileNotExists($this->destDir . DS . 'app' . DS . 'app' . DS . 'code' . DS . 'test.php');
-        
+        $this->assertFileNotExists(sprintf('%s/app/app/code/test.php', $this->destDir));
     }
 
     public function testDeployedFilesAreStored()

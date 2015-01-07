@@ -59,7 +59,29 @@ class GlobExpanderTest extends \PHPUnit_Framework_TestCase
             array('directory/2.txt', 'dir'),
         );
 
-        $this->assertSame($expected, $globExpander->getMappings());
+        $this->assertSame($expected, $globExpander->expand());
+    }
+
+    public function testIfGlobIsDirectoryDirectoryIsAddedToDestination()
+    {
+        mkdir(sprintf('%s/source/app/code', $this->root), 0777, true);
+        touch(sprintf('%s/source/app/code/test.php', $this->root));
+
+        $mappings = array(
+            array('*', '')
+        );
+
+        $globExpander = new GlobExpander(
+            sprintf('%s/source', $this->root),
+            sprintf('%s/destination', $this->root),
+            $mappings
+        );
+
+        $expected = array(
+            array('app', 'app'),
+        );
+
+        $this->assertSame($expected, $globExpander->expand());
     }
 
     public function tearDown()

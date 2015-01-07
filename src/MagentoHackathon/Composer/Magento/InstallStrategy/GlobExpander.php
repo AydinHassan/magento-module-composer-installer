@@ -72,6 +72,11 @@ final class GlobExpander
             foreach ($iterator as $file) {
                 $absolutePath = $file->getPathname();
                 $relativePath = substr($absolutePath, strlen($this->source) + 1); // +1 to strip leading slash
+
+                if ($file->isDir()) {
+                    $relativeDestination = ltrim(sprintf('%s/%s', $relativeDestination, $relativePath), '\\/');
+                }
+
                 $mappings[] = array($relativePath, $relativeDestination);
             }
         }
