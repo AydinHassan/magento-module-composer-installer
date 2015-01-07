@@ -52,10 +52,8 @@ final class GlobExpander
         $mappings = array();
         foreach ($this->mappings as $mapping) {
             $relativeSource         = ltrim($mapping[0], '\\/');
-            $relativeDestination    = ltrim($mapping[1], '\\/');
-
+            $relativeDestination    = trim($mapping[1], '\\/');
             $absoluteSource         = sprintf('%s/%s', $this->source, $relativeSource);
-            $absoluteDestination    = sprintf('%s/%s', $this->destination, $relativeDestination);
 
             if (file_exists($absoluteSource)) {
                 //file is a file, we don't care about this
@@ -75,17 +73,32 @@ final class GlobExpander
 
             //add each glob as a separate mapping
             foreach ($iterator as $file) {
-                $absolutePath = $file->getPathname();
-                $relativePath = substr($absolutePath, strlen($this->source) + 1); // +1 to strip leading slash
-
-                if ($file->isDir()) {
-                    $relativeDestination = ltrim(sprintf('%s/%s', $relativeDestination, $relativePath), '\\/');
-                }
-
-                $mappings[] = array($relativePath, $relativeDestination);
+                $mappings[] = $this->processMapping($file, $relativeDestination);
             }
         }
 
         return $mappings;
+    }
+
+    /**
+     * @param \SplFileInfo $globMatch
+     * @param string $relativeDestination
+     * @return array
+     */
+    protected function processMapping(\SplFileInfo $globMatch, $relativeDestination)
+    {
+        $absolutePath = $globMatch->getPathname();
+
+        //get the relative path to this file/dir - strip of the source path
+        //+1 to strip leading slash
+        $source = substr($absolutePath, strlen($this->source) + 1);
+
+        if ($globMatch->isDir()) {
+            $destination = ltrim(sprintf('%s/%s', $relativeDestination, $source), '\\/');
+        } else {
+            $destination = ltrim(sprintf('%s/%s', $relativeDestination, $globMatch->getFilename()), '\\/');
+        }
+
+        return array($source, $destination);
     }
 }

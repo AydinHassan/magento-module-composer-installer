@@ -53,10 +53,10 @@ class GlobExpanderTest extends \PHPUnit_Framework_TestCase
         );
 
         $expected = array(
-            array('1.php', ''),
-            array('2.php', ''),
-            array('directory/1.txt', 'dir'),
-            array('directory/2.txt', 'dir'),
+            array('1.php', '1.php'),
+            array('2.php', '2.php'),
+            array('directory/1.txt', 'dir/1.txt'),
+            array('directory/2.txt', 'dir/2.txt'),
         );
 
         $this->assertSame($expected, $globExpander->expand());
@@ -65,6 +65,7 @@ class GlobExpanderTest extends \PHPUnit_Framework_TestCase
     public function testIfGlobIsDirectoryDirectoryIsAddedToDestination()
     {
         mkdir(sprintf('%s/source/app/code', $this->root), 0777, true);
+        mkdir(sprintf('%s/destination', $this->root));
         touch(sprintf('%s/source/app/code/test.php', $this->root));
 
         $mappings = array(
@@ -79,6 +80,30 @@ class GlobExpanderTest extends \PHPUnit_Framework_TestCase
 
         $expected = array(
             array('app', 'app'),
+        );
+
+        $this->assertSame($expected, $globExpander->expand());
+    }
+
+    public function testFileDestinationIncludesFileName()
+    {
+        mkdir(sprintf('%s/source/sourcedir', $this->root), 0777, true);
+        touch(sprintf('%s/source/sourcedir/test1.xml', $this->root));
+        touch(sprintf('%s/source/sourcedir/test2.xml', $this->root));
+
+        $mappings = array(
+            array('sourcedir/*', 'targetdir')
+        );
+
+        $globExpander = new GlobExpander(
+            sprintf('%s/source', $this->root),
+            sprintf('%s/destination', $this->root),
+            $mappings
+        );
+
+        $expected = array (
+            array('sourcedir/test1.xml', 'targetdir/test1.xml'),
+            array('sourcedir/test2.xml', 'targetdir/test2.xml'),
         );
 
         $this->assertSame($expected, $globExpander->expand());

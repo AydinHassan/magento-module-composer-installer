@@ -29,7 +29,14 @@ class SymlinkTest extends AbstractTest
         touch($this->sourceDir . DIRECTORY_SEPARATOR . $src);
         $this->assertTrue(is_readable($this->sourceDir . DIRECTORY_SEPARATOR . $src));
         $this->assertFalse(is_readable($this->destDir . DIRECTORY_SEPARATOR . $dest));
-        $this->strategy->create($src, $dest);
+
+        $globExpander = new GlobExpander(
+            $this->sourceDir,
+            $this->destDir,
+            array(array($src, $dest))
+        );
+        $this->strategy->setMappings($globExpander->expand());
+        $this->strategy->deploy();
         $this->assertTrue(is_readable($this->destDir . DIRECTORY_SEPARATOR . $dest));
         unlink($this->destDir . DIRECTORY_SEPARATOR . $dest);
         $this->strategy->clean($this->destDir . DIRECTORY_SEPARATOR . $dest);
@@ -49,7 +56,15 @@ class SymlinkTest extends AbstractTest
         symlink($wrongFile, $link);
         $this->assertEquals($wrongFile, readlink($link));
 
-        $this->strategy->create(basename($rightFile), basename($link));
+        $globExpander = new GlobExpander(
+            $this->sourceDir,
+            $this->destDir,
+            array(array(basename($rightFile), basename($link)))
+        );
+
+        $this->strategy->setMappings($globExpander->expand());
+        $this->strategy->deploy();
+
         $this->assertEquals(realpath($rightFile), realpath(dirname($rightFile) . DS . readlink($link)));
     }
 
@@ -69,8 +84,10 @@ class SymlinkTest extends AbstractTest
 
         $this->strategy->setIsForced(false);
         $this->setExpectedException('ErrorException', "Target targetdir/childdir already exists");
-        $this->strategy->create($globSource, $dest);
-        //passthru("tree {$this->destDir}/$dest");
+
+        $globExpander = new GlobExpander($this->sourceDir, $this->destDir, array(array($globSource, $dest)));
+        $this->strategy->setMappings($globExpander->expand());
+        $this->strategy->deploy();
     }
 
     public function testTargetDirWithChildDirExistsForce()
@@ -87,9 +104,10 @@ class SymlinkTest extends AbstractTest
 
         $testTarget = $this->destDir . DS . $dest . DS . basename($globSource) . DS . basename($sourceContents);
 
+        $globExpander = new GlobExpander($this->sourceDir, $this->destDir, array(array($globSource, $dest)));
         $this->strategy->setIsForced(true);
-        $this->strategy->create($globSource, $dest);
-        //passthru("tree {$this->destDir}/$dest");
+        $this->strategy->setMappings($globExpander->expand());
+        $this->strategy->deploy();
 
         $this->assertFileExists($testTarget);
         $this->assertFileType($testTarget, self::TEST_FILETYPE_FILE);
@@ -105,7 +123,9 @@ class SymlinkTest extends AbstractTest
         $file       = $directory . '/file.txt';
         $this->mkdir($this->sourceDir . $directory);
         touch($this->sourceDir . $file);
-        $this->strategy->setMappings(array(array($file, $file)));
+
+        $globExpander = new GlobExpander($this->sourceDir, $this->destDir, array(array($file, $file)));
+        $this->strategy->setMappings($globExpander->expand());
         
         $this->strategy->deploy();
         
@@ -124,7 +144,10 @@ class SymlinkTest extends AbstractTest
         touch($this->sourceDir . DIRECTORY_SEPARATOR . $src);
         $this->assertTrue(is_readable($this->sourceDir . DIRECTORY_SEPARATOR . $src));
         $this->assertFalse(is_readable($this->destDir . DIRECTORY_SEPARATOR . $dest));
-        $this->strategy->create($src, $dest);
+
+        $globExpander = new GlobExpander($this->sourceDir, $this->destDir, array(array($src, $dest)));
+        $this->strategy->setMappings($globExpander->expand());
+        $this->strategy->deploy();
         $this->assertTrue(is_readable($this->destDir . DIRECTORY_SEPARATOR . $dest));
         unlink($this->destDir . DIRECTORY_SEPARATOR . $dest);
         $this->strategy->clean($this->destDir . DIRECTORY_SEPARATOR . $dest);
@@ -143,7 +166,13 @@ class SymlinkTest extends AbstractTest
         touch(sprintf('%s/app/etc/modules/EcomDev_PHPUnit.xml', $this->sourceDir));
         touch(sprintf('%s/app/etc/modules/EcomDev_PHPUnitTest.xml', $this->sourceDir));
 
-        $this->strategy->create('/app/etc/modules/*.xml', '/app/etc/modules/');
+        $globExpander = new GlobExpander(
+            $this->sourceDir,
+            $this->destDir,
+            array(array('/app/etc/modules/*.xml', '/app/etc/modules/'))
+        );
+        $this->strategy->setMappings($globExpander->expand());
+        $this->strategy->deploy();
 
         $expected = array(
             '/app/etc/modules/EcomDev_PHPUnit.xml',

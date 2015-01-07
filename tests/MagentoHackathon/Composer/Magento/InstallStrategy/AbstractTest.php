@@ -148,8 +148,10 @@ abstract class AbstractTest extends \PHPUnit_Framework_TestCase
         touch($this->sourceDir . DS . $src);
         $this->assertTrue(is_readable($this->sourceDir . DS . $src));
         $this->assertFalse(is_readable($this->destDir . DS . $dest));
-        $this->strategy->setCurrentMapping(array($src, $dest));
-        $this->strategy->create($src, $dest);
+
+        $globExpander = new GlobExpander($this->sourceDir, $this->destDir, array(array($src, $dest)));
+        $this->strategy->setMappings($globExpander->expand());
+        $this->strategy->deploy();
         $this->assertTrue(is_readable($this->destDir . DS . $dest));
     }
 
@@ -161,8 +163,10 @@ abstract class AbstractTest extends \PHPUnit_Framework_TestCase
         touch($this->sourceDir . DS . $src . DS . "local.xml");
         $this->assertTrue(is_readable($this->sourceDir . DS . $src . DS . "local.xml"));
         $this->assertFalse(is_readable($this->destDir . DS . $dest . DS . "local.xml"));
-        $this->strategy->setCurrentMapping(array($src, $dest));
-        $this->strategy->create($src, $dest);
+
+        $globExpander = new GlobExpander($this->sourceDir, $this->destDir, array(array($src, $dest)));
+        $this->strategy->setMappings($globExpander->expand());
+        $this->strategy->deploy();
         $this->assertTrue(is_readable($this->destDir . DS . $dest . DS . "local.xml"));
     }
 
@@ -177,8 +181,9 @@ abstract class AbstractTest extends \PHPUnit_Framework_TestCase
 
         $testTarget = $this->destDir . DS . $dest . DS . basename($globSource);
 
-        $this->strategy->setCurrentMapping(array($globSource, $dest));
-        $this->strategy->create($globSource, $dest);
+        $globExpander = new GlobExpander($this->sourceDir, $this->destDir, array(array($globSource, $dest)));
+        $this->strategy->setMappings($globExpander->expand());
+        $this->strategy->deploy();
 
         $this->assertFileType(dirname($testTarget), self::TEST_FILETYPE_DIR);
         $this->assertFileExists($testTarget);
@@ -197,9 +202,9 @@ abstract class AbstractTest extends \PHPUnit_Framework_TestCase
 
         $testTarget = $this->destDir . DS . $dest . DS . basename($globSource) . DS . basename($sourceContents);
 
-        $this->strategy->setCurrentMapping(array($globSource, $dest));
-        $this->strategy->create($globSource, $dest);
-        //passthru("tree {$this->destDir}/$dest");
+        $globExpander = new GlobExpander($this->sourceDir, $this->destDir, array(array($globSource, $dest)));
+        $this->strategy->setMappings($globExpander->expand());
+        $this->strategy->deploy();
 
         $this->assertFileExists($testTarget);
         $this->assertFileType($testTarget, self::TEST_FILETYPE_FILE);
@@ -217,9 +222,9 @@ abstract class AbstractTest extends \PHPUnit_Framework_TestCase
 
         $testTarget = $this->destDir . DS . $dest . DS . basename($globSource) . DS . basename($sourceContents);
 
-        $this->strategy->setCurrentMapping(array($globSource, $dest));
-        $this->strategy->create($globSource, $dest);
-        //passthru("tree {$this->destDir}/$dest");
+        $globExpander = new GlobExpander($this->sourceDir, $this->destDir, array(array($globSource, $dest)));
+        $this->strategy->setMappings($globExpander->expand());
+        $this->strategy->deploy();
 
         $this->assertFileExists($testTarget);
         $this->assertFileType($testTarget, self::TEST_FILETYPE_FILE);
@@ -235,8 +240,9 @@ abstract class AbstractTest extends \PHPUnit_Framework_TestCase
 
         $testTarget = $this->destDir . DS . $dest;
 
-        $this->strategy->setCurrentMapping(array($globSource, $dest));
-        $this->strategy->create($globSource, $dest);
+        $globExpander = new GlobExpander($this->sourceDir, $this->destDir, array(array($globSource, $dest)));
+        $this->strategy->setMappings($globExpander->expand());
+        $this->strategy->deploy();
 
         $this->assertFileType(dirname($testTarget), self::TEST_FILETYPE_DIR);
         $this->assertFileExists($testTarget);
@@ -255,8 +261,9 @@ abstract class AbstractTest extends \PHPUnit_Framework_TestCase
         $testTarget = $this->destDir . DS . $dest . basename($globSource);
 
         // second create has to identify symlink
-        $this->strategy->setCurrentMapping(array($globSource, $dest));
-        $this->strategy->create($globSource, $dest);
+        $globExpander = new GlobExpander($this->sourceDir, $this->destDir, array(array($globSource, $dest)));
+        $this->strategy->setMappings($globExpander->expand());
+        $this->strategy->deploy();
 
         $this->assertFileType(dirname($testTarget), self::TEST_FILETYPE_DIR);
         $this->assertFileExists($testTarget);
@@ -274,8 +281,9 @@ abstract class AbstractTest extends \PHPUnit_Framework_TestCase
         $testTarget = $this->destDir . DS . $dest . basename($globSource);
 
         // second create has to identify symlink
-        $this->strategy->setCurrentMapping(array($globSource, $dest));
-        $this->strategy->create($globSource, $dest);
+        $globExpander = new GlobExpander($this->sourceDir, $this->destDir, array(array($globSource, $dest)));
+        $this->strategy->setMappings($globExpander->expand());
+        $this->strategy->deploy();
 
         $this->assertFileType(dirname($testTarget), self::TEST_FILETYPE_DIR);
         $this->assertFileExists($testTarget);
@@ -294,8 +302,9 @@ abstract class AbstractTest extends \PHPUnit_Framework_TestCase
 
         $dest = "targetdir";
 
-        $this->strategy->setCurrentMapping(array($globSource, $dest));
-        $this->strategy->create($globSource, $dest);
+        $globExpander = new GlobExpander($this->sourceDir, $this->destDir, array(array($globSource, $dest)));
+        $this->strategy->setMappings($globExpander->expand());
+        $this->strategy->deploy();
 
         $targetDir = $this->destDir . DS . $dest;
         $this->assertFileExists($targetDir);
@@ -323,8 +332,9 @@ abstract class AbstractTest extends \PHPUnit_Framework_TestCase
         $dest = "targetdir";
         $this->mkdir($this->destDir . DS . $dest);
 
-        $this->strategy->setCurrentMapping(array($globSource, $dest));
-        $this->strategy->create($globSource, $dest);
+        $globExpander = new GlobExpander($this->sourceDir, $this->destDir, array(array($globSource, $dest)));
+        $this->strategy->setMappings($globExpander->expand());
+        $this->strategy->deploy();
 
         $targetDir = $this->destDir . DS . $dest;
         $this->assertFileExists($targetDir);
@@ -365,8 +375,9 @@ abstract class AbstractTest extends \PHPUnit_Framework_TestCase
             $testTarget = $this->destDir . DS . $dest;
             $testTargetContent = $testTarget . DS . $sourceDirContent;
 
-            $this->strategy->setCurrentMapping(array($globSource, $dest));
-            $this->strategy->create($globSource, $dest);
+            $globExpander = new GlobExpander($this->sourceDir, $this->destDir, array(array($globSource, $dest)));
+            $this->strategy->setMappings($globExpander->expand());
+            $this->strategy->deploy();
 
             $this->assertFileExists($testTarget);
             $this->assertFileType($testTarget, $this->getTestDeployStrategyFiletype(self::TEST_FILETYPE_DIR));
@@ -401,8 +412,9 @@ abstract class AbstractTest extends \PHPUnit_Framework_TestCase
             $testTarget = $this->destDir . DS . $dest . DS . basename($globSource);
             $testTargetContent = $testTarget . DS . $sourceDirContent;
 
-            $this->strategy->setCurrentMapping(array($globSource, $dest));
-            $this->strategy->create($globSource, $dest);
+            $globExpander = new GlobExpander($this->sourceDir, $this->destDir, array(array($globSource, $dest)));
+            $this->strategy->setMappings($globExpander->expand());
+            $this->strategy->deploy();
 
             $this->assertFileExists($testTarget);
             $this->assertFileType($testTarget, $this->getTestDeployStrategyFiletype(self::TEST_FILETYPE_DIR));
@@ -420,7 +432,14 @@ abstract class AbstractTest extends \PHPUnit_Framework_TestCase
         $this->mkdir($this->sourceDir . $directory);
         touch($this->sourceDir . $file1);
         touch($this->sourceDir . $file2);
-        $this->strategy->setMappings(array(array($file1, $file1), array($file2, $file2)));
+
+        $globExpander = new GlobExpander(
+            $this->sourceDir,
+            $this->destDir,
+            array(array($file1, $file1), array($file2, $file2))
+        );
+
+        $this->strategy->setMappings($globExpander->expand());
 
         $this->strategy->deploy();
 

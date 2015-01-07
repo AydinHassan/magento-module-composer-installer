@@ -39,13 +39,14 @@ class CopyTest extends AbstractTest
         $this->mkdir($this->destDir . DS . $dest);
 
         $testTarget = $this->destDir . DS . $dest . DS . $sourceContents;
-        $this->strategy->setCurrentMapping(array($sourceRoot, $dest));
+        $globExpander = new GlobExpander($this->sourceDir, $this->destDir, array(array($sourceRoot, $dest)));
+        $this->strategy->setMappings($globExpander->expand());
 
-        $this->strategy->create($sourceRoot, $dest);
+        $this->strategy->deploy();
         $this->assertFileExists($testTarget);
 
         $this->strategy->setIsForced(true);
-        $this->strategy->create($sourceRoot, $dest);
+        $this->strategy->deploy();
 
         $this->assertFileNotExists(dirname(dirname($testTarget)) . DS . basename($testTarget));
     }
@@ -64,9 +65,6 @@ class CopyTest extends AbstractTest
         $testTarget = sprintf('%s/%s', $this->destDir, $file1);
 
         $globExpander = new GlobExpander($this->sourceDir, $this->destDir, array(array('*', '/')));
-
-        //$this->strategy->setMappings($mappings);
-        //$this->strategy->setMappings(array(array('*', '/')));
         $this->strategy->setMappings($globExpander->expand());
 
         $this->strategy->deploy();
@@ -91,13 +89,14 @@ class CopyTest extends AbstractTest
         $this->mkdir($this->destDir . DS . $dest);
 
         $testTarget = $this->destDir . DS . $dest . DS . $sourceContents;
-        $this->strategy->setCurrentMapping(array($sourceRoot, $dest));
+        $globExpander = new GlobExpander($this->sourceDir, $this->destDir, array(array($sourceRoot, $dest)));
+        $this->strategy->setMappings($globExpander->expand());
 
-        $this->strategy->create($sourceRoot, $dest);
+        $this->strategy->deploy();
         $this->assertFileExists($testTarget);
 
         $this->strategy->setIsForced(true);
-        $this->strategy->create($sourceRoot, $dest);
+        $this->strategy->deploy();
 
         $this->assertFileNotExists(dirname(dirname($testTarget)) . DS . basename($testTarget));
 

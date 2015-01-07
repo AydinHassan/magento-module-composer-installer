@@ -56,7 +56,9 @@ class NoneTest extends PHPUnit_Framework_TestCase
         $this->assertFalse(is_dir($this->getVfsUrl('destDir' . DS . $dest)));
 
         //run the none deploy strategy
-        $this->strategy->create($src, $dest);
+        $globExpander = new GlobExpander($this->sourceDir, $this->destDir, array(array($src, $dest)));
+        $this->strategy->setMappings($globExpander->expand());
+        $this->strategy->deploy();
 
         //check that everything is still the same
         $this->assertTrue(is_dir($this->getVfsUrl('sourceDir' . DS . $src)));
@@ -75,7 +77,9 @@ class NoneTest extends PHPUnit_Framework_TestCase
         $this->assertFalse(is_dir($this->getVfsUrl('destDir' . DS . $dest)));
 
         //run the none deploy strategy
-        $this->strategy->create($src, $dest);
+        $globExpander = new GlobExpander($this->sourceDir, $this->destDir, array(array($src, $dest)));
+        $this->strategy->setMappings($globExpander->expand());
+        $this->strategy->deploy();
 
         //check that everything is still the same
         $this->assertTrue(is_dir($this->getVfsUrl('sourceDir' . DS . $src)));
