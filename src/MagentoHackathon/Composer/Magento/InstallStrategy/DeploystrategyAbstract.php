@@ -319,25 +319,10 @@ abstract class DeploystrategyAbstract
         // Create target directory if it ends with a directory separator
         if (!file_exists($destPath) && in_array(substr($destPath, -1), array('/', '\\')) && !is_dir($sourcePath)) {
             mkdir($destPath, 0777, true);
-            $destPath = $this->removeTrailingSlash($destPath);
         }
 
         // If source doesn't exist, check if it's a glob expression, otherwise we have nothing we can do
         if (!file_exists($sourcePath)) {
-            // Handle globing
-            $matches = glob($sourcePath);
-            if ($matches) {
-                foreach ($matches as $match) {
-                    $absolutePath           = sprintf('%s/%s', $this->removeTrailingSlash($destPath), basename($match));
-                    $relativeDestination    = substr($absolutePath, strlen($this->getDestDir())); //strip off dest dir
-                    $relativeDestination    = $this->removeLeadingSlash($relativeDestination);
-                    $relativeSource         = substr($match, strlen($this->getSourceDir()) + 1);
-
-                    $this->create($relativeSource, $relativeDestination);
-                }
-                return true;
-            }
-
             // Source file isn't a valid file or glob
             throw new \ErrorException("Source $sourcePath does not exist");
         }

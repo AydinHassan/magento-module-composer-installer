@@ -23,10 +23,12 @@ class Copy extends DeploystrategyAbstract
         list($mapSource, $mapDest) = $this->getCurrentMapping();
         $mapSource = $this->removeTrailingSlash($mapSource);
         $mapDest = $this->removeTrailingSlash($mapDest);
-        $cleanDest = $this->removeTrailingSlash($dest);
 
-        $sourcePath = $this->getSourceDir() . '/' . $this->removeTrailingSlash($source);
-        $destPath = $this->getDestDir() . '/' . $this->removeTrailingSlash($dest);
+        $source = $this->removeTrailingSlash($source);
+        $dest = $this->removeTrailingSlash($dest);
+
+        $sourcePath = $this->getSourceDir() . '/' . $source;
+        $destPath = $this->getDestDir() . '/' . $dest;
 
 
         // Create all directories up to one below the target if they don't exist
@@ -42,20 +44,20 @@ class Copy extends DeploystrategyAbstract
         // Namespace/ModuleDir => Namespace/ModuleDir, but ModuleDir may exist
 
         // first iteration through, we need to update the mappings to correctly handle mismatch globs
-        if ($mapSource == $this->removeTrailingSlash($source) && $mapDest == $this->removeTrailingSlash($dest)) {
+        if ($mapSource == $source && $mapDest == $dest) {
             if (basename($sourcePath) !== basename($destPath)) {
                 $this->setCurrentMapping(array($mapSource, $mapDest . '/' . basename($source)));
-                $cleanDest = $cleanDest . '/' . basename($source);
+                $dest = $dest . '/' . basename($source);
             }
         }
 
         if (file_exists($destPath) && is_dir($destPath)) {
-            $mapSource = rtrim($mapSource, '*');
-            if (strcmp(substr($cleanDest, strlen($mapDest)+1), substr($source, strlen($mapSource)+1)) === 0) {
+            $path1 = substr($dest, strlen($mapDest)+1);
+            $path2 = substr($source, strlen($mapSource)+1);
+            if ($path1 === $path2) {
                 // copy each child of $sourcePath into $destPath
                 foreach (new \DirectoryIterator($sourcePath) as $item) {
-                    $item = (string) $item;
-                    if (!strcmp($item, '.') || !strcmp($item, '..')) {
+                    if ($item->isDot()) {
                         continue;
                     }
                     $childSource = $this->removeTrailingSlash($source) . '/' . $item;
