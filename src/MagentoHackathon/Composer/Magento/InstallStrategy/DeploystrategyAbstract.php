@@ -5,7 +5,7 @@
 
 namespace MagentoHackathon\Composer\Magento\InstallStrategy;
 
-use Composer\Util\Filesystem;
+use \MagentoHackathon\Composer\Magento\Util\FileSystem;
 
 /**
  * Abstract deploy strategy
@@ -18,13 +18,6 @@ abstract class DeploystrategyAbstract
      * @var array
      */
     protected $mappings = array();
-
-    /**
-     * The current mapping of the deployment iteration
-     *
-     * @var array
-     */
-    protected $currentMapping = array();
 
     /**
      * The List of entries which files should not get deployed
@@ -86,7 +79,7 @@ abstract class DeploystrategyAbstract
     {
         $this->destDir      = $destDir;
         $this->sourceDir    = $sourceDir;
-        $this->filesystem   = new Filesystem;
+        $this->filesystem   = new FileSystem;
     }
 
     /**
@@ -98,7 +91,6 @@ abstract class DeploystrategyAbstract
     {
         foreach ($this->getMappings() as $data) {
             list ($source, $dest) = $data;
-            $this->setCurrentMapping($data);
             $this->create($source, $dest);
         }
         return $this;
@@ -178,27 +170,6 @@ abstract class DeploystrategyAbstract
     {
         $this->mappings = $mappings;
     }
-
-    /**
-     * Gets the current mapping used on the deployment iteration
-     *
-     * @return array
-     */
-    public function getCurrentMapping()
-    {
-        return $this->currentMapping;
-    }
-
-    /**
-     * Sets the current mapping used on the deployment iteration
-     *
-     * @param array $mapping
-     */
-    public function setCurrentMapping($mapping)
-    {
-        $this->currentMapping = $mapping;
-    }
-
 
     /**
      * sets the current ignored mappings
@@ -285,14 +256,14 @@ abstract class DeploystrategyAbstract
      * @throws \ErrorException
      * @return bool
      */
-    public function create($source, $dest)
+    public function create($source, $destination)
     {
-        if ($this->isDestinationIgnored($dest)) {
+        if ($this->isDestinationIgnored($destination)) {
             return;
         }
 
-        $sourcePath = $this->getSourceDir() . '/' . $this->removeLeadingSlash($source);
-        $destPath = $this->getDestDir() . '/' . $this->removeLeadingSlash($dest);
+        $sourcePath         = sprintf('%s/%s', $this->getSourceDir(), $this->removeLeadingSlash($source));
+        $destinationPath    = sprintf('%s/%s', $this->getDestDir(), $this->removeLeadingSlash($destination));
 
         /* List of possible cases, keep around for now, might come in handy again
 
@@ -317,16 +288,19 @@ abstract class DeploystrategyAbstract
         */
 
         // Create target directory if it ends with a directory separator
-        if (!file_exists($destPath) && in_array(substr($destPath, -1), array('/', '\\')) && !is_dir($sourcePath)) {
-            mkdir($destPath, 0777, true);
+        if ($this->endsWithDirectorySeparator($destinationPath)
+            && !is_dir($sourcePath)
+            && !file_exists($destinationPath)
+        ) {
+            mkdir($destinationPath, 0777, true);
         }
 
         // If source doesn't exist, check if it's a glob expression, otherwise we have nothing we can do
         if (!file_exists($sourcePath)) {
             // Source file isn't a valid file or glob
-            throw new \ErrorException("Source $sourcePath does not exist");
+            throw new \ErrorException(sprintf('Source %s does not exist', $sourcePath));
         }
-        return $this->createDelegate($source, $dest);
+        return $this->createDelegate($source, $destination);
     }
 
     /**
@@ -459,5 +433,14 @@ abstract class DeploystrategyAbstract
     public function getRemovedFiles()
     {
         return $this->removedFiles;
+    }
+
+    /**
+     * @param string $path
+     * @return bool
+     */
+    public function endsWithDirectorySeparator($path)
+    {
+        return in_array(substr($path, -1), array('/', '\\'));
     }
 }

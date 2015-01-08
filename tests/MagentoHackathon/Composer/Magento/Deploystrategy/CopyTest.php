@@ -31,14 +31,14 @@ class CopyTest extends AbstractTest
         $sourceRoot = 'root';
         $sourceContents = "subdir/subdir/test.xml";
 
-        $this->mkdir($this->sourceDir . DS . $sourceRoot . DS . dirname($sourceContents));
-        touch($this->sourceDir . DS . $sourceRoot . DS . $sourceContents);
+        $this->mkdir(sprintf('%s/%s/subdir/subdir', $this->sourceDir, $sourceRoot));
+        touch(sprintf('%s/%s/subdir/subdir/test.xml', $this->sourceDir, $sourceRoot));
 
         // intentionally using a differnt name to verify solution doesn't rely on identical src/dest paths
         $dest = "dest/root";
-        $this->mkdir($this->destDir . DS . $dest);
+        $this->mkdir(sprintf('%s/%s', $this->destDir, $dest));
+        $testTarget = sprintf('%s/%s/%s', $this->destDir, $dest, $sourceContents);
 
-        $testTarget = $this->destDir . DS . $dest . DS . $sourceContents;
         $this->strategy->setCurrentMapping(array($sourceRoot, $dest));
 
         $this->strategy->create($sourceRoot, $dest);
@@ -104,4 +104,6 @@ class CopyTest extends AbstractTest
             $this->strategy->getDeployedFiles()
         );
     }
+
+
 }

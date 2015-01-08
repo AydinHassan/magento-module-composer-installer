@@ -14,88 +14,105 @@ class Link extends DeploystrategyAbstract
      * Creates a hardlink with lots of error-checking
      *
      * @param string $source
-     * @param string $dest
+     * @param string $destination
+     *
      * @return bool
      * @throws \ErrorException
+     * @internal param string $dest
      */
-    public function createDelegate($source, $dest)
+    public function createDelegate($source, $destination)
     {
-        $sourcePath = $this->getSourceDir() . '/' . $this->removeTrailingSlash($source);
-        $destPath = $this->getDestDir() . '/' . $this->removeTrailingSlash($dest);
+        $source         = sprintf('%s/%s', $this->getSourceDir(), $this->removeTrailingSlash($source));
+        $destination    = sprintf('%s/%s', $this->getDestDir(), $this->removeTrailingSlash($destination));
 
-
-        // Create all directories up to one below the target if they don't exist
-        $destDir = dirname($destPath);
-        if (!file_exists($destDir)) {
-            mkdir($destDir, 0777, true);
+        if (is_dir($destination) && !$this->filesystem->sourceAndDestinationBaseMatch($source, $destination)) {
+            // If the destination exists and is a directory
+            // and basename of source and destination are not equal that means we want to copy
+            // source into destination, not to destination
+            // eg. src: code/Some_Module.xml dest: app/etc/modules
+            // would result in Some_Module.xml being placed inside: app/etc/modules
+            // - so: app/etc/modules/Some_Module.xml
+            //
+            $destination = sprintf('%s/%s', $destination, basename($source));
         }
 
-        // Handle source to dir link,
-        // e.g. Namespace_Module.csv => app/locale/de_DE/
-        if (file_exists($destPath) && is_dir($destPath)) {
-            if (basename($sourcePath) === basename($destPath)) {
-                // copy/link each child of $sourcePath into $destPath
-                foreach (new \DirectoryIterator($sourcePath) as $item) {
-                    $item = (string) $item;
-                    if (!strcmp($item, '.') || !strcmp($item, '..')) {
-                        continue;
-                    }
-                    $childSource = $source . '/' . $item;
-                    $this->create($childSource, substr($destPath, strlen($this->getDestDir())+1));
-                }
-                return true;
-            } else {
-                $destPath .= '/' . basename($source);
-                return $this->create($source, substr($destPath, strlen($this->getDestDir())+1));
-            }
-        }
+        return $this->link($source, $destination);
+    }
 
-        // From now on $destPath can't be a directory, that case is already handled
+    /**
+     * @param string $source
+     * @param string $destination
+     *
+     * @return array Array of all the files created
+     * @throws \ErrorException
+     */
+    protected function link($source, $destination)
+    {
+        //Create all directories up to one below the target if they don't exist
+        $this->filesystem->ensureDirectoryExists(dirname($destination));
+
+        if (is_dir($source)) {
+            return $this->linkDirectoryToDirectory($source, $destination);
+        }
 
         // If file exists and force is not specified, throw exception unless FORCE is set
-        if (file_exists($destPath)) {
-            if ($this->isForced()) {
-                unlink($destPath);
-            } else {
-                throw new \ErrorException("Target $dest already exists (set extra.magento-force to override)");
+        if (file_exists($destination)) {
+            if (!$this->isForced()) {
+                throw new \ErrorException(
+                    sprintf('Target %s already exists (set extra.magento-force to override)', $destination)
+                );
             }
+            unlink($destination);
         }
 
-        // File to file
-        if (!is_dir($sourcePath)) {
-            if (is_dir($destPath)) {
-                $destPath .= '/' . basename($sourcePath);
-            }
-            return link($sourcePath, $destPath);
-        }
+        $this->linkFileToFile($source, $destination);
+    }
 
-        // Copy dir to dir
+    /**
+     * @param string $source
+     * @param string $destination
+     *
+     * @return array Array of all files created
+     * @throws \ErrorException
+     */
+    protected function linkDirectoryToDirectory($source, $destination)
+    {
+        // Link dir to dir
         // First create destination folder if it doesn't exist
-        if (file_exists($destPath)) {
-            $destPath .= '/' . basename($sourcePath);
+        if (!file_exists($destination)) {
+            mkdir($destination, 0777, true);
         }
-        mkdir($destPath, 0777, true);
 
         $iterator = new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator($sourcePath),
+            new \RecursiveDirectoryIterator($source),
             \RecursiveIteratorIterator::SELF_FIRST
         );
 
+        $createdFiles = array();
         foreach ($iterator as $item) {
-            $subDestPath = $destPath . '/' . $iterator->getSubPathName();
+            $absoluteDestination = sprintf('%s/%s', $destination, $iterator->getSubPathName());
             if ($item->isDir()) {
-                if (! file_exists($subDestPath)) {
-                    mkdir($subDestPath, 0777, true);
+                if (!file_exists($absoluteDestination)) {
+                    mkdir($absoluteDestination, 0777, true);
                 }
             } else {
-                link($item, $subDestPath);
-                $this->addDeployedFile($subDestPath);
+                $createdFiles[] = $this->linkFileToFile($item, $absoluteDestination);
             }
-            if (!is_readable($subDestPath)) {
-                throw new \ErrorException("Could not create $subDestPath");
+            if (!is_readable($absoluteDestination)) {
+                throw new \ErrorException(sprintf('Could not create %s', $absoluteDestination));
             }
         }
+        return $createdFiles;
+    }
 
-        return true;
+    /**
+     * @param string $source
+     * @param string $destination
+     *
+     * @return bool
+     */
+    protected function linkFileToFile($source, $destination)
+    {
+        return link($source, $destination);
     }
 }

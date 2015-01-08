@@ -1,6 +1,6 @@
 <?php
 
-namespace MagentoHackathon\Composer\Magento\Util;
+namespace MagentoHackathon\Composer\Magento\Util\Filesystem;
 
 use Composer\Util\Filesystem as ComposerFs;
 
