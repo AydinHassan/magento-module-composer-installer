@@ -66,6 +66,7 @@ class Link extends DeploystrategyAbstract
         }
 
         $this->linkFileToFile($source, $destination);
+        return array($destination);
     }
 
     /**
