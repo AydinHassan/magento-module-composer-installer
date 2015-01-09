@@ -5,7 +5,7 @@
 
 namespace MagentoHackathon\Composer\Magento\InstallStrategy;
 
-use \MagentoHackathon\Composer\Magento\Util\FileSystem;
+use MagentoHackathon\Composer\Magento\Util\FileSystem;
 
 /**
  * Abstract deploy strategy
