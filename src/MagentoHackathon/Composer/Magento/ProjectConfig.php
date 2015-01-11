@@ -196,29 +196,6 @@ class ProjectConfig
     }
 
     /**
-     * @param $packagename
-     *
-     * @return array
-     */
-    public function getModuleSpecificDeployIgnores($packagename)
-    {
-        $moduleSpecificDeployIgnores = array();
-        if ($this->hasMagentoDeployIgnore()) {
-            $magentoDeployIgnore = $this->getMagentoDeployIgnore();
-            if (isset($magentoDeployIgnore['*'])) {
-                $moduleSpecificDeployIgnores = $magentoDeployIgnore['*'];
-            }
-            if (isset($magentoDeployIgnore[$packagename])) {
-                $moduleSpecificDeployIgnores = array_merge(
-                    $moduleSpecificDeployIgnores,
-                    $magentoDeployIgnore[$packagename]
-                );
-            }
-        }
-        return $moduleSpecificDeployIgnores;
-    }
-
-    /**
      * @return bool
      */
     public function hasMagentoDeployIgnore()

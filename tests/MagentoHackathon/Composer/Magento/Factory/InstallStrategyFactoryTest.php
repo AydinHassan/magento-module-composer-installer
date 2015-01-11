@@ -7,11 +7,11 @@ use MagentoHackathon\Composer\Magento\ProjectConfig;
 use org\bovigo\vfs\vfsStream;
 
 /**
- * Class DeploystrategyFactoryTest
+ * Class InstallStrategyFactoryTest
  * @package MagentoHackathon\Composer\Magento\Factory
  * @author  Aydin Hassan <aydin@hotmail.co.uk>
  */
-class DeploystrategyFactoryTest extends \PHPUnit_Framework_TestCase
+class InstallStrategyFactoryTest extends \PHPUnit_Framework_TestCase
 {
     protected $root;
 
@@ -32,7 +32,7 @@ class DeploystrategyFactoryTest extends \PHPUnit_Framework_TestCase
             'magento-deploystrategy' => $strategy,
             'magento-root-dir' => vfsStream::url('root/htdocs'),
         ), array());
-        $factory = new DeploystrategyFactory($config);
+        $factory = new InstallStrategyFactory($config);
         $instance = $factory->make($package, sprintf('%s/some/package', vfsStream::url('root/vendor')));
         $this->assertInstanceOf($expectedClass, $instance);
     }
@@ -43,10 +43,10 @@ class DeploystrategyFactoryTest extends \PHPUnit_Framework_TestCase
     public function strategyProvider()
     {
         return array(
-            array('copy',    '\MagentoHackathon\Composer\Magento\Deploystrategy\Copy'),
-            array('symlink', '\MagentoHackathon\Composer\Magento\Deploystrategy\Symlink'),
-            array('link',    '\MagentoHackathon\Composer\Magento\Deploystrategy\Link'),
-            array('none',    '\MagentoHackathon\Composer\Magento\Deploystrategy\None'),
+            array('copy',    '\MagentoHackathon\Composer\Magento\InstallStrategy\Copy'),
+            array('symlink', '\MagentoHackathon\Composer\Magento\InstallStrategy\Symlink'),
+            array('link',    '\MagentoHackathon\Composer\Magento\InstallStrategy\Link'),
+            array('none',    '\MagentoHackathon\Composer\Magento\InstallStrategy\None'),
         );
     }
 
@@ -57,10 +57,10 @@ class DeploystrategyFactoryTest extends \PHPUnit_Framework_TestCase
             'magento-deploystrategy' => 'lolnotarealstrategy',
             'magento-root-dir' => vfsStream::url('root/htdocs'),
         ), array());
-        $factory = new DeploystrategyFactory($config);
+        $factory = new InstallStrategyFactory($config);
 
         $instance = $factory->make($package, sprintf('%s/some/package', vfsStream::url('root/vendor')));
-        $this->assertInstanceOf('\MagentoHackathon\Composer\Magento\Deploystrategy\Symlink', $instance);
+        $this->assertInstanceOf('\MagentoHackathon\Composer\Magento\InstallStrategy\Symlink', $instance);
     }
 
     public function testIndividualOverrideTakesPrecedence()
@@ -72,10 +72,10 @@ class DeploystrategyFactoryTest extends \PHPUnit_Framework_TestCase
             'magento-root-dir' => vfsStream::url('root/htdocs'),
         ), array());
 
-        $factory = new DeploystrategyFactory($config);
+        $factory = new InstallStrategyFactory($config);
 
         $instance = $factory->make($package, sprintf('%s/some/package', vfsStream::url('root/vendor')));
-        $this->assertInstanceOf('\MagentoHackathon\Composer\Magento\Deploystrategy\None', $instance);
+        $this->assertInstanceOf('\MagentoHackathon\Composer\Magento\InstallStrategy\None', $instance);
     }
 }
 

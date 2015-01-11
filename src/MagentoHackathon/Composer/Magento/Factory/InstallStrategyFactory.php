@@ -4,7 +4,9 @@ namespace MagentoHackathon\Composer\Magento\Factory;
 
 use Composer\Package\PackageInterface;
 use MagentoHackathon\Composer\Magento\Deploystrategy\DeploystrategyAbstract;
+use MagentoHackathon\Composer\Magento\InstallStrategy\InstallStrategyInterface;
 use MagentoHackathon\Composer\Magento\ProjectConfig;
+use MagentoHackathon\Composer\Magento\Util\FileSystem;
 
 /**
  * Class InstallStrategyFactory
@@ -24,21 +26,28 @@ class InstallStrategyFactory
     protected $parserFactory;
 
     /**
-     * @param ProjectConfig $config
-     * @param ParserFactoryInterface $parserFactory
+     * @var array
      */
-    public function __construct(ProjectConfig $config, ParserFactoryInterface $parserFactory)
+    protected static $strategies = array(
+        'copy'      => '\MagentoHackathon\Composer\Magento\InstallStrategy\Copy',
+        'symlink'   => '\MagentoHackathon\Composer\Magento\InstallStrategy\Symlink',
+        'link'      => '\MagentoHackathon\Composer\Magento\InstallStrategy\Link',
+        'none'      => '\MagentoHackathon\Composer\Magento\InstallStrategy\None',
+    );
+
+    /**
+     * @param ProjectConfig $config
+     */
+    public function __construct(ProjectConfig $config)
     {
         $this->config = $config;
-        $this->parserFactory = $parserFactory;
     }
 
     /**
      * @param PackageInterface $package
-     * @param string $packageSourcePath
-     * @return DeploystrategyAbstract
+     * @return InstallStrategyInterface
      */
-    public function make(PackageInterface $package, $packageSourcePath)
+    public function make(PackageInterface $package)
     {
         $strategyName = $this->config->getDeployStrategy();
         if ($this->config->hasDeployStrategyOverwrite()) {
@@ -49,19 +58,18 @@ class InstallStrategyFactory
             }
         }
 
-        $ns = '\MagentoHackathon\Composer\Magento\Deploystrategy\\';
-        $className = $ns . ucfirst($strategyName);
-        if (!class_exists($className)) {
-            $className  = $ns . 'Symlink';
+        if (!isset(static::$strategies[$strategyName])) {
+            $className = static::$strategies['symlink'];
+        } else {
+            $className = static::$strategies[$strategyName];
         }
 
-        $strategy = new $className($packageSourcePath, realpath($this->config->getMagentoRootDir()));
-        $strategy->setIgnoredMappings($this->config->getModuleSpecificDeployIgnores($package->getName()));
-        $strategy->setIsForced($this->config->getMagentoForceByPackageName($package->getName()));
+        if ($className === static::$strategies['none']) {
+            $instance = new $className;
+        } else {
+            $instance = new $className(new FileSystem);
+        }
 
-        $mappingParser = $this->parserFactory->make($package, $packageSourcePath);
-        $strategy->setMappings($mappingParser->getMappings());
-
-        return $strategy;
+        return $instance;
     }
 }

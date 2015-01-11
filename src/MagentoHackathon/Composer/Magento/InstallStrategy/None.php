@@ -11,6 +11,12 @@ namespace MagentoHackathon\Composer\Magento\InstallStrategy;
 class None implements InstallStrategyInterface
 {
 
+
+    public function resolve($source, $destination)
+    {
+        return array();
+    }
+
     /**
      * Deploy nothing
      *

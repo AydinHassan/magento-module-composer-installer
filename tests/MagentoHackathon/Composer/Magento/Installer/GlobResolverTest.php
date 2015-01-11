@@ -1,16 +1,17 @@
 <?php
 
-namespace MagentoHackathon\Composer\Magento\InstallStrategy;
+namespace MagentoHackathon\Composer\Magento\Installer;
 
 use Composer\Util\Filesystem;
 use org\bovigo\vfs\vfsStream;
+use Symfony\Component\Finder\Expression\Glob;
 
 /**
- * Class GlobExpanderTest
- * @package MagentoHackathon\Composer\Magento\InstallStrategy
+ * Class GlobResolverTest
+ * @package MagentoHackathon\Composer\Magento\InstallStrategyOld
  * @author  Aydin Hassan <aydin@hotmail.co.uk>
  */
-class GlobExpanderTest extends \PHPUnit_Framework_TestCase
+class GlobResolverTest extends \PHPUnit_Framework_TestCase
 {
 
     /**
@@ -23,12 +24,18 @@ class GlobExpanderTest extends \PHPUnit_Framework_TestCase
      */
     protected $fileSystem;
 
+    /**
+     * @var GlobResolver
+     */
+    protected $globResolver;
+
     public function setUp()
     {
         $this->root = sprintf('%s/globtest', sys_get_temp_dir());
         $this->fileSystem = new Filesystem;
         $this->fileSystem->remove($this->root);
         mkdir(sprintf('%s/globtest', sys_get_temp_dir()));
+        $this->globResolver = new GlobResolver;
     }
 
     public function testGlobsAreExpanded()
@@ -46,12 +53,6 @@ class GlobExpanderTest extends \PHPUnit_Framework_TestCase
         touch(sprintf('%s/source/directory/1.txt', $this->root));
         touch(sprintf('%s/source/directory/2.txt', $this->root));
 
-        $globExpander = new GlobExpander(
-            sprintf('%s/source', $this->root),
-            sprintf('%s/destination', $this->root),
-            $mappings
-        );
-
         $expected = array(
             array('1.php', '1.php'),
             array('2.php', '2.php'),
@@ -59,7 +60,8 @@ class GlobExpanderTest extends \PHPUnit_Framework_TestCase
             array('directory/2.txt', 'dir/2.txt'),
         );
 
-        $this->assertSame($expected, $globExpander->expand());
+        $resolvedMappings = $this->globResolver->resolve(sprintf('%s/source', $this->root), $mappings);
+        $this->assertSame($expected, $resolvedMappings);
     }
 
     public function testIfGlobIsDirectoryDirectoryIsAddedToDestination()
@@ -72,17 +74,12 @@ class GlobExpanderTest extends \PHPUnit_Framework_TestCase
             array('*', '')
         );
 
-        $globExpander = new GlobExpander(
-            sprintf('%s/source', $this->root),
-            sprintf('%s/destination', $this->root),
-            $mappings
-        );
-
         $expected = array(
             array('app', 'app'),
         );
 
-        $this->assertSame($expected, $globExpander->expand());
+        $resolvedMappings = $this->globResolver->resolve(sprintf('%s/source', $this->root), $mappings);
+        $this->assertSame($expected, $resolvedMappings);
     }
 
     public function testFileDestinationIncludesFileName()
@@ -95,18 +92,47 @@ class GlobExpanderTest extends \PHPUnit_Framework_TestCase
             array('sourcedir/*', 'targetdir')
         );
 
-        $globExpander = new GlobExpander(
-            sprintf('%s/source', $this->root),
-            sprintf('%s/destination', $this->root),
-            $mappings
-        );
-
         $expected = array (
             array('sourcedir/test1.xml', 'targetdir/test1.xml'),
             array('sourcedir/test2.xml', 'targetdir/test2.xml'),
         );
 
-        $this->assertSame($expected, $globExpander->expand());
+        $resolvedMappings = $this->globResolver->resolve(sprintf('%s/source', $this->root), $mappings);
+        $this->assertSame($expected, $resolvedMappings);
+    }
+
+    public function testSourceNotFoundExceptionIsThrownIfNoGlobResults()
+    {
+        mkdir(sprintf('%s/source/sourcedir', $this->root), 0777, true);
+
+        $mappings = array(
+            array('sourcedir/*', 'targetdir')
+        );
+
+        $this->setExpectedException(
+            'MagentoHackathon\Composer\Magento\InstallStrategy\Exception\SourceNotExistsException'
+        );
+
+        $this->globResolver->resolve(sprintf('%s/source', $this->root), $mappings);
+    }
+
+
+    public function testIfMappingIsAFileMappingIsReturnedAsIs()
+    {
+        mkdir(sprintf('%s/source/sourcedir', $this->root), 0777, true);
+        touch(sprintf('%s/source/sourcedir/test1.xml', $this->root));
+        touch(sprintf('%s/source/sourcedir/test2.xml', $this->root));
+
+        $mappings = array(
+            array('sourcedir/test1.xml', 'targetdir')
+        );
+        
+        $expected = array (
+            array('sourcedir/test1.xml', 'targetdir'),
+        );
+
+        $resolvedMappings = $this->globResolver->resolve(sprintf('%s/source', $this->root), $mappings);
+        $this->assertSame($expected, $resolvedMappings);
     }
 
     public function tearDown()

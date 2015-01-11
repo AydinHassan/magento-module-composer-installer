@@ -82,17 +82,17 @@ class ModuleManager
 
 
         foreach ($packagesToInstall as $install) {
-            $installStrategy = $this->installStrategyFactory->make(
-                $install,
-                $this->getPackageSourceDirectory($install)
-            );
-
-            $files = $installStrategy->deploy()->getDeployedFiles();
-            $this->installedPackageRepository->add(new InstalledPackage(
-                $install->getName(),
-                $install->getVersion(),
-                $files
-            ));
+//            $installStrategy = $this->installStrategyFactory->make(
+//                $install,
+//                $this->getPackageSourceDirectory($install)
+//            );
+//
+//            $files = $installStrategy->deploy()->getDeployedFiles();
+//            $this->installedPackageRepository->add(new InstalledPackage(
+//                $install->getName(),
+//                $install->getVersion(),
+//                $files
+//            ));
         }
 
         return array(

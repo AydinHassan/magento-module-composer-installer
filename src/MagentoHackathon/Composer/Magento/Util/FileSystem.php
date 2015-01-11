@@ -132,4 +132,28 @@ class FileSystem extends ComposerFs
     {
         return in_array(substr($path, -1), array('/', '\\'));
     }
+
+    /**
+     * Extend to unlink symlinks incase they are
+     * directories.
+     *
+     * @param $file
+     * @return bool
+     */
+    public function remove($file)
+    {
+        if (is_link($file)) {
+            return $this->unlink($file);
+        }
+
+        if (is_dir($file)) {
+            return $this->removeDirectory($file);
+        }
+
+        if (file_exists($file)) {
+            return $this->unlink($file);
+        }
+
+        return false;
+    }
 }

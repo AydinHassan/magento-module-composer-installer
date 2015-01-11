@@ -1,184 +1,385 @@
 <?php
+
 namespace MagentoHackathon\Composer\Magento\InstallStrategy;
 
-class SymlinkTest extends AbstractTest
+use MagentoHackathon\Composer\Magento\Util\FileSystem;
+use PHPUnit_Framework_TestCase;
+
+/**
+ * Class SymlinkTest
+ * @package MagentoHackathon\Composer\Magento\InstallStrategy
+ * @author Aydin Hassan <aydin@hotmail.co.uk>
+ */
+class SymlinkTest extends AbstractStrategyTest
 {
-    /**
-     * @param string $src
-     * @param string $dest
-     * @return Symlink
-     */
-    public function getTestDeployStrategy($src, $dest)
+    public function setUp()
     {
-        return new Symlink($src, $dest);
-    }
-
-    /**
-     * @param bool $isDir
-     * @return string
-     */
-    public function getTestDeployStrategyFiletype($isDir = false)
-    {
-        return self::TEST_FILETYPE_LINK;
-    }
-
-    public function testClean()
-    {
-        $src = 'local1.xml';
-        $dest = 'local2.xml';
-        touch($this->sourceDir . DIRECTORY_SEPARATOR . $src);
-        $this->assertTrue(is_readable($this->sourceDir . DIRECTORY_SEPARATOR . $src));
-        $this->assertFalse(is_readable($this->destDir . DIRECTORY_SEPARATOR . $dest));
-
-        $globExpander = new GlobExpander(
-            $this->sourceDir,
-            $this->destDir,
-            array(array($src, $dest))
+        parent::setup();
+        $this->assertInstanceOf(
+            'MagentoHackathon\Composer\Magento\InstallStrategy\InstallStrategyInterface',
+            new Symlink(new FileSystem)
         );
-        $this->strategy->setMappings($globExpander->expand());
-        $this->strategy->deploy();
-        $this->assertTrue(is_readable($this->destDir . DIRECTORY_SEPARATOR . $dest));
-        unlink($this->destDir . DIRECTORY_SEPARATOR . $dest);
-        $this->strategy->clean($this->destDir . DIRECTORY_SEPARATOR . $dest);
-        $this->assertFalse(is_readable($this->destDir . DIRECTORY_SEPARATOR . $dest));
     }
 
-    public function testChangeLink()
+    public function testCreateSymLink()
     {
-        $wrongFile = $this->sourceDir . DS . 'wrong';
-        $rightFile = $this->sourceDir . DS . 'right';
-        $link = $this->destDir . DS . 'link';
+        $fileSystem = $this->getMock('MagentoHackathon\Composer\Magento\Util\FileSystem');
+        $symlink = new Symlink($fileSystem);
 
-        touch($wrongFile);
-        touch($rightFile);
-        @unlink($link);
+        $source = sprintf('%s/source', $this->source);
+        $destination = sprintf('%s/destination', $this->destination);
 
-        symlink($wrongFile, $link);
-        $this->assertEquals($wrongFile, readlink($link));
+        $fileSystem
+            ->expects($this->once())
+            ->method('createSymlink')
+            ->with($source, $destination);
 
-        $globExpander = new GlobExpander(
-            $this->sourceDir,
-            $this->destDir,
-            array(array(basename($rightFile), basename($link)))
+        $symlink->create($source, $destination, false);
+    }
+
+    public function testIfDestinationDirectoryExistsAndIsSameBaseAsSourceExceptionIsThrownIfNotForce()
+    {
+        $fileSystem = $this->getMock('MagentoHackathon\Composer\Magento\Util\FileSystem');
+        $symlink = new Symlink($fileSystem);
+
+        $source = sprintf('%s/source', $this->source);
+        $destination = sprintf('%s/source', $this->destination);
+
+        $this->createFileStructure(array('source/'), $this->destination);
+
+        $fileSystem
+            ->expects($this->once())
+            ->method('sourceAndDestinationBaseMatch')
+            ->with($source, $destination)
+            ->will($this->returnValue(true));
+
+        $this->setExpectedException(
+            'MagentoHackathon\Composer\Magento\InstallStrategy\Exception\TargetExistsException'
         );
 
-        $this->strategy->setMappings($globExpander->expand());
-        $this->strategy->deploy();
-
-        $this->assertEquals(realpath($rightFile), realpath(dirname($rightFile) . DS . readlink($link)));
+        $symlink->create($source, $destination, false);
     }
 
-    public function testTargetDirWithChildDirExists()
+    public function testIfDestinationDirectoryExistsAndIsSameBaseAsSourceItIsRemovedIfForceSpecified()
     {
-        $globSource = 'sourcedir/childdir';
-        $sourceContents = "$globSource/test.xml";
-        $this->mkdir($this->sourceDir . DS . dirname($globSource));
-        $this->mkdir($this->sourceDir . DS . $globSource);
-        touch($this->sourceDir . DS . $sourceContents);
+        $fileSystem = $this->getMock('MagentoHackathon\Composer\Magento\Util\FileSystem');
+        $symlink = new Symlink($fileSystem);
 
-        $dest = "targetdir"; // this dir should contain the target child dir
-        $this->mkdir($this->destDir . DS . $dest);
-        $this->mkdir($this->destDir . DS . $dest . DS . basename($globSource));
+        $source = sprintf('%s/source', $this->source);
+        $destination = sprintf('%s/source', $this->destination);
 
-        $testTarget = $this->destDir . DS . $dest . DS . basename($globSource) . DS . basename($sourceContents);
+        $this->createFileStructure(array('source/'), $this->destination);
 
-        $this->strategy->setIsForced(false);
-        $this->setExpectedException('ErrorException', "Target targetdir/childdir already exists");
+        $fileSystem
+            ->expects($this->once())
+            ->method('sourceAndDestinationBaseMatch')
+            ->with($source, $destination)
+            ->will($this->returnValue(true));
 
-        $globExpander = new GlobExpander($this->sourceDir, $this->destDir, array(array($globSource, $dest)));
-        $this->strategy->setMappings($globExpander->expand());
-        $this->strategy->deploy();
+        $fileSystem
+            ->expects($this->once())
+            ->method('remove')
+            ->with($destination)
+            ->will($this->returnCallback(function() use ($destination) {
+                rmdir($destination);
+            }));
+
+
+        $fileSystem
+            ->expects($this->once())
+            ->method('createSymlink')
+            ->with($source, $destination);
+
+        $symlink->create($source, $destination, true);
     }
 
-    public function testTargetDirWithChildDirExistsForce()
+    public function testIfSymLinkExistsAndIsCorrectReturnEarly()
     {
-        $globSource = 'sourcedir/childdir';
-        $sourceContents = "$globSource/test.xml";
-        $this->mkdir($this->sourceDir . DS . dirname($globSource));
-        $this->mkdir($this->sourceDir . DS . $globSource);
-        touch($this->sourceDir . DS . $sourceContents);
+        $fileSystem = $this->getMock('MagentoHackathon\Composer\Magento\Util\FileSystem');
+        $symlink = new Symlink($fileSystem);
 
-        $dest = "targetdir"; // this dir should contain the target child dir
-        $this->mkdir($this->destDir . DS . $dest);
-        $this->mkdir($this->destDir . DS . $dest . DS . basename($globSource));
+        $source = sprintf('%s/source', $this->source);
+        $destination = sprintf('%s/source', $this->destination);
 
-        $testTarget = $this->destDir . DS . $dest . DS . basename($globSource) . DS . basename($sourceContents);
+        symlink($source, $destination);
 
-        $globExpander = new GlobExpander($this->sourceDir, $this->destDir, array(array($globSource, $dest)));
-        $this->strategy->setIsForced(true);
-        $this->strategy->setMappings($globExpander->expand());
-        $this->strategy->deploy();
+        $fileSystem
+            ->expects($this->once())
+            ->method('symLinkPointsToCorrectLocation')
+            ->with($destination, $source)
+            ->will($this->returnValue(true));
 
-        $this->assertFileExists($testTarget);
-        $this->assertFileType($testTarget, self::TEST_FILETYPE_FILE);
-        $this->assertFileType(dirname($testTarget), self::TEST_FILETYPE_LINK);
+        $this->assertEquals(array(), $symlink->create($source, $destination, false));
+    }
+
+    public function testIfSymLinkExistsAndIsInCorrectItIsRemovedFirst()
+    {
+        $fileSystem = $this->getMock('MagentoHackathon\Composer\Magento\Util\FileSystem');
+        $symlink = new Symlink($fileSystem);
+
+        $source         = sprintf('%s/source', $this->source);
+        $destination    = sprintf('%s/source', $this->destination);
+        $otherFile      = sprintf('%s/someOtherFile', $this->source);
+
+        touch($otherFile);
+        symlink($otherFile, $destination);
+
+        $fileSystem
+            ->expects($this->once())
+            ->method('symLinkPointsToCorrectLocation')
+            ->with($destination, $source)
+            ->will($this->returnValue(false));
+
+        $fileSystem
+            ->expects($this->once())
+            ->method('remove')
+            ->with($destination)
+            ->will($this->returnCallback(function() use ($destination) {
+                unlink($destination);
+            }));
+
+        $fileSystem
+            ->expects($this->once())
+            ->method('createSymlink')
+            ->with($source, $destination);
+
+        $symlink->create($source, $destination, false);
+    }
+
+    public function testIfFileExistsAtDestinationExceptionIsThrownIfNotForce()
+    {
+        $fileSystem = $this->getMock('MagentoHackathon\Composer\Magento\Util\FileSystem');
+        $symlink = new Symlink($fileSystem);
+
+        $source = sprintf('%s/source', $this->source);
+        $destination = sprintf('%s/source', $this->destination);
+
+        $this->createFileStructure(array('source'), $this->destination);
+
+        $this->setExpectedException(
+            'MagentoHackathon\Composer\Magento\InstallStrategy\Exception\TargetExistsException'
+        );
+
+        $symlink->create($source, $destination, false);
+    }
+
+    public function testIfFileExistsAtDestinationItIsRemovedIfForceSpecified()
+    {
+        $fileSystem = $this->getMock('MagentoHackathon\Composer\Magento\Util\FileSystem');
+        $symlink = new Symlink($fileSystem);
+
+        $source = sprintf('%s/source', $this->source);
+        $destination = sprintf('%s/source', $this->destination);
+
+        $this->createFileStructure(array('source'), $this->source);
+        $this->createFileStructure(array('source'), $this->destination);
+
+        $fileSystem
+            ->expects($this->once())
+            ->method('remove')
+            ->with($destination)
+            ->will($this->returnCallback(function() use ($destination) {
+                unlink($destination);
+            }));
+
+        $fileSystem
+            ->expects($this->once())
+            ->method('createSymlink')
+            ->with($source, $destination);
+
+        $symlink->create($source, $destination, true);
     }
 
     /**
-     * @see https://github.com/magento-hackathon/magento-composer-installer/issues/121
+     * @dataProvider mapResolverProvider
+     *
+     * @param array $sourceFileStructure
+     * @param array $destinationFileStructure
+     * @param array $mapping
+     * @param array $expectedMappings
      */
-    public function testEmptyDirectoryCleanup()
-    {
-        $directory  = '/app/code/Jay/Ext1';
-        $file       = $directory . '/file.txt';
-        $this->mkdir($this->sourceDir . $directory);
-        touch($this->sourceDir . $file);
+    public function testResolveMappings(
+        array $sourceFileStructure,
+        array $destinationFileStructure,
+        array $mapping,
+        array $expectedMappings
+    ) {
+        $symlink = new Symlink(new FileSystem);
 
-        $globExpander = new GlobExpander($this->sourceDir, $this->destDir, array(array($file, $file)));
-        $this->strategy->setMappings($globExpander->expand());
-        
-        $this->strategy->deploy();
-        
-        $this->assertFileExists($this->destDir . $file);
+        $mapping = $this->applyRootDirectoryToMapping($mapping);
+        $expectedMappings = $this->applyRootDirectoryToExpectedMappings($expectedMappings);
 
-        $this->strategy->clean();
-        
-        $this->assertFileNotExists($this->destDir . $file);
-        $this->assertFileNotExists($this->destDir . $directory);
+        $this->createFileStructure($sourceFileStructure, $this->source);
+        $this->createFileStructure($destinationFileStructure, $this->destination);
+
+        $resolvedMapping = $symlink->resolve($mapping[0], $mapping[1]);
+
+        $this->assertEquals($expectedMappings, $resolvedMapping);
     }
 
-//    public function testDeployedFilesAreStored()
-//    {
-//        $src = 'local1.xml';
-//        $dest = 'local2.xml';
-//        touch($this->sourceDir . DIRECTORY_SEPARATOR . $src);
-//        $this->assertTrue(is_readable($this->sourceDir . DIRECTORY_SEPARATOR . $src));
-//        $this->assertFalse(is_readable($this->destDir . DIRECTORY_SEPARATOR . $dest));
-//
-//        $globExpander = new GlobExpander($this->sourceDir, $this->destDir, array(array($src, $dest)));
-//        $this->strategy->setMappings($globExpander->expand());
-//        $this->strategy->deploy();
-//        $this->assertTrue(is_readable($this->destDir . DIRECTORY_SEPARATOR . $dest));
-//        unlink($this->destDir . DIRECTORY_SEPARATOR . $dest);
-//        $this->strategy->clean($this->destDir . DIRECTORY_SEPARATOR . $dest);
-//        $this->assertFalse(is_readable($this->destDir . DIRECTORY_SEPARATOR . $dest));
-//
-//        $this->assertSame(
-//            array('/local2.xml'),
-//            $this->strategy->getDeployedFiles()
-//        );
-//    }
-//
-//    public function testGlobFileResultsDoNotContainDoubleSlashesWhenDestinationDirectoryExists()
-//    {
-//        $this->mkdir(sprintf('%s/app/etc/modules/', $this->sourceDir));
-//        $this->mkdir(sprintf('%s/app/etc/modules', $this->destDir));
-//        touch(sprintf('%s/app/etc/modules/EcomDev_PHPUnit.xml', $this->sourceDir));
-//        touch(sprintf('%s/app/etc/modules/EcomDev_PHPUnitTest.xml', $this->sourceDir));
-//
-//        $globExpander = new GlobExpander(
-//            $this->sourceDir,
-//            $this->destDir,
-//            array(array('/app/etc/modules/*.xml', '/app/etc/modules/'))
-//        );
-//        $this->strategy->setMappings($globExpander->expand());
-//        $this->strategy->deploy();
-//
-//        $expected = array(
-//            '/app/etc/modules/EcomDev_PHPUnit.xml',
-//            '/app/etc/modules/EcomDev_PHPUnitTest.xml',
-//        );
-//
-//        $this->assertEquals($expected, $this->strategy->getDeployedFiles());
-//    }
+    public function mapResolverProvider()
+    {
+        return array(
+            'file-to-file' => array(
+                'sourceFileStructure' => array(
+                    'local1.xml',
+                ),
+                'destinationFileStructure' => array(),
+                'mapping' => array(
+                    '%s/local1.xml',
+                    '%s/local2.xml',
+                ),
+                'expectedMappings' => array(
+                    array(
+                        '%s/local1.xml',
+                        '%s/local2.xml',
+                    )
+                ),
+            ),
+            'dir-to-dir' => array(
+                'sourceFileStructure' => array(
+                    'folder/',
+                    'folder/local.xml',
+                ),
+                'destinationFileStructure' => array(),
+                'mapping' => array(
+                    '%s/folder',
+                    '%s/destination-folder',
+                ),
+                'expectedMappings' => array(
+                    array(
+                        '%s/folder',
+                        '%s/destination-folder',
+                    )
+                ),
+            ),
+            'file-to-dir' => array(
+                'sourceFileStructure' => array(
+                    'folder/',
+                    'folder/local.xml',
+                ),
+                'destinationFileStructure' => array(
+                    'destination-folder/'
+                ),
+                'mapping' => array(
+                    '%s/folder/local.xml',
+                    '%s/destination-folder',
+                ),
+                'expectedMappings' => array(
+                    array(
+                        '%s/folder/local.xml',
+                        '%s/destination-folder/local.xml',
+                    )
+                ),
+            ),
+            'nested-dir-to-dir-destination-dir-exists' => array(
+                'sourceFileStructure' => array(
+                    'folder/child-folder/',
+                    'folder/child-folder/local.xml',
+                ),
+                'destinationFileStructure' => array(
+                    'destination-folder/child-folder/'
+                ),
+                'mapping' => array(
+                    '%s/folder/child-folder',
+                    '%s/destination-folder',
+                ),
+                'expectedMappings' => array(
+                    array(
+                        '%s/folder/child-folder',
+                        '%s/destination-folder/child-folder',
+                    )
+                ),
+            ),
+            'nested-dir-to-dir-destination-dir-not-exist' => array(
+                'sourceFileStructure' => array(
+                    'folder/child-folder/',
+                    'folder/child-folder/local.xml',
+                ),
+                'destinationFileStructure' => array(),
+                'mapping' => array(
+                    '%s/folder/child-folder',
+                    '%s/destination-folder',
+                ),
+                'expectedMappings' => array(
+                    array(
+                        '%s/folder/child-folder',
+                        '%s/destination-folder',
+                    )
+                ),
+            ),
+            'file-to-dir2' => array(
+                'sourceFileStructure' => array(
+                    'folder/',
+                    'folder/local.xml',
+                ),
+                'destinationFileStructure' => array(
+                    'destination-folder/folder/'
+                ),
+                'mapping' => array(
+                    '%s/folder/local.xml',
+                    '%s/destination-folder',
+                ),
+                'expectedMappings' => array(
+                    array(
+                        '%s/folder/local.xml',
+                        '%s/destination-folder/local.xml',
+                    )
+                ),
+            ),
+            'dir-to-dir2' => array(
+                'sourceFileStructure' => array(
+                    'folder/',
+                    'folder/local.xml',
+                ),
+                'destinationFileStructure' => array(),
+                'mapping' => array(
+                    '%s/folder',
+                    '%s/destination-folder',
+                ),
+                'expectedMappings' => array(
+                    array(
+                        '%s/folder',
+                        '%s/destination-folder',
+                    )
+                ),
+            ),
+            'dir-to-dir3' => array(
+                'sourceFileStructure' => array(
+                    'folder/',
+                    'folder/local.xml',
+                ),
+                'destinationFileStructure' => array(),
+                'mapping' => array(
+                    '%s/folder',
+                    '%s/destination-folder/',
+                ),
+                'expectedMappings' => array(
+                    array(
+                        '%s/folder',
+                        '%s/destination-folder/',
+                    )
+                ),
+            ),
+            'dir-to-dir-destination-dir-exists' => array(
+                'sourceFileStructure' => array(
+                    'folder/',
+                    'folder/local.xml',
+                ),
+                'destinationFileStructure' => array(
+                    'destination-folder/'
+                ),
+                'mapping' => array(
+                    '%s/folder',
+                    '%s/destination-folder',
+                ),
+                'expectedMappings' => array(
+                    array(
+                        '%s/folder',
+                        '%s/destination-folder/folder',
+                    )
+                ),
+            ),
+        );
+    }
 }

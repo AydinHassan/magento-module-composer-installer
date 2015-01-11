@@ -1,14 +1,13 @@
 <?php
-/**
- * Composer Magento Installer
- */
 
 namespace MagentoHackathon\Composer\Magento\InstallStrategy;
 
-use MagentoHackathon\Composer\Magento\Util\fi;
+use MagentoHackathon\Composer\Magento\InstallStrategy\Exception\TargetExistsException;
+use MagentoHackathon\Composer\Magento\Util\FileSystem;
 
 /**
- * Hardlink deploy strategy
+ * Class Link
+ * @package MagentoHackathon\Composer\Magento\InstallStrategy
  */
 class Link implements InstallStrategyInterface
 {
@@ -27,17 +26,15 @@ class Link implements InstallStrategyInterface
     }
 
     /**
-     * Creates a hardlink
+     * Resolve the mappings. If source is a folder, create mappings for every file inside it.
+     * Also if destination dir is an existing folder and its base does not match the source base,
+     * source should be placed inside destination.
      *
      * @param string $source
      * @param string $destination
-     * @param bool $force
-     *
      * @return array
-     * @throws \ErrorException
-     * @internal param string $dest
      */
-    public function create($source, $destination, $force)
+    public function resolve($source, $destination)
     {
         if (is_dir($destination) && !$this->fileSystem->sourceAndDestinationBaseMatch($source, $destination)) {
             // If the destination exists and is a directory
@@ -50,85 +47,61 @@ class Link implements InstallStrategyInterface
             $destination = sprintf('%s/%s', $destination, basename($source));
         }
 
-        return $this->link($source, $destination, $force);
+        //dir - dir
+        if (is_dir($source)) {
+            return $this->resolveDirectory($source, $destination);
+        }
+
+        //file - to - file
+        return array(array($source, $destination));
     }
 
     /**
-     * @param string $source
-     * @param string $destination
-     * @param bool $force
+     * @param string    $source Absolute Path of source
+     * @param string    $destination Absolute Path of destination
+     * @param bool      $force Whether the creation should be forced (eg if it exists already)
      *
-     * @return array Array of all the files created
-     * @throws \ErrorException
+     * @return array Should return an array of files which were created
+     *               Created directories should not be returned.
      */
-    protected function link($source, $destination, $force)
+    public function create($source, $destination, $force)
     {
-        //Create all directories up to one below the target if they don't exist
-        $this->fileSystem->ensureDirectoryExists(dirname($destination));
-
-        if (is_dir($source)) {
-            return $this->linkDirectoryToDirectory($source, $destination);
-        }
-
-        // If file exists and force is not specified, throw exception unless FORCE is set
+        // If file exists and force is not specified, throw exception
         if (file_exists($destination)) {
             if (!$force) {
-                throw new \ErrorException(
-                    sprintf('Target %s already exists (set extra.magento-force to override)', $destination)
-                );
+                throw new TargetExistsException($destination);
             }
-            unlink($destination);
+            $this->fileSystem->remove($destination);
         }
 
-        $this->linkFileToFile($source, $destination);
+        link($source, $destination);
         return array($destination);
     }
 
     /**
+     * Build an array of mappings which should be created
+     * eg. Every file in the directory
+     *
      * @param string $source
      * @param string $destination
      *
      * @return array Array of all files created
      * @throws \ErrorException
      */
-    protected function linkDirectoryToDirectory($source, $destination)
+    protected function resolveDirectory($source, $destination)
     {
-        // Link dir to dir
-        // First create destination folder if it doesn't exist
-        if (!file_exists($destination)) {
-            mkdir($destination, 0777, true);
-        }
-
         $iterator = new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator($source),
+            new \RecursiveDirectoryIterator($source, \RecursiveDirectoryIterator::SKIP_DOTS),
             \RecursiveIteratorIterator::SELF_FIRST
         );
 
-        $createdFiles = array();
+        $resolvedMappings = array();
         foreach ($iterator as $item) {
             $absoluteDestination = sprintf('%s/%s', $destination, $iterator->getSubPathName());
-            if ($item->isDir()) {
-                if (!file_exists($absoluteDestination)) {
-                    mkdir($absoluteDestination, 0777, true);
-                }
-            } else {
-                $createdFiles[] = $this->linkFileToFile($item, $absoluteDestination);
-            }
-            if (!is_readable($absoluteDestination)) {
-                throw new \ErrorException(sprintf('Could not create %s', $absoluteDestination));
+            if ($item->isFile()) {
+                $resolvedMappings[] = array($item, $absoluteDestination);
             }
         }
-        return $createdFiles;
-    }
-
-    /**
-     * @param string $source
-     * @param string $destination
-     *
-     * @return bool
-     */
-    protected function linkFileToFile($source, $destination)
-    {
-        return link($source, $destination);
+        return $resolvedMappings;
     }
 }

@@ -2,7 +2,9 @@
 
 namespace MagentoHackathon\Composer\Magento\InstallStrategy;
 
+use MagentoHackathon\Composer\Magento\InstallStrategy\Exception\TargetExistsException;
 use MagentoHackathon\Composer\Magento\Util\FileSystem;
+use SplFileInfo;
 
 /**
  * Symlink deploy strategy
@@ -23,6 +25,15 @@ class Copy implements InstallStrategyInterface
         $this->fileSystem = $fileSystem;
     }
 
+    /**
+     * Resolve the mappings. If source is a folder, create mappings for every file inside it.
+     * Also if destination dir is an existing folder and its base does not match the source base,
+     * source should be placed inside destination.
+     *
+     * @param string $source
+     * @param string $destination
+     * @return array
+     */
     public function resolve($source, $destination)
     {
         if (is_dir($destination) && !$this->fileSystem->sourceAndDestinationBaseMatch($source, $destination)) {
@@ -36,130 +47,62 @@ class Copy implements InstallStrategyInterface
             $destination = sprintf('%s/%s', $destination, basename($source));
         }
 
+        //dir - dir
         if (is_dir($source)) {
-            $iterator = new \RecursiveIteratorIterator(
-                new \RecursiveDirectoryIterator($source, \RecursiveDirectoryIterator::SKIP_DOTS),
-                \RecursiveIteratorIterator::SELF_FIRST
-            );
-
-            $resolvedMappings = array();
-            foreach ($iterator as $item) {
-                $absoluteDestination = sprintf('%s/%s', $destination, $iterator->getSubPathName());
-                $resolvedMappings[] = array($item, $absoluteDestination);
-            }
-            return $resolvedMappings;
-        } else {
-            return array(array($source, $destination));
+            return $this->resolveDirectory($source, $destination);
         }
-    }
 
-
-    public function create($source, $destination)
-    {
-        return copy($source, $destination);
+        //file - to - file
+        return array(array($source, $destination));
     }
 
     /**
-     * copy files
+     * @param string    $source Absolute Path of source
+     * @param string    $destination Absolute Path of destination
+     * @param bool      $force Whether the creation should be forced (eg if it exists already)
      *
-     * @param string $source
-     * @param string $destination
-     * @param bool $force
-     *
-     * @return array Array of all the files created
-     * @throws \ErrorException
+     * @return array Should return an array of files which were created
+     *               Created directories should not be returned.
      */
     public function create($source, $destination, $force)
     {
-        if (is_dir($destination) && !$this->fileSystem->sourceAndDestinationBaseMatch($source, $destination)) {
-            // If the destination exists and is a directory
-            // and basename of source and destination are not equal that means we want to copy
-            // source into destination, not to destination
-            // eg. src: code/Some_Module.xml dest: app/etc/modules
-            // would result in Some_Module.xml being placed inside: app/etc/modules
-            // - so: app/etc/modules/Some_Module.xml
-            //
-            $destination = sprintf('%s/%s', $destination, basename($source));
-        }
-
-        return $this->copy($source, $destination, $force);
-    }
-
-    /**
-     * @param string $source
-     * @param string $destination
-     * @param bool $force
-     *
-     * @return array Array of all the files created
-     * @throws \ErrorException
-     */
-    public function copy($source, $destination, $force)
-    {
-        //Create all directories up to one below the target if they don't exist
-        $this->fileSystem->ensureDirectoryExists(dirname($destination));
-
-        if (is_dir($source)) {
-            return $this->copyDirectoryToDirectory($source, $destination);
-        }
-
         // If file exists and force is not specified, throw exception
         if (file_exists($destination)) {
             if (!$force) {
-                throw new \ErrorException(
-                    sprintf('Target %s already exists (set extra.magento-force to override)', $destination)
-                );
+                throw new TargetExistsException($destination);
             }
-            unlink($destination);
+            $this->fileSystem->remove($destination);
         }
 
-        $this->copyFileToFile($source, $destination);
+        copy($source, $destination);
         return array($destination);
     }
 
     /**
+     * Build an array of mappings which should be created
+     * eg. Every file in the directory
+     *
      * @param string $source
      * @param string $destination
      *
      * @return array Array of all files created
      * @throws \ErrorException
      */
-    protected function copyDirectoryToDirectory($source, $destination)
+    protected function resolveDirectory($source, $destination)
     {
-        // First create destination folder if it doesn't exist
-        if (!file_exists($destination)) {
-            mkdir($destination, 0777, true);
-        }
-
         $iterator = new \RecursiveIteratorIterator(
             new \RecursiveDirectoryIterator($source, \RecursiveDirectoryIterator::SKIP_DOTS),
             \RecursiveIteratorIterator::SELF_FIRST
         );
 
-        $createdFiles = array();
+        $resolvedMappings = array();
         foreach ($iterator as $item) {
+            /** @var SplFileinfo $item */
             $absoluteDestination = sprintf('%s/%s', $destination, $iterator->getSubPathName());
-            if ($item->isDir()) {
-                if (!file_exists($absoluteDestination)) {
-                    mkdir($absoluteDestination, 0777, true);
-                }
-            } else {
-                $createdFiles[] = $this->copyFileToFile($item, $absoluteDestination);
-            }
-            if (!is_readable($absoluteDestination)) {
-                throw new \ErrorException(sprintf('Could not create %s', $absoluteDestination));
+            if ($item->isFile()) {
+                $resolvedMappings[] = array($item->getPathname(), $absoluteDestination);
             }
         }
-        return $createdFiles;
-    }
-
-    /**
-     * @param string $source
-     * @param string $destination
-     *
-     * @return bool
-     */
-    protected function copyFileToFile($source, $destination)
-    {
-        return copy($source, $destination);
+        return $resolvedMappings;
     }
 }
