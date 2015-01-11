@@ -5,30 +5,39 @@
 
 namespace MagentoHackathon\Composer\Magento\InstallStrategy;
 
+use MagentoHackathon\Composer\Magento\Util\FileSystem;
+
 /**
  * Symlink deploy strategy
  */
-class Symlink extends DeploystrategyAbstract
+class Symlink implements InstallStrategyInterface
 {
+    /**
+     * @var FileSystem
+     */
+    protected $fileSystem;
+
+    /**
+     * @param FileSystem $fileSystem
+     */
+    public function __construct(FileSystem $fileSystem)
+    {
+        $this->fileSystem = $fileSystem;
+    }
+
     /**
      * Creates a symlink with lots of error-checking
      *
      * @param string $source
      * @param string $destination
+     * @param bool $force
+     *
      * @return array Array of all the files created
      * @throws \ErrorException
      */
-    public function createDelegate($source, $destination)
+    public function create($source, $destination, $force)
     {
-        $source         = sprintf('%s/%s', $this->getSourceDir(), $this->removeTrailingSlash($source));
-        $destination    = sprintf('%s/%s', $this->getDestDir(), $this->removeTrailingSlash($destination));
-
-//        if (!is_file($source) && !is_dir($source)) {
-//            throw new \ErrorException(sprintf('Could not find path "%s"', $source));
-//        }
-
         /*
-
         Assume app/etc exists, app/etc/a does not exist unless specified differently
 
         OK dir app/etc/a  --> link app/etc/a to dir
@@ -58,54 +67,55 @@ class Symlink extends DeploystrategyAbstract
             $destination = sprintf('%s/%s', $destination, basename($source));
         }
 
-        if (is_dir($destination) && $this->filesystem->sourceAndDestinationBaseMatch($source, $destination)) {
-            if (!$this->isForced()) {
+        if (is_dir($destination) && $this->fileSystem->sourceAndDestinationBaseMatch($source, $destination)) {
+            if (!$force) {
                 throw new \ErrorException(
                     sprintf(
                         'Target %s already exists (set extra.magento-force to override)',
-                        $this->filesystem->makePathRelative($destination, $this->getDestDir())
+                        $this->fileSystem->makePathRelative($destination, $this->getDestDir())
                     )
                 );
             }
-            $this->filesystem->remove($destination);
+            $this->fileSystem->remove($destination);
         }
 
-        return $this->symlink($source, $destination);
+        return $this->symlink($source, $destination, $force);
     }
 
     /**
      * @param string $source
      * @param string $destination
+     * @param bool $force
      *
      * @return array Array of all the files created
      * @throws \ErrorException
      */
-    protected function symlink($source, $destination)
+    protected function symlink($source, $destination, $force)
     {
         if (is_link($destination)) {
-            if ($this->filesystem->symLinkPointsToCorrectLocation($destination, $source)) {
+            if ($this->fileSystem->symLinkPointsToCorrectLocation($destination, $source)) {
                 return array();
             }
             unlink($destination);
         }
 
-        $this->filesystem->ensureDirectoryExists(dirname($destination));
+        $this->fileSystem->ensureDirectoryExists(dirname($destination));
 
         // If file exists and force is not specified, throw exception unless FORCE is set
         // existing symlinks are already handled
         if (file_exists($destination)) {
-            if (!$this->isForced()) {
+            if (!$force) {
                 throw new \ErrorException(
                     sprintf(
                         'Target %s already exists (set extra.magento-force to override)',
-                        $this->filesystem->makePathRelative($destination, $this->getSourceDir())
+                        $this->fileSystem->makePathRelative($destination, $this->getSourceDir())
                     )
                 );
             }
             unlink($destination);
         }
 
-        $this->filesystem->createSymlink($source, $destination);
+        $this->fileSystem->createSymlink($source, $destination);
         return array($destination);
     }
 }

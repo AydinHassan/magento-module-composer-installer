@@ -21,6 +21,7 @@ final class GlobExpander
      * @var string
      */
     private $destination;
+
     /**
      * @var array
      */
@@ -36,7 +37,6 @@ final class GlobExpander
         //enforce type safety - each record should be an array
         array_map(function (array $map) {
         }, $mappings);
-
 
         $this->source = $source;
         $this->destination = $destination;

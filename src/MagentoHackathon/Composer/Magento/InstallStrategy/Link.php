@@ -5,27 +5,41 @@
 
 namespace MagentoHackathon\Composer\Magento\InstallStrategy;
 
+use MagentoHackathon\Composer\Magento\Util\fi;
+
 /**
  * Hardlink deploy strategy
  */
-class Link extends DeploystrategyAbstract
+class Link implements InstallStrategyInterface
 {
+
     /**
-     * Creates a hardlink with lots of error-checking
+     * @var FileSystem
+     */
+    protected $fileSystem;
+
+    /**
+     * @param FileSystem $fileSystem
+     */
+    public function __construct(FileSystem $fileSystem)
+    {
+        $this->fileSystem = $fileSystem;
+    }
+
+    /**
+     * Creates a hardlink
      *
      * @param string $source
      * @param string $destination
+     * @param bool $force
      *
-     * @return bool
+     * @return array
      * @throws \ErrorException
      * @internal param string $dest
      */
-    public function createDelegate($source, $destination)
+    public function create($source, $destination, $force)
     {
-        $source         = sprintf('%s/%s', $this->getSourceDir(), $this->removeTrailingSlash($source));
-        $destination    = sprintf('%s/%s', $this->getDestDir(), $this->removeTrailingSlash($destination));
-
-        if (is_dir($destination) && !$this->filesystem->sourceAndDestinationBaseMatch($source, $destination)) {
+        if (is_dir($destination) && !$this->fileSystem->sourceAndDestinationBaseMatch($source, $destination)) {
             // If the destination exists and is a directory
             // and basename of source and destination are not equal that means we want to copy
             // source into destination, not to destination
@@ -36,20 +50,21 @@ class Link extends DeploystrategyAbstract
             $destination = sprintf('%s/%s', $destination, basename($source));
         }
 
-        return $this->link($source, $destination);
+        return $this->link($source, $destination, $force);
     }
 
     /**
      * @param string $source
      * @param string $destination
+     * @param bool $force
      *
      * @return array Array of all the files created
      * @throws \ErrorException
      */
-    protected function link($source, $destination)
+    protected function link($source, $destination, $force)
     {
         //Create all directories up to one below the target if they don't exist
-        $this->filesystem->ensureDirectoryExists(dirname($destination));
+        $this->fileSystem->ensureDirectoryExists(dirname($destination));
 
         if (is_dir($source)) {
             return $this->linkDirectoryToDirectory($source, $destination);
@@ -57,7 +72,7 @@ class Link extends DeploystrategyAbstract
 
         // If file exists and force is not specified, throw exception unless FORCE is set
         if (file_exists($destination)) {
-            if (!$this->isForced()) {
+            if (!$force) {
                 throw new \ErrorException(
                     sprintf('Target %s already exists (set extra.magento-force to override)', $destination)
                 );

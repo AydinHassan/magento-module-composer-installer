@@ -123,4 +123,13 @@ class FileSystem extends ComposerFs
             }
         }
     }
+
+    /**
+     * @param string $path
+     * @return bool
+     */
+    public function endsWithDirectorySeparator($path)
+    {
+        return in_array(substr($path, -1), array('/', '\\'));
+    }
 }
