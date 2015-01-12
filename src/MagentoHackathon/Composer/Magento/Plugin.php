@@ -120,12 +120,6 @@ class Plugin implements PluginInterface, EventSubscriberInterface
         $this->filesystem = new Filesystem();
         $this->config = new ProjectConfig($composer->getPackage()->getExtra(), $composer->getConfig()->all());
 
-        $this->entryFactory = new EntryFactory(
-            $this->config,
-            new DeploystrategyFactory($this->config),
-            new PathTranslationParserFactory(new ParserFactory($this->config), $this->config)
-        );
-
         $this->initDeployManager($composer, $io, $this->getEventManager());
 
         $this->writeDebug('activate magento plugin');
@@ -187,8 +181,8 @@ class Plugin implements PluginInterface, EventSubscriberInterface
         foreach ($packages as $package) {
             if ($package->getType() == 'magento-module' && !isset($addedPackageNames[$package->getName()])) {
                 $this->writeDebug('add missing package '.$package->getName());
-                $entry = $this->entryFactory->make($package, $this->getPackageInstallPath($package));
-                $this->deployManager->addPackage($entry);
+                //$entry = $this->entryFactory->make($package, $this->getPackageInstallPath($package));
+                //$this->deployManager->addPackage($entry);
             }
         }
 

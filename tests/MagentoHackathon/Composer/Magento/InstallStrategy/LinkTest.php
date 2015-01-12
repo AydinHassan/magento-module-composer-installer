@@ -3,6 +3,7 @@
 namespace MagentoHackathon\Composer\Magento\InstallStrategy;
 
 use MagentoHackathon\Composer\Magento\Util\FileSystem;
+use org\bovigo\vfs\vfsStream;
 
 /**
  * Class LinkTest
@@ -10,9 +11,22 @@ use MagentoHackathon\Composer\Magento\Util\FileSystem;
  */
 class LinkTest extends AbstractStrategyTest
 {
+    protected $root;
+    protected $virtualSource;
+    protected $virtualDestination;
+
     public function setUp()
     {
         parent::setup();
+
+        //using vfsstream here as directory iteration yields different order of results on different os's
+        $this->root                 = vfsStream::setup('root');
+        $this->virtualSource        = sprintf('%s/source', vfsStream::url('root'), $this->getName(false));
+        $this->virtualDestination   = sprintf('%s/destination', vfsStream::url('root'), $this->getName(false));
+
+        mkdir($this->virtualSource);
+        mkdir($this->virtualDestination);
+
         $this->assertInstanceOf(
             'MagentoHackathon\Composer\Magento\InstallStrategy\InstallStrategyInterface',
             new Link(new FileSystem)
@@ -22,7 +36,7 @@ class LinkTest extends AbstractStrategyTest
     public function testIfFileExistsAtDestinationExceptionIsThrownIfNotForce()
     {
         $fileSystem = $this->getMock('MagentoHackathon\Composer\Magento\Util\FileSystem');
-        $symlink = new Link($fileSystem);
+        $link = new Link($fileSystem);
 
         $source = sprintf('%s/local.xml', $this->source);
         $destination = sprintf('%s/local.xml', $this->destination);
@@ -33,14 +47,14 @@ class LinkTest extends AbstractStrategyTest
             'MagentoHackathon\Composer\Magento\InstallStrategy\Exception\TargetExistsException'
         );
 
-        $symlink->create($source, $destination, false);
+        $link->create($source, $destination, false);
         $this->assertFileExists($destination);
     }
 
     public function testIfFileExistsAtDestinationItIsRemovedIfForceSpecified()
     {
         $fileSystem = $this->getMock('MagentoHackathon\Composer\Magento\Util\FileSystem');
-        $symlink = new Link($fileSystem);
+        $link = new Link($fileSystem);
 
         $source = sprintf('%s/local.xml', $this->source);
         $destination = sprintf('%s/local.xml', $this->destination);
@@ -56,7 +70,7 @@ class LinkTest extends AbstractStrategyTest
                 unlink($destination);
             }));
 
-        $symlink->create($source, $destination, true);
+        $link->create($source, $destination, true);
         $this->assertFileExists($destination);
     }
 
@@ -74,15 +88,20 @@ class LinkTest extends AbstractStrategyTest
         array $mapping,
         array $expectedMappings
     ) {
-        $symlink = new Link(new FileSystem);
+        $link = new Link(new FileSystem);
 
-        $mapping = $this->applyRootDirectoryToMapping($mapping);
-        $expectedMappings = $this->applyRootDirectoryToExpectedMappings($expectedMappings);
+        $mapping = $this->applyRootDirectoryToMapping($mapping, $this->virtualSource, $this->virtualDestination);
 
-        $this->createFileStructure($sourceFileStructure, $this->source);
-        $this->createFileStructure($destinationFileStructure, $this->destination);
+        $expectedMappings = $this->applyRootDirectoryToExpectedMappings(
+            $expectedMappings,
+            $this->virtualSource,
+            $this->virtualDestination
+        );
 
-        $resolvedMapping = $symlink->resolve($mapping[0], $mapping[1]);
+        $this->createFileStructure($sourceFileStructure, $this->virtualSource);
+        $this->createFileStructure($destinationFileStructure, $this->virtualDestination);
+
+        $resolvedMapping = $link->resolve($mapping[0], $mapping[1]);
 
         $this->assertEquals($expectedMappings, $resolvedMapping);
     }
@@ -233,12 +252,12 @@ class LinkTest extends AbstractStrategyTest
                         '%s/destination-folder/local.xml',
                     ),
                     array(
-                        '%s/folder/child-dir/file3.txt',
-                        '%s/destination-folder/child-dir/file3.txt',
-                    ),
-                    array(
                         '%s/folder/child-dir/file2.txt',
                         '%s/destination-folder/child-dir/file2.txt',
+                    ),
+                    array(
+                        '%s/folder/child-dir/file3.txt',
+                        '%s/destination-folder/child-dir/file3.txt',
                     ),
                 ),
             ),

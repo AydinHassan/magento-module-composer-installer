@@ -9,7 +9,7 @@ namespace MagentoHackathon\Composer\Magento\Parser;
  * Class MapParser
  * @package MagentoHackathon\Composer\Magento\Parser
  */
-class MapParser implements Parser
+class MapParser implements ParserInterface
 {
 
     /**

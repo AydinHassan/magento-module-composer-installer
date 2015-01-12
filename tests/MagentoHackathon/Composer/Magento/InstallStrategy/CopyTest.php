@@ -3,6 +3,7 @@
 namespace MagentoHackathon\Composer\Magento\InstallStrategy;
 
 use MagentoHackathon\Composer\Magento\Util\FileSystem;
+use org\bovigo\vfs\vfsStream;
 
 /**
  * Class CopyTest
@@ -10,9 +11,20 @@ use MagentoHackathon\Composer\Magento\Util\FileSystem;
  */
 class CopyTest extends AbstractStrategyTest
 {
+    protected $root;
+
     public function setUp()
     {
         parent::setup();
+
+        //using vfsstream here as directory iteration yields different order of results on different os's
+        $this->root         = vfsStream::setup('root');
+        $this->source       = sprintf('%s/source', vfsStream::url('root'), $this->getName(false));
+        $this->destination  = sprintf('%s/destination', vfsStream::url('root'), $this->getName(false));
+
+        mkdir($this->source);
+        mkdir($this->destination);
+
         $this->assertInstanceOf(
             'MagentoHackathon\Composer\Magento\InstallStrategy\InstallStrategyInterface',
             new Copy(new FileSystem)
@@ -233,12 +245,12 @@ class CopyTest extends AbstractStrategyTest
                         '%s/destination-folder/local.xml',
                     ),
                     array(
-                        '%s/folder/child-dir/file3.txt',
-                        '%s/destination-folder/child-dir/file3.txt',
-                    ),
-                    array(
                         '%s/folder/child-dir/file2.txt',
                         '%s/destination-folder/child-dir/file2.txt',
+                    ),
+                    array(
+                        '%s/folder/child-dir/file3.txt',
+                        '%s/destination-folder/child-dir/file3.txt',
                     ),
                 ),
             ),

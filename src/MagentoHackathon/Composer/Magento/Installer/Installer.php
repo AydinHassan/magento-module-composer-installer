@@ -3,9 +3,13 @@
 namespace MagentoHackathon\Composer\Magento\Installer;
 
 use Composer\Package\PackageInterface;
+use MagentoHackathon\Composer\Magento\Event\EventManager;
 use MagentoHackathon\Composer\Magento\Factory\InstallStrategyFactory;
 use MagentoHackathon\Composer\Magento\Factory\ParserFactoryInterface;
 use MagentoHackathon\Composer\Magento\InstallStrategy\Exception\TargetExistsException;
+use MagentoHackathon\Composer\Magento\Map\Map;
+use MagentoHackathon\Composer\Magento\Map\MapCollection;
+use MagentoHackathon\Composer\Magento\Parser\Parser;
 use MagentoHackathon\Composer\Magento\ProjectConfig;
 use MagentoHackathon\Composer\Magento\Util\FileSystem;
 
@@ -38,11 +42,6 @@ class Installer
     protected $projectConfig;
 
     /**
-     * @var ParserFactoryInterface
-     */
-    protected $parserFactory;
-
-    /**
      * @var GlobResolver
      */
     protected $globResolver;
@@ -53,27 +52,40 @@ class Installer
     protected $targetFilter;
 
     /**
+     * @var Parser
+     */
+    protected $parser;
+
+    /**
+     * @var EventManager
+     */
+    protected $eventManager;
+
+    /**
      * @param InstallStrategyFactory $installStrategyFactory
-     * @param FileSystem $fileSystem
-     * @param ProjectConfig $projectConfig
-     * @param ParserFactoryInterface $parserFactory
-     * @param GlobResolver $globResolver
-     * @param TargetFilter $targetFilter
+     * @param FileSystem             $fileSystem
+     * @param ProjectConfig          $projectConfig
+     * @param GlobResolver           $globResolver
+     * @param TargetFilter           $targetFilter
+     * @param Parser                 $parser
+     * @param EventManager           $eventManager
      */
     public function __construct(
         InstallStrategyFactory $installStrategyFactory,
         FileSystem $fileSystem,
         ProjectConfig $projectConfig,
-        ParserFactoryInterface $parserFactory,
         GlobResolver $globResolver,
-        TargetFilter $targetFilter
+        TargetFilter $targetFilter,
+        Parser $parser,
+        EventManager $eventManager
     ) {
         $this->installStrategyFactory   = $installStrategyFactory;
         $this->fileSystem               = $fileSystem;
         $this->projectConfig            = $projectConfig;
-        $this->parserFactory            = $parserFactory;
         $this->globResolver             = $globResolver;
         $this->targetFilter             = $targetFilter;
+        $this->parser                   = $parser;
+        $this->eventManager             = $eventManager;
     }
 
     /**
@@ -88,36 +100,35 @@ class Installer
     {
         $installStrategy = $this->installStrategyFactory->make($package);
         $force           = $this->projectConfig->getMagentoForceByPackageName($package->getName());
-        $mapParser       = $this->parserFactory->make($package, $packageSourceDirectory);
-
-        //strip leading slashes from mappings
-        $mappings = array_map(
-            function ($map) {
-                return array(
-                    ltrim($map[0], '\\/'),
-                    ltrim($map[1], '\\/'),
-                );
-            },
-            $mapParser->getMappings()
-        );
+        $mappings        = $this->parser->getMappings($package, $packageSourceDirectory, $this->projectConfig->getMagentoRootDir());
 
         //lets expand glob mappings first
         $mappings = $this->globResolver->resolve($package, $packageSourceDirectory, $mappings);
 
-        $this->prepareInstall($mappings, $packageSourceDirectory, $this->projectConfig->getMagentoRootDir());
+        $this->eventManager->dispatch(new PreMappingsResolveEvent($mapCollection));
 
-        //strip leading slashes from mappings
-        $mappings = array_map(
-            function ($map) {
-                return array(
-                    rtrim($map[0], '\\/'),
-                    rtrim($map[1], '\\/'),
-                );
-            },
-            $mappings
-        );
+        $this->prepareInstall($mappings);
 
         $createdFiles = array();
+
+        foreach ($mappings as $map) {
+
+            $resolvedMappings = $installStrategy->resolve($map);
+
+            $mapsToInsert = array();
+            foreach ($resolvedMappings as $resolvedMap) {
+                $mapsToInsert[] = new Map($resolvedMap[0], $resolvedMap[1], $packageSourceDirectory, $this->projectConfig->getMagentoRootDir());
+            }
+
+            $mappings->replace($map, $mapsToInsert);
+        }
+
+        //$this->eventManager->dispatch(new PreMappingsCreate($mapCollection))
+
+
+
+
+
         foreach ($mappings as $mapping) {
             list ($source, $destination) = $mapping;
 
@@ -144,23 +155,19 @@ class Installer
     }
 
     /**
-     * @param array $mappings
-     * @param string $sourceRoot
-     * @param string $destinationRoot
+     * @param MapCollection $mappings
      */
-    public function prepareInstall(array $mappings, $sourceRoot, $destinationRoot)
+    public function prepareInstall(MapCollection $mappings)
     {
-        foreach ($mappings as $mapping) {
-            list ($source, $destination) = $mapping;
-            $sourceAbsolutePath         = sprintf('%s/%s', $sourceRoot, $source);
-            $destinationAbsolutePath    = sprintf('%s/%s', $destinationRoot, $destination);
+        foreach ($mappings as $map) {
+            /** @var Map $map */
 
             // Create target directory if it ends with a directory separator
-            if ($this->fileSystem->endsWithDirectorySeparator($destinationAbsolutePath)
-                && !is_dir($sourceAbsolutePath)
-                && !file_exists($destinationAbsolutePath)
+            if ($this->fileSystem->endsWithDirectorySeparator($map->getRawDestination())
+                && !is_dir($map->getAbsoluteSource())
+                && !file_exists($map->getAbsoluteDestination())
             ) {
-                $this->fileSystem->ensureDirectoryExists($destinationAbsolutePath);
+                $this->fileSystem->ensureDirectoryExists($map->getAbsoluteDestination());
             }
         }
     }

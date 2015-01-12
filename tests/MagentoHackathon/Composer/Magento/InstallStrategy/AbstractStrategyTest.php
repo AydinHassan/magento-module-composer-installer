@@ -41,27 +41,33 @@ abstract class AbstractStrategyTest extends PHPUnit_Framework_TestCase
     }
 
     /**
-     * @param array $mapping
+     * @param array         $mapping
+     * @param null|string   $source
+     * @param null|string   $destination
+     *
      * @return array
      */
-    public function applyRootDirectoryToMapping(array $mapping)
+    public function applyRootDirectoryToMapping(array $mapping, $source = null, $destination = null)
     {
         return array(
-            sprintf($mapping[0], $this->source),
-            sprintf($mapping[1], $this->destination),
+            sprintf($mapping[0], $source ? $source : $this->source),
+            sprintf($mapping[1], $destination ? $destination : $this->destination),
         );
     }
 
     /**
-     * @param array $mappings
+     * @param array         $mappings
+     * @param null|string   $source
+     * @param null|string   $destination
+     *
      * @return array
      */
-    public function applyRootDirectoryToExpectedMappings(array $mappings)
+    public function applyRootDirectoryToExpectedMappings(array $mappings, $source = null, $destination = null)
     {
         $that = $this;
         return array_map(
-            function (array $mapping) use ($that) {
-                return $that->applyRootDirectoryToMapping($mapping);
+            function (array $mapping) use ($that, $source, $destination) {
+                return $that->applyRootDirectoryToMapping($mapping, $source, $destination);
             },
             $mappings
         );

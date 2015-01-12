@@ -3,6 +3,7 @@
 namespace MagentoHackathon\Composer\Magento\Factory;
 
 use Composer\Package\PackageInterface;
+use MagentoHackathon\Composer\Magento\Parser\ParserInterface;
 use MagentoHackathon\Composer\Magento\Parser\PathTranslationParser;
 use MagentoHackathon\Composer\Magento\ProjectConfig;
 
@@ -35,7 +36,7 @@ class PathTranslationParserFactory implements ParserFactoryInterface
     /**
      * @param PackageInterface $package
      * @param string $sourceDir
-     * @return Parser
+     * @return ParserInterface
      * @throws \ErrorException
      */
     public function make(PackageInterface $package, $sourceDir)

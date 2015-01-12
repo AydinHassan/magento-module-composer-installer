@@ -99,7 +99,7 @@ class Link implements InstallStrategyInterface
         foreach ($iterator as $item) {
             $absoluteDestination = sprintf('%s/%s', $destination, $iterator->getSubPathName());
             if ($item->isFile()) {
-                $resolvedMappings[] = array($item, $absoluteDestination);
+                $resolvedMappings[] = array($item->getPathname(), $absoluteDestination);
             }
         }
         return $resolvedMappings;

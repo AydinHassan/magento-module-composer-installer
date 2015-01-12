@@ -11,7 +11,7 @@ namespace MagentoHackathon\Composer\Magento\Parser;
  * Class PackageXmlParser
  * @package MagentoHackathon\Composer\Magento\Parser
  */
-class PackageXmlParser implements Parser
+class PackageXmlParser implements ParserInterface
 {
 
     /**

@@ -9,7 +9,7 @@ namespace MagentoHackathon\Composer\Magento\Parser;
  * Class PathTranslationParser
  * @package MagentoHackathon\Composer\Magento\Parser
  */
-class PathTranslationParser implements Parser
+class PathTranslationParser implements ParserInterface
 {
     /**
      * @var array Variants on each prefix that path mappings are checked
@@ -31,10 +31,10 @@ class PathTranslationParser implements Parser
     /**
      * Constructor. Sets the list of path translations to use.
      *
-     * @param Parser $parser
+     * @param ParserInterface $parser
      * @param array $translations Path translations
      */
-    public function __construct(Parser $parser, array $translations)
+    public function __construct(ParserInterface $parser, array $translations)
     {
         $this->pathPrefixTranslations = $this->createPrefixVariants($translations);
         $this->parser = $parser;
