@@ -42,6 +42,14 @@ class MapCollection implements IteratorAggregate, Countable
     }
 
     /**
+     * @return Map[]
+     */
+    public function all()
+    {
+        return $this->maps;
+    }
+
+    /**
      * @return int
      */
     public function count()
@@ -81,5 +89,19 @@ class MapCollection implements IteratorAggregate, Countable
         }
 
         array_splice($this->maps, $key, 1, $replacementMaps);
+    }
+
+    /**
+     * @param Map $mapToReplace
+     * @param MapCollection $collection
+     */
+    public function replaceWithCollection(Map $mapToReplace, MapCollection $collection)
+    {
+        $key = array_search($mapToReplace, $this->maps);
+        if (false === $key) {
+            throw new \InvalidArgumentException('Map does not belong to this collection');
+        }
+
+        array_splice($this->maps, $key, 1, $collection->all());
     }
 }

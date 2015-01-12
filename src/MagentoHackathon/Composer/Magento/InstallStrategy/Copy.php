@@ -3,6 +3,8 @@
 namespace MagentoHackathon\Composer\Magento\InstallStrategy;
 
 use MagentoHackathon\Composer\Magento\InstallStrategy\Exception\TargetExistsException;
+use MagentoHackathon\Composer\Magento\Map\Map;
+use MagentoHackathon\Composer\Magento\Map\MapCollection;
 use MagentoHackathon\Composer\Magento\Util\FileSystem;
 use SplFileInfo;
 
@@ -56,6 +58,42 @@ class Copy implements InstallStrategyInterface
         return array(array($source, $destination));
     }
 
+    public function test(Map $map)
+    {
+        if (is_dir($map->getAbsoluteDestination())
+            && !$this->fileSystem->sourceAndDestinationBaseMatch($map->getSource(), $map->getDestination())
+        ) {
+            // If the destination exists and is a directory
+            // and basename of source and destination are not equal that means we want to copy
+            // source into destination, not to destination
+            // eg. src: code/Some_Module.xml dest: app/etc/modules
+            // would result in Some_Module.xml being placed inside: app/etc/modules
+            // - so: app/etc/modules/Some_Module.xml
+            //
+
+            $destination = sprintf('%s/%s', $map->getDestination(), basename($map->getSource()));
+            $absoluteDestination = sprintf('%s/%s', $map->getAbsoluteDestination(), basename($map->getSource()));
+            $map = new Map($map->getSource(), $destination, $map->getAbsoluteSource(), $absoluteDestination);
+        }
+
+        //dir - dir
+        if (is_dir($map->getAbsoluteSource())) {
+            return $this->resolveDirectory2($map);
+        }
+
+        //file - to - file
+        return new MapCollection(
+            array(
+                new Map(
+                    $map->getSource(),
+                    $map->getDestination(),
+                    $map->getAbsoluteSource(),
+                    $map->getAbsoluteDestination()
+                )
+            )
+        );
+    }
+
     /**
      * @param string    $source Absolute Path of source
      * @param string    $destination Absolute Path of destination
@@ -76,6 +114,40 @@ class Copy implements InstallStrategyInterface
 
         copy($source, $destination);
         return array($destination);
+    }
+
+    /**
+     * Build an array of mappings which should be created
+     * eg. Every file in the directory
+     *
+     * @param string $source
+     * @param string $destination
+     *
+     * @return array Array of all files created
+     * @throws \ErrorException
+     */
+    protected function resolveDirectory2(Map $map)
+    {
+        $iterator = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($map->getAbsoluteSource(), \RecursiveDirectoryIterator::SKIP_DOTS),
+            \RecursiveIteratorIterator::SELF_FIRST
+        );
+
+        $resolvedMappings = array();
+        foreach ($iterator as $item) {
+            /** @var SplFileinfo $item */
+            $destination         = sprintf('%s/%s', $map->getDestination(), $iterator->getSubPathname());
+            $absoluteDestination = sprintf('%s/%s', $map->getAbsoluteDestination(), $iterator->getSubPathName());
+            if ($item->isFile()) {
+                $resolvedMappings[] = new Map(
+                    $map->getSource(),
+                    $destination,
+                    $map->getAbsoluteSource(),
+                    $absoluteDestination
+                );
+            }
+        }
+        return new MapCollection($resolvedMappings);
     }
 
     /**

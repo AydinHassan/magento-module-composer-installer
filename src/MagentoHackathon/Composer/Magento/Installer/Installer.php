@@ -112,46 +112,31 @@ class Installer
         $createdFiles = array();
 
         foreach ($mappings as $map) {
-
-            $resolvedMappings = $installStrategy->resolve($map);
-
-            $mapsToInsert = array();
-            foreach ($resolvedMappings as $resolvedMap) {
-                $mapsToInsert[] = new Map($resolvedMap[0], $resolvedMap[1], $packageSourceDirectory, $this->projectConfig->getMagentoRootDir());
-            }
-
-            $mappings->replace($map, $mapsToInsert);
+            $replacementMappings = $installStrategy->test($map);
+            $mappings->replaceWithCollection($map, $replacementMappings);
         }
 
         //$this->eventManager->dispatch(new PreMappingsCreate($mapCollection))
 
-
-
-
-
-        foreach ($mappings as $mapping) {
-            list ($source, $destination) = $mapping;
-
-            $resolvedMappings = $installStrategy->resolve($source, $destination);
-
-            foreach ($resolvedMappings as $mapping) {
-                if ($this->targetFilter->isTargetIgnored($package, $mapping[1])) {
-                    continue;
-                }
-
-
+        $targetFilter = $this->targetFilter;
+        $mappings = array_filter(
+            $mappings,
+            function (Map $map) use ($package, $targetFilter) {
+                return !$targetFilter->isTargetIgnored($package, $map->getDestination());
             }
+        );
 
+        foreach ($mappings as $map) {
             try {
-                $createdFiles = array_merge(
-                    $createdFiles,
-                    $this->create($source, $destination)
-                );
+                $installStrategy->create($map);
             } catch (TargetExistsException $e) {
+                //dispath event so console can log?
+                //re-throw for now
+                throw $e;
             }
         }
 
-        return $this->processCreatedFiles($createdFiles);
+        return $mappings;
     }
 
     /**
@@ -214,24 +199,5 @@ class Installer
         }
 
         return $createdFiles;
-    }
-
-    /**
-     * Strip off the destination root from the created
-     * files
-     *
-     * @param array $createdFiles
-     * @return array
-     */
-    public function processCreatedFiles(array $createdFiles)
-    {
-        $fileSystem         = $this->fileSystem;
-        $destinationRoot    = $this->destinationRoot;
-        return array_map(
-            function ($absoluteFilePath) use ($fileSystem, $destinationRoot) {
-                return $fileSystem->makePathRelative($absoluteFilePath, $destinationRoot);
-            },
-            $createdFiles
-        );
     }
 }
