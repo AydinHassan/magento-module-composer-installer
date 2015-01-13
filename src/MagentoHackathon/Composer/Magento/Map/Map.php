@@ -80,7 +80,7 @@ final class Map
      */
     public function getAbsoluteSource()
     {
-        return sprintf('/%s/%s', trim($this->sourceRoot, '\\/'), $this->getSource());
+        return sprintf('%s/%s', rtrim($this->sourceRoot, '\\/'), $this->getSource());
     }
 
     /**
@@ -88,6 +88,6 @@ final class Map
      */
     public function getAbsoluteDestination()
     {
-        return sprintf('/%s/%s', trim($this->destinationRoot, '\\/'), $this->getDestination());
+        return sprintf('%s/%s', rtrim($this->destinationRoot, '\\/'), $this->getDestination());
     }
 }
