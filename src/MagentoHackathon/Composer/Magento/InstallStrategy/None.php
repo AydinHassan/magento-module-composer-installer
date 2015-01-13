@@ -4,6 +4,7 @@
  */
 
 namespace MagentoHackathon\Composer\Magento\InstallStrategy;
+use MagentoHackathon\Composer\Magento\Map\Map;
 
 /**
  * None deploy strategy
@@ -12,22 +13,28 @@ class None implements InstallStrategyInterface
 {
 
 
-    public function resolve($source, $destination)
+    /**
+     * @param string $source
+     * @param string $destination
+     * @param string $absoluteSource
+     * @param string $absoluteDestination
+     *
+     * @return array Resolved Mappings
+     */
+    public function resolve($source, $destination, $absoluteSource, $absoluteDestination)
     {
         return array();
     }
 
     /**
-     * Deploy nothing
+     * Deploy Nothing
      *
-     * @param string $source
-     * @param string $destination
-     * @param bool $force
-     *
-     * @return bool
+     * @param Map   $map
+     * @param bool  $force
+     * @throws TargetExistsException
      */
-    public function create($source, $destination, $force)
+    public function create(Map $map, $force)
     {
-        return array();
+        return;
     }
 }

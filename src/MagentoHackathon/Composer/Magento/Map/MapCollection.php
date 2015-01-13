@@ -59,20 +59,24 @@ class MapCollection implements IteratorAggregate, Countable
 
     /**
      * @param Map $mapToRemove
+     *
+     * @return static
      */
     public function remove(Map $mapToRemove)
     {
-        $this->maps = array_values(array_filter(
+        return new static(array_values(array_filter(
             $this->maps,
             function (Map $map) use ($mapToRemove) {
                 return $mapToRemove !== $map;
             }
-        ));
+        )));
     }
 
     /**
      * @param Map   $mapToReplace
      * @param Map[] $replacementMaps
+     *
+     * @return static
      */
     public function replace(Map $mapToReplace, array $replacementMaps)
     {
@@ -88,20 +92,23 @@ class MapCollection implements IteratorAggregate, Countable
             throw new \InvalidArgumentException('Map does not belong to this collection');
         }
 
-        array_splice($this->maps, $key, 1, $replacementMaps);
+        $maps = $this->maps;
+        array_splice($maps, $key, 1, $replacementMaps);
+        return new static($maps);
     }
 
     /**
-     * @param Map $mapToReplace
-     * @param MapCollection $collection
+     * @param $callback
+     * @return static
      */
-    public function replaceWithCollection(Map $mapToReplace, MapCollection $collection)
+    public function filter($callback)
     {
-        $key = array_search($mapToReplace, $this->maps);
-        if (false === $key) {
-            throw new \InvalidArgumentException('Map does not belong to this collection');
+        if (!is_callable($callback)) {
+            throw new \InvalidArgumentException(
+                sprintf('Expected callable, got "%s"', is_object($callback) ? get_class($callback) : gettype($callback))
+            );
         }
 
-        array_splice($this->maps, $key, 1, $collection->all());
+        return new static(array_filter($this->maps, $callback));
     }
 }

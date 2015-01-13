@@ -3,6 +3,7 @@
 namespace MagentoHackathon\Composer\Magento\InstallStrategy;
 
 use MagentoHackathon\Composer\Magento\InstallStrategy\Exception\TargetExistsException;
+use MagentoHackathon\Composer\Magento\Map\Map;
 
 /**
  * Interface InstallStrategyInterface
@@ -19,19 +20,18 @@ interface InstallStrategyInterface
      *
      * @param string $source
      * @param string $destination
+     * @param string $absoluteSource
+     * @param string $absoluteDestination
      *
-     * @return array
-     * @throws TargetExistsException
+     * @return array Resolved Mappings
      */
-    public function resolve($source, $destination);
+    public function resolve($source, $destination, $absoluteSource, $absoluteDestination);
 
     /**
-     * @param string    $source Absolute Path of source
-     * @param string    $destination Absolute Path of destination
-     * @param bool      $force Whether the creation should be forced (eg if it exists already)
+     * @param Map   $map Map contains the relative and absolute source and destination
+     * @param bool  $force Whether the creation should be forced (eg if it exists already)
+     * @throws TargetExistsException If a
      *
-     * @return array Should return an array of files which were created
-     *               Created directories should not be returned.
      */
-    public function create($source, $destination, $force);
+    public function create(Map $map, $force);
 }

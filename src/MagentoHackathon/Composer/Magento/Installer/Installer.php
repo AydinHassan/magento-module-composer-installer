@@ -6,7 +6,9 @@ use Composer\Package\PackageInterface;
 use MagentoHackathon\Composer\Magento\Event\EventManager;
 use MagentoHackathon\Composer\Magento\Factory\InstallStrategyFactory;
 use MagentoHackathon\Composer\Magento\Factory\ParserFactoryInterface;
+use MagentoHackathon\Composer\Magento\InstallStrategy\Exception\SourceNotExistsException;
 use MagentoHackathon\Composer\Magento\InstallStrategy\Exception\TargetExistsException;
+use MagentoHackathon\Composer\Magento\InstallStrategy\InstallStrategyInterface;
 use MagentoHackathon\Composer\Magento\Map\Map;
 use MagentoHackathon\Composer\Magento\Map\MapCollection;
 use MagentoHackathon\Composer\Magento\Parser\Parser;
@@ -32,14 +34,9 @@ class Installer
     protected $fileSystem;
 
     /**
-     * @var array
-     */
-    protected $filesToIgnore;
-
-    /**
      * @var ProjectConfig
      */
-    protected $projectConfig;
+    protected $config;
 
     /**
      * @var GlobResolver
@@ -64,7 +61,7 @@ class Installer
     /**
      * @param InstallStrategyFactory $installStrategyFactory
      * @param FileSystem             $fileSystem
-     * @param ProjectConfig          $projectConfig
+     * @param ProjectConfig          $config
      * @param GlobResolver           $globResolver
      * @param TargetFilter           $targetFilter
      * @param Parser                 $parser
@@ -73,7 +70,7 @@ class Installer
     public function __construct(
         InstallStrategyFactory $installStrategyFactory,
         FileSystem $fileSystem,
-        ProjectConfig $projectConfig,
+        ProjectConfig $config,
         GlobResolver $globResolver,
         TargetFilter $targetFilter,
         Parser $parser,
@@ -81,7 +78,7 @@ class Installer
     ) {
         $this->installStrategyFactory   = $installStrategyFactory;
         $this->fileSystem               = $fileSystem;
-        $this->projectConfig            = $projectConfig;
+        $this->projectConfig            = $config;
         $this->globResolver             = $globResolver;
         $this->targetFilter             = $targetFilter;
         $this->parser                   = $parser;
@@ -99,36 +96,39 @@ class Installer
     public function install(PackageInterface $package, $packageSourceDirectory)
     {
         $installStrategy = $this->installStrategyFactory->make($package);
-        $force           = $this->projectConfig->getMagentoForceByPackageName($package->getName());
-        $mappings        = $this->parser->getMappings($package, $packageSourceDirectory, $this->projectConfig->getMagentoRootDir());
+        $force           = $this->config->getMagentoForceByPackageName($package->getName());
+        $mappings        = $this->parser->getMappings($package, $packageSourceDirectory, $this->config->getMagentoRootDir());
 
         //lets expand glob mappings first
         $mappings = $this->globResolver->resolve($package, $packageSourceDirectory, $mappings);
 
-        $this->eventManager->dispatch(new PreMappingsResolveEvent($mapCollection));
+        //$this->eventManager->dispatch(new PreMappingsResolveEvent($mapCollection));
 
         $this->prepareInstall($mappings);
-
-        $createdFiles = array();
-
-        foreach ($mappings as $map) {
-            $replacementMappings = $installStrategy->test($map);
-            $mappings->replaceWithCollection($map, $replacementMappings);
-        }
+        $mappings = $this->resolveMappings($mappings, $installStrategy);
 
         //$this->eventManager->dispatch(new PreMappingsCreate($mapCollection))
 
+        //remove ignored mappings
         $targetFilter = $this->targetFilter;
-        $mappings = array_filter(
+        $mappings = $mappings->filter(function (Map $map) use ($package, $targetFilter) {
+            return !$targetFilter->isTargetIgnored($package, $map->getDestination());
+        });
+
+        $missingSourceFiles = array_filter(
             $mappings,
-            function (Map $map) use ($package, $targetFilter) {
-                return !$targetFilter->isTargetIgnored($package, $map->getDestination());
+            function (Map $map) {
+                return !file_exists(($map->getAbsoluteSource()));
             }
         );
 
+        //throw exceptions for missing source?
+
         foreach ($mappings as $map) {
+            /** @var Map $map */
+            $this->fileSystem->ensureDirectoryExists(dirname($map->getAbsoluteDestination()));
             try {
-                $installStrategy->create($map);
+                $installStrategy->create($map, $force);
             } catch (TargetExistsException $e) {
                 //dispath event so console can log?
                 //re-throw for now
@@ -140,9 +140,13 @@ class Installer
     }
 
     /**
+     * If raw Map destination ends with a directory separator,
+     * source is not a directory and the destination file does not exist
+     * create destination s a directory
+     *
      * @param MapCollection $mappings
      */
-    public function prepareInstall(MapCollection $mappings)
+    protected function prepareInstall(MapCollection $mappings)
     {
         foreach ($mappings as $map) {
             /** @var Map $map */
@@ -158,46 +162,33 @@ class Installer
     }
 
     /**
-     * @param string $source
-     * @param string $destination
-     * @return array
-     * @throws \ErrorException
+     * @param MapCollection            $mappings
+     * @param InstallStrategyInterface $installStrategy
+     *
+     * @return MapCollection
      */
-    public function create($source, $destination)
+    protected function resolveMappings(MapCollection $mappings, InstallStrategyInterface $installStrategy)
     {
-
-        $sourceAbsolutePath         = sprintf('%s/%s', $this->getSourceDir(), $this->removeLeadingSlash($source));
-        $destinationAbsolutePath    = sprintf('%s/%s', $this->getDestDir(), $this->removeLeadingSlash($destination));
-
-        // Create target directory if it ends with a directory separator
-        if ($this->fileSystem->endsWithDirectorySeparator($destination)
-            && !is_dir($sourceAbsolutePath)
-            && !file_exists($destinationAbsolutePath)
-        ) {
-            mkdir($destinationAbsolutePath, 0777, true);
-            $destinationAbsolutePath = rtrim($destinationAbsolutePath, '\\/');
-        }
-
-        if (!file_exists($sourceAbsolutePath)) {
-            // Source file isn't a valid file or glob
-            throw new \ErrorException(sprintf('Source %s does not exist', $source));
-        }
-
-        $createdFiles = $this->installStrategy->create(
-            $sourceAbsolutePath,
-            $destinationAbsolutePath,
-            $this->options['is_forced']
-        );
-
-        if (!is_array($createdFiles)) {
-            throw new \ErrorException(
-                sprintf(
-                    'Install strategy create method should return an array. Got: "%s"',
-                    is_object($createdFiles) ? get_class($createdFiles) : gettype($createdFiles)
-                )
+        $replacementItems = array();
+        foreach ($mappings as $map) {
+            /** @var Map $map */
+            $resolvedMappings = $installStrategy->resolve(
+                $map->getSource(),
+                $map->getDestination(),
+                $map->getAbsoluteSource(),
+                $map->getAbsoluteDestination()
             );
+
+            $maps = array_map(
+                function (array $mapping) {
+                    return new Map($mapping[0], $mapping[1], $mapping[2], $mapping[3]);
+                },
+                $resolvedMappings
+            );
+
+            $replacementItems = array_merge($replacementItems, $maps);
         }
 
-        return $createdFiles;
+        return new MapCollection($replacementItems);
     }
 }

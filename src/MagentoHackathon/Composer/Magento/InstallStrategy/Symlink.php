@@ -6,6 +6,7 @@
 namespace MagentoHackathon\Composer\Magento\InstallStrategy;
 
 use MagentoHackathon\Composer\Magento\InstallStrategy\Exception\TargetExistsException;
+use MagentoHackathon\Composer\Magento\Map\Map;
 use MagentoHackathon\Composer\Magento\Util\FileSystem;
 
 /**
@@ -34,67 +35,69 @@ class Symlink implements InstallStrategyInterface
      *
      * @param string $source
      * @param string $destination
-     * @return array
+     * @param string $absoluteSource
+     * @param string $absoluteDestination
+     *
+     * @return array Resolved Mappings
      */
-    public function resolve($source, $destination)
+    public function resolve($source, $destination, $absoluteSource, $absoluteDestination)
     {
-        if (is_dir($destination)) {
-            $destination = sprintf('%s/%s', $destination, basename($source));
+        if (is_dir($absoluteDestination)) {
+            $destination            = sprintf('%s/%s', $destination, basename($source));
+            $absoluteDestination    = sprintf('%s/%s', $absoluteDestination, basename($source));
         }
 
-        return array(array($source, $destination));
+        return array(array($source, $destination, $absoluteSource, $absoluteDestination));
     }
 
     /**
-     * @param string $source
-     * @param string $destination
-     * @param bool $force
-     *
-     * @return array
+     * @param Map   $map
+     * @param bool  $force
      * @throws TargetExistsException
      */
-    public function create($source, $destination, $force)
+    public function create(Map $map, $force)
     {
         //if destination exists should we overwrite it?
-        if (is_dir($destination) && $this->fileSystem->sourceAndDestinationBaseMatch($source, $destination)) {
+        if (is_dir($map->getAbsoluteDestination())
+            && $this->fileSystem->sourceAndDestinationBaseMatch($map->getSource(), $map->getDestination())
+        ) {
             if (!$force) {
-                throw new TargetExistsException($destination);
+                throw new TargetExistsException($map->getAbsoluteDestination());
             }
-            $this->fileSystem->remove($destination);
+            $this->fileSystem->remove($map->getAbsoluteDestination());
         }
 
-        return $this->symlink($source, $destination, $force);
+        return $this->symlink($map, $force);
     }
 
     /**
-     * @param string $source
-     * @param string $destination
+     * @param Map  $map
      * @param bool $force
-     *
-     * @return array Array of all the files created
-     * @throws \TargetExistsException
+     * @throws TargetExistsException
      */
-    protected function symlink($source, $destination, $force)
+    protected function symlink(Map $map, $force)
     {
-        if (is_link($destination)) {
-            if ($this->fileSystem->symLinkPointsToCorrectLocation($destination, $source)) {
-                return array();
-            }
-            $this->fileSystem->remove($destination);
-        }
+        if (is_link($map->getAbsoluteDestination())) {
+            $symLinkCorrect = $this->fileSystem->symLinkPointsToCorrectLocation(
+                $map->getAbsoluteDestination(),
+                $map->getAbsoluteSource()
+            );
 
-        $this->fileSystem->ensureDirectoryExists(dirname($destination));
+            if ($symLinkCorrect) {
+                return;
+            }
+            $this->fileSystem->remove($map->getAbsoluteDestination());
+        }
 
         // If file exists and force is not specified, throw exception unless FORCE is set
         // existing symlinks are already handled
-        if (file_exists($destination)) {
+        if (file_exists($map->getAbsoluteDestination())) {
             if (!$force) {
-                throw new TargetExistsException($destination);
+                throw new TargetExistsException($map->getAbsoluteDestination());
             }
-            $this->fileSystem->remove($destination);
+            $this->fileSystem->remove($map->getAbsoluteDestination());
         }
 
-        $this->fileSystem->createSymlink($source, $destination);
-        return array($destination);
+        $this->fileSystem->createSymlink($map->getAbsoluteSource(), $map->getAbsoluteDestination());
     }
 }
