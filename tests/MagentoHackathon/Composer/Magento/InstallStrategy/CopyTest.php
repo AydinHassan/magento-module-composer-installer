@@ -2,8 +2,8 @@
 
 namespace MagentoHackathon\Composer\Magento\InstallStrategy;
 
+use MagentoHackathon\Composer\Magento\Map\Map;
 use MagentoHackathon\Composer\Magento\Util\FileSystem;
-use org\bovigo\vfs\vfsStream;
 
 /**
  * Class CopyTest
@@ -11,20 +11,10 @@ use org\bovigo\vfs\vfsStream;
  */
 class CopyTest extends AbstractStrategyTest
 {
-    protected $root;
 
     public function setUp()
     {
         parent::setup();
-
-        //using vfsstream here as directory iteration yields different order of results on different os's
-        $this->root         = vfsStream::setup('root');
-        $this->source       = sprintf('%s/source', vfsStream::url('root'), $this->getName(false));
-        $this->destination  = sprintf('%s/destination', vfsStream::url('root'), $this->getName(false));
-
-        mkdir($this->source);
-        mkdir($this->destination);
-
         $this->assertInstanceOf(
             'MagentoHackathon\Composer\Magento\InstallStrategy\InstallStrategyInterface',
             new Copy(new FileSystem)
@@ -34,32 +24,31 @@ class CopyTest extends AbstractStrategyTest
     public function testIfFileExistsAtDestinationExceptionIsThrownIfNotForce()
     {
         $fileSystem = $this->getMock('MagentoHackathon\Composer\Magento\Util\FileSystem');
-        $symlink = new Copy($fileSystem);
+        $copy = new Copy($fileSystem);
 
-        $source = sprintf('%s/local.xml', $this->source);
-        $destination = sprintf('%s/local.xml', $this->destination);
+        $map = new Map('local.xml', 'local.xml', $this->virtualSource, $this->virtualDestination);
 
-        $this->createFileStructure(array('local.xml'), $this->destination);
+        $this->createFileStructure(array('local.xml'), $this->virtualDestination);
 
         $this->setExpectedException(
             'MagentoHackathon\Composer\Magento\InstallStrategy\Exception\TargetExistsException'
         );
 
-        $symlink->create($source, $destination, false);
-        $this->assertFileExists($destination);
+        $copy->create($map, false);
+        $this->assertFileExists($map->getAbsoluteDestination());
     }
 
     public function testIfFileExistsAtDestinationItIsRemovedIfForceSpecified()
     {
         $fileSystem = $this->getMock('MagentoHackathon\Composer\Magento\Util\FileSystem');
-        $symlink = new Copy($fileSystem);
+        $copy = new Copy($fileSystem);
 
-        $source = sprintf('%s/local.xml', $this->source);
-        $destination = sprintf('%s/local.xml', $this->destination);
+        $map = new Map('local.xml', 'local.xml', $this->virtualSource, $this->virtualDestination);
 
-        $this->createFileStructure(array('local.xml'), $this->source);
-        $this->createFileStructure(array('local.xml'), $this->destination);
+        $this->createFileStructure(array('local.xml'), $this->virtualSource);
+        $this->createFileStructure(array('local.xml'), $this->virtualDestination);
 
+        $destination = $map->getAbsoluteDestination();
         $fileSystem
             ->expects($this->once())
             ->method('remove')
@@ -68,7 +57,7 @@ class CopyTest extends AbstractStrategyTest
                 unlink($destination);
             }));
 
-        $symlink->create($source, $destination, true);
+        $copy->create($map, true);
         $this->assertFileExists($destination);
     }
 
@@ -86,16 +75,14 @@ class CopyTest extends AbstractStrategyTest
         array $mapping,
         array $expectedMappings
     ) {
-        $symlink = new Copy(new FileSystem);
-
-        $mapping = $this->applyRootDirectoryToMapping($mapping);
+        $copy = new Copy(new FileSystem);
         $expectedMappings = $this->applyRootDirectoryToExpectedMappings($expectedMappings);
+        $mapping = $this->applyRootDirectoryToMapping($mapping);
 
         $this->createFileStructure($sourceFileStructure, $this->source);
         $this->createFileStructure($destinationFileStructure, $this->destination);
 
-        $resolvedMapping = $symlink->resolve($mapping[0], $mapping[1]);
-
+        $resolvedMapping = $copy->resolve($mapping[0], $mapping[1], $mapping[2], $mapping[3]);
         $this->assertEquals($expectedMappings, $resolvedMapping);
     }
 
@@ -108,13 +95,13 @@ class CopyTest extends AbstractStrategyTest
                 ),
                 'destinationFileStructure' => array(),
                 'mapping' => array(
-                    '%s/local1.xml',
-                    '%s/local2.xml',
+                    'local1.xml',
+                    'local2.xml',
                 ),
                 'expectedMappings' => array(
                     array(
-                        '%s/local1.xml',
-                        '%s/local2.xml',
+                        'local1.xml',
+                        'local2.xml',
                     )
                 ),
             ),
@@ -125,13 +112,13 @@ class CopyTest extends AbstractStrategyTest
                 ),
                 'destinationFileStructure' => array(),
                 'mapping' => array(
-                    '%s/folder',
-                    '%s/destination-folder',
+                    'folder',
+                    'destination-folder',
                 ),
                 'expectedMappings' => array(
                     array(
-                        '%s/folder/local.xml',
-                        '%s/destination-folder/local.xml',
+                        'folder/local.xml',
+                        'destination-folder/local.xml',
                     )
                 ),
             ),
@@ -144,13 +131,13 @@ class CopyTest extends AbstractStrategyTest
                     'destination-folder/'
                 ),
                 'mapping' => array(
-                    '%s/folder/local.xml',
-                    '%s/destination-folder',
+                    'folder/local.xml',
+                    'destination-folder',
                 ),
                 'expectedMappings' => array(
                     array(
-                        '%s/folder/local.xml',
-                        '%s/destination-folder/local.xml',
+                        'folder/local.xml',
+                        'destination-folder/local.xml',
                     )
                 ),
             ),
@@ -163,13 +150,13 @@ class CopyTest extends AbstractStrategyTest
                     'destination-folder/child-folder/'
                 ),
                 'mapping' => array(
-                    '%s/folder/child-folder',
-                    '%s/destination-folder',
+                    'folder/child-folder',
+                    'destination-folder',
                 ),
                 'expectedMappings' => array(
                     array(
-                        '%s/folder/child-folder/local.xml',
-                        '%s/destination-folder/child-folder/local.xml',
+                        'folder/child-folder/local.xml',
+                        'destination-folder/child-folder/local.xml',
                     )
                 ),
             ),
@@ -180,13 +167,13 @@ class CopyTest extends AbstractStrategyTest
                 ),
                 'destinationFileStructure' => array(),
                 'mapping' => array(
-                    '%s/folder/child-folder',
-                    '%s/destination-folder',
+                    'folder/child-folder',
+                    'destination-folder',
                 ),
                 'expectedMappings' => array(
                     array(
-                        '%s/folder/child-folder/local.xml',
-                        '%s/destination-folder/local.xml',
+                        'folder/child-folder/local.xml',
+                        'destination-folder/local.xml',
                     )
                 ),
             ),
@@ -199,13 +186,13 @@ class CopyTest extends AbstractStrategyTest
                     'destination-folder/folder/'
                 ),
                 'mapping' => array(
-                    '%s/folder/local.xml',
-                    '%s/destination-folder',
+                    'folder/local.xml',
+                    'destination-folder',
                 ),
                 'expectedMappings' => array(
                     array(
-                        '%s/folder/local.xml',
-                        '%s/destination-folder/local.xml',
+                        'folder/local.xml',
+                        'destination-folder/local.xml',
                     )
                 ),
             ),
@@ -216,13 +203,13 @@ class CopyTest extends AbstractStrategyTest
                 ),
                 'destinationFileStructure' => array(),
                 'mapping' => array(
-                    '%s/folder',
-                    '%s/destination-folder',
+                    'folder',
+                    'destination-folder',
                 ),
                 'expectedMappings' => array(
                     array(
-                        '%s/folder/local.xml',
-                        '%s/destination-folder/local.xml',
+                        'folder/local.xml',
+                        'destination-folder/local.xml',
                     )
                 ),
             ),
@@ -236,21 +223,21 @@ class CopyTest extends AbstractStrategyTest
                 ),
                 'destinationFileStructure' => array(),
                 'mapping' => array(
-                    '%s/folder',
-                    '%s/destination-folder',
+                    'folder',
+                    'destination-folder',
                 ),
                 'expectedMappings' => array(
                     array(
-                        '%s/folder/local.xml',
-                        '%s/destination-folder/local.xml',
+                        'folder/local.xml',
+                        'destination-folder/local.xml',
                     ),
                     array(
-                        '%s/folder/child-dir/file2.txt',
-                        '%s/destination-folder/child-dir/file2.txt',
+                        'folder/child-dir/file2.txt',
+                        'destination-folder/child-dir/file2.txt',
                     ),
                     array(
-                        '%s/folder/child-dir/file3.txt',
-                        '%s/destination-folder/child-dir/file3.txt',
+                        'folder/child-dir/file3.txt',
+                        'destination-folder/child-dir/file3.txt',
                     ),
                 ),
             ),
@@ -263,13 +250,13 @@ class CopyTest extends AbstractStrategyTest
                     'destination-folder/'
                 ),
                 'mapping' => array(
-                    '%s/folder',
-                    '%s/destination-folder',
+                    'folder',
+                    'destination-folder',
                 ),
                 'expectedMappings' => array(
                     array(
-                        '%s/folder/local.xml',
-                        '%s/destination-folder/folder/local.xml',
+                        'folder/local.xml',
+                        'destination-folder/folder/local.xml',
                     )
                 ),
             ),

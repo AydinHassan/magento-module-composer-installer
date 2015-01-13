@@ -2,8 +2,8 @@
 
 namespace MagentoHackathon\Composer\Magento\InstallStrategy;
 
+use MagentoHackathon\Composer\Magento\Map\Map;
 use MagentoHackathon\Composer\Magento\Util\FileSystem;
-use PHPUnit_Framework_TestCase;
 
 /**
  * Class SymlinkTest
@@ -26,15 +26,14 @@ class SymlinkTest extends AbstractStrategyTest
         $fileSystem = $this->getMock('MagentoHackathon\Composer\Magento\Util\FileSystem');
         $symlink = new Symlink($fileSystem);
 
-        $source = sprintf('%s/source', $this->source);
-        $destination = sprintf('%s/destination', $this->destination);
+        $map = new Map('source', 'destination', $this->source, $this->destination);
 
         $fileSystem
             ->expects($this->once())
             ->method('createSymlink')
-            ->with($source, $destination);
+            ->with($map->getAbsoluteSource(), $map->getAbsoluteDestination());
 
-        $symlink->create($source, $destination, false);
+        $symlink->create($map, false);
     }
 
     public function testIfDestinationDirectoryExistsAndIsSameBaseAsSourceExceptionIsThrownIfNotForce()
@@ -42,22 +41,21 @@ class SymlinkTest extends AbstractStrategyTest
         $fileSystem = $this->getMock('MagentoHackathon\Composer\Magento\Util\FileSystem');
         $symlink = new Symlink($fileSystem);
 
-        $source = sprintf('%s/source', $this->source);
-        $destination = sprintf('%s/source', $this->destination);
+        $map = new Map('source', 'source', $this->source, $this->destination);
 
         $this->createFileStructure(array('source/'), $this->destination);
 
         $fileSystem
             ->expects($this->once())
             ->method('sourceAndDestinationBaseMatch')
-            ->with($source, $destination)
+            ->with($map->getSource(), $map->getDestination())
             ->will($this->returnValue(true));
 
         $this->setExpectedException(
             'MagentoHackathon\Composer\Magento\InstallStrategy\Exception\TargetExistsException'
         );
 
-        $symlink->create($source, $destination, false);
+        $symlink->create($map, false);
     }
 
     public function testIfDestinationDirectoryExistsAndIsSameBaseAsSourceItIsRemovedIfForceSpecified()
@@ -65,17 +63,17 @@ class SymlinkTest extends AbstractStrategyTest
         $fileSystem = $this->getMock('MagentoHackathon\Composer\Magento\Util\FileSystem');
         $symlink = new Symlink($fileSystem);
 
-        $source = sprintf('%s/source', $this->source);
-        $destination = sprintf('%s/source', $this->destination);
+        $map = new Map('source', 'source', $this->source, $this->destination);
 
         $this->createFileStructure(array('source/'), $this->destination);
 
         $fileSystem
             ->expects($this->once())
             ->method('sourceAndDestinationBaseMatch')
-            ->with($source, $destination)
+            ->with($map->getSource(), $map->getDestination())
             ->will($this->returnValue(true));
 
+        $destination = $map->getAbsoluteDestination();
         $fileSystem
             ->expects($this->once())
             ->method('remove')
@@ -88,9 +86,9 @@ class SymlinkTest extends AbstractStrategyTest
         $fileSystem
             ->expects($this->once())
             ->method('createSymlink')
-            ->with($source, $destination);
+            ->with($map->getAbsoluteSource(), $map->getAbsoluteDestination());
 
-        $symlink->create($source, $destination, true);
+        $symlink->create($map, true);
     }
 
     public function testIfSymLinkExistsAndIsCorrectReturnEarly()
@@ -98,18 +96,21 @@ class SymlinkTest extends AbstractStrategyTest
         $fileSystem = $this->getMock('MagentoHackathon\Composer\Magento\Util\FileSystem');
         $symlink = new Symlink($fileSystem);
 
-        $source = sprintf('%s/source', $this->source);
-        $destination = sprintf('%s/source', $this->destination);
+        $map = new Map('source', 'source', $this->source, $this->destination);
 
-        symlink($source, $destination);
+        symlink($map->getAbsoluteSource(), $map->getAbsoluteDestination());
 
         $fileSystem
             ->expects($this->once())
             ->method('symLinkPointsToCorrectLocation')
-            ->with($destination, $source)
+            ->with($map->getAbsoluteDestination(), $map->getAbsoluteSource())
             ->will($this->returnValue(true));
 
-        $this->assertEquals(array(), $symlink->create($source, $destination, false));
+        $fileSystem
+            ->expects($this->never())
+            ->method('createSymlink');
+
+        $this->assertNull($symlink->create($map, false));
     }
 
     public function testIfSymLinkExistsAndIsInCorrectItIsRemovedFirst()
@@ -117,19 +118,20 @@ class SymlinkTest extends AbstractStrategyTest
         $fileSystem = $this->getMock('MagentoHackathon\Composer\Magento\Util\FileSystem');
         $symlink = new Symlink($fileSystem);
 
-        $source         = sprintf('%s/source', $this->source);
-        $destination    = sprintf('%s/source', $this->destination);
-        $otherFile      = sprintf('%s/someOtherFile', $this->source);
+        $map = new Map('source', 'source', $this->source, $this->destination);
+
+        $otherFile = sprintf('%s/someOtherFile', $this->source);
 
         touch($otherFile);
-        symlink($otherFile, $destination);
+        symlink($otherFile, $map->getAbsoluteDestination());
 
         $fileSystem
             ->expects($this->once())
             ->method('symLinkPointsToCorrectLocation')
-            ->with($destination, $source)
+            ->with($map->getAbsoluteDestination(), $map->getAbsoluteSource())
             ->will($this->returnValue(false));
 
+        $destination = $map->getAbsoluteDestination();
         $fileSystem
             ->expects($this->once())
             ->method('remove')
@@ -141,9 +143,9 @@ class SymlinkTest extends AbstractStrategyTest
         $fileSystem
             ->expects($this->once())
             ->method('createSymlink')
-            ->with($source, $destination);
+            ->with($map->getAbsoluteSource(), $map->getAbsoluteDestination());
 
-        $symlink->create($source, $destination, false);
+        $symlink->create($map, false);
     }
 
     public function testIfFileExistsAtDestinationExceptionIsThrownIfNotForce()
@@ -151,8 +153,7 @@ class SymlinkTest extends AbstractStrategyTest
         $fileSystem = $this->getMock('MagentoHackathon\Composer\Magento\Util\FileSystem');
         $symlink = new Symlink($fileSystem);
 
-        $source = sprintf('%s/source', $this->source);
-        $destination = sprintf('%s/source', $this->destination);
+        $map = new Map('source', 'source', $this->source, $this->destination);
 
         $this->createFileStructure(array('source'), $this->destination);
 
@@ -160,7 +161,7 @@ class SymlinkTest extends AbstractStrategyTest
             'MagentoHackathon\Composer\Magento\InstallStrategy\Exception\TargetExistsException'
         );
 
-        $symlink->create($source, $destination, false);
+        $symlink->create($map, false);
     }
 
     public function testIfFileExistsAtDestinationItIsRemovedIfForceSpecified()
@@ -168,12 +169,12 @@ class SymlinkTest extends AbstractStrategyTest
         $fileSystem = $this->getMock('MagentoHackathon\Composer\Magento\Util\FileSystem');
         $symlink = new Symlink($fileSystem);
 
-        $source = sprintf('%s/source', $this->source);
-        $destination = sprintf('%s/source', $this->destination);
+        $map = new Map('source', 'source', $this->source, $this->destination);
 
         $this->createFileStructure(array('source'), $this->source);
         $this->createFileStructure(array('source'), $this->destination);
 
+        $destination = $map->getAbsoluteDestination();
         $fileSystem
             ->expects($this->once())
             ->method('remove')
@@ -185,9 +186,9 @@ class SymlinkTest extends AbstractStrategyTest
         $fileSystem
             ->expects($this->once())
             ->method('createSymlink')
-            ->with($source, $destination);
+            ->with($map->getAbsoluteSource(), $map->getAbsoluteDestination());
 
-        $symlink->create($source, $destination, true);
+        $symlink->create($map, true);
     }
 
     /**
@@ -212,7 +213,7 @@ class SymlinkTest extends AbstractStrategyTest
         $this->createFileStructure($sourceFileStructure, $this->source);
         $this->createFileStructure($destinationFileStructure, $this->destination);
 
-        $resolvedMapping = $symlink->resolve($mapping[0], $mapping[1]);
+        $resolvedMapping = $symlink->resolve($mapping[0], $mapping[1], $mapping[2], $mapping[3]);
 
         $this->assertEquals($expectedMappings, $resolvedMapping);
     }
@@ -226,13 +227,13 @@ class SymlinkTest extends AbstractStrategyTest
                 ),
                 'destinationFileStructure' => array(),
                 'mapping' => array(
-                    '%s/local1.xml',
-                    '%s/local2.xml',
+                    'local1.xml',
+                    'local2.xml',
                 ),
                 'expectedMappings' => array(
                     array(
-                        '%s/local1.xml',
-                        '%s/local2.xml',
+                        'local1.xml',
+                        'local2.xml',
                     )
                 ),
             ),
@@ -243,13 +244,13 @@ class SymlinkTest extends AbstractStrategyTest
                 ),
                 'destinationFileStructure' => array(),
                 'mapping' => array(
-                    '%s/folder',
-                    '%s/destination-folder',
+                    'folder',
+                    'destination-folder',
                 ),
                 'expectedMappings' => array(
                     array(
-                        '%s/folder',
-                        '%s/destination-folder',
+                        'folder',
+                        'destination-folder',
                     )
                 ),
             ),
@@ -262,13 +263,13 @@ class SymlinkTest extends AbstractStrategyTest
                     'destination-folder/'
                 ),
                 'mapping' => array(
-                    '%s/folder/local.xml',
-                    '%s/destination-folder',
+                    'folder/local.xml',
+                    'destination-folder',
                 ),
                 'expectedMappings' => array(
                     array(
-                        '%s/folder/local.xml',
-                        '%s/destination-folder/local.xml',
+                        'folder/local.xml',
+                        'destination-folder/local.xml',
                     )
                 ),
             ),
@@ -281,13 +282,13 @@ class SymlinkTest extends AbstractStrategyTest
                     'destination-folder/child-folder/'
                 ),
                 'mapping' => array(
-                    '%s/folder/child-folder',
-                    '%s/destination-folder',
+                    'folder/child-folder',
+                    'destination-folder',
                 ),
                 'expectedMappings' => array(
                     array(
-                        '%s/folder/child-folder',
-                        '%s/destination-folder/child-folder',
+                        'folder/child-folder',
+                        'destination-folder/child-folder',
                     )
                 ),
             ),
@@ -298,13 +299,13 @@ class SymlinkTest extends AbstractStrategyTest
                 ),
                 'destinationFileStructure' => array(),
                 'mapping' => array(
-                    '%s/folder/child-folder',
-                    '%s/destination-folder',
+                    'folder/child-folder',
+                    'destination-folder',
                 ),
                 'expectedMappings' => array(
                     array(
-                        '%s/folder/child-folder',
-                        '%s/destination-folder',
+                        'folder/child-folder',
+                        'destination-folder',
                     )
                 ),
             ),
@@ -317,13 +318,13 @@ class SymlinkTest extends AbstractStrategyTest
                     'destination-folder/folder/'
                 ),
                 'mapping' => array(
-                    '%s/folder/local.xml',
-                    '%s/destination-folder',
+                    'folder/local.xml',
+                    'destination-folder',
                 ),
                 'expectedMappings' => array(
                     array(
-                        '%s/folder/local.xml',
-                        '%s/destination-folder/local.xml',
+                        'folder/local.xml',
+                        'destination-folder/local.xml',
                     )
                 ),
             ),
@@ -334,13 +335,13 @@ class SymlinkTest extends AbstractStrategyTest
                 ),
                 'destinationFileStructure' => array(),
                 'mapping' => array(
-                    '%s/folder',
-                    '%s/destination-folder',
+                    'folder',
+                    'destination-folder',
                 ),
                 'expectedMappings' => array(
                     array(
-                        '%s/folder',
-                        '%s/destination-folder',
+                        'folder',
+                        'destination-folder',
                     )
                 ),
             ),
@@ -351,13 +352,13 @@ class SymlinkTest extends AbstractStrategyTest
                 ),
                 'destinationFileStructure' => array(),
                 'mapping' => array(
-                    '%s/folder',
-                    '%s/destination-folder/',
+                    'folder',
+                    'destination-folder/',
                 ),
                 'expectedMappings' => array(
                     array(
-                        '%s/folder',
-                        '%s/destination-folder/',
+                        'folder',
+                        'destination-folder/',
                     )
                 ),
             ),
@@ -370,13 +371,13 @@ class SymlinkTest extends AbstractStrategyTest
                     'destination-folder/'
                 ),
                 'mapping' => array(
-                    '%s/folder',
-                    '%s/destination-folder',
+                    'folder',
+                    'destination-folder',
                 ),
                 'expectedMappings' => array(
                     array(
-                        '%s/folder',
-                        '%s/destination-folder/folder',
+                        'folder',
+                        'destination-folder/folder',
                     )
                 ),
             ),

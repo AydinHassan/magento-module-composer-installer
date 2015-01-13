@@ -1,6 +1,7 @@
 <?php
 namespace MagentoHackathon\Composer\Magento\InstallStrategy;
 
+use MagentoHackathon\Composer\Magento\Map\Map;
 use PHPUnit_Framework_TestCase;
 
 /**
@@ -13,12 +14,13 @@ class NoneTest extends PHPUnit_Framework_TestCase
     {
         $none = new None;
         $this->assertInstanceOf('MagentoHackathon\Composer\Magento\InstallStrategy\InstallStrategyInterface', $none);
-        $this->assertSame(array(), $none->resolve('some/source', 'some/destination'));
+        $this->assertSame(array(), $none->resolve('some/source', 'some/destination', '/root', '/root'));
     }
 
     public function testCreateDoesNothing()
     {
         $none = new None;
-        $this->assertEquals(array(), $none->create('some/source', 'some/destination', false));
+        $map = new Map('some/source', 'some/destination', '/root', '/root');
+        $this->assertNull($none->create($map, false));
     }
 }

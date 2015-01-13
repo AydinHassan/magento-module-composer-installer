@@ -85,10 +85,13 @@ class Link implements InstallStrategyInterface
         $resolvedMappings = array();
         foreach ($iterator as $item) {
             /** @var SplFileinfo $item */
-            $destination         = sprintf('%s/%s', $destination, $iterator->getSubPathname());
-            $absoluteDestination = sprintf('%s/%s', $absoluteDestination, $iterator->getSubPathName());
             if ($item->isFile()) {
-                $resolvedMappings[] = array($source, $destination, $absoluteSource, $absoluteDestination);
+                $resolvedMappings[] = array(
+                    sprintf('%s/%s', $source, $iterator->getSubPathname()),
+                    sprintf('%s/%s', $destination, $iterator->getSubPathname()),
+                    sprintf('%s/%s', $absoluteSource, $iterator->getSubPathname()),
+                    sprintf('%s/%s', $absoluteDestination, $iterator->getSubPathName())
+                );
             }
         }
         return $resolvedMappings;

@@ -3,6 +3,7 @@
 namespace MagentoHackathon\Composer\Magento\InstallStrategy;
 
 use MagentoHackathon\Composer\Magento\Util\FileSystem;
+use org\bovigo\vfs\vfsStream;
 use PHPUnit_Framework_TestCase;
 
 /**
@@ -28,6 +29,16 @@ abstract class AbstractStrategyTest extends PHPUnit_Framework_TestCase
     protected $fileSystem;
 
     /**
+     * @var string vfsStream virtual source root
+     */
+    protected $virtualSource;
+
+    /**
+     * @var string vfsStream virtual destination root
+     */
+    protected $virtualDestination;
+
+    /**
      * Setup
      */
     public function setup()
@@ -38,6 +49,14 @@ abstract class AbstractStrategyTest extends PHPUnit_Framework_TestCase
 
         $this->fileSystem->ensureDirectoryExists($this->source);
         $this->fileSystem->ensureDirectoryExists($this->destination);
+
+        //using vfsstream here as directory iteration yields different order of results on different os's
+        vfsStream::setup('root');
+        $this->virtualSource        = sprintf('%s/source', vfsStream::url('root'), $this->getName(false));
+        $this->virtualDestination   = sprintf('%s/destination', vfsStream::url('root'), $this->getName(false));
+
+        $this->fileSystem->ensureDirectoryExists($this->virtualSource);
+        $this->fileSystem->ensureDirectoryExists($this->virtualDestination);
     }
 
     /**
@@ -50,8 +69,10 @@ abstract class AbstractStrategyTest extends PHPUnit_Framework_TestCase
     public function applyRootDirectoryToMapping(array $mapping, $source = null, $destination = null)
     {
         return array(
-            sprintf($mapping[0], $source ? $source : $this->source),
-            sprintf($mapping[1], $destination ? $destination : $this->destination),
+            $mapping[0],
+            $mapping[1],
+            ($source ? $source : $this->source) . "/" . $mapping[0],
+            ($destination ? $destination : $this->destination) . "/" . $mapping[1],
         );
     }
 

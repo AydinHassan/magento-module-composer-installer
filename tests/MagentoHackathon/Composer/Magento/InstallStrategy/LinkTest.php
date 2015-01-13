@@ -2,8 +2,8 @@
 
 namespace MagentoHackathon\Composer\Magento\InstallStrategy;
 
+use MagentoHackathon\Composer\Magento\Map\Map;
 use MagentoHackathon\Composer\Magento\Util\FileSystem;
-use org\bovigo\vfs\vfsStream;
 
 /**
  * Class LinkTest
@@ -11,22 +11,9 @@ use org\bovigo\vfs\vfsStream;
  */
 class LinkTest extends AbstractStrategyTest
 {
-    protected $root;
-    protected $virtualSource;
-    protected $virtualDestination;
-
     public function setUp()
     {
         parent::setup();
-
-        //using vfsstream here as directory iteration yields different order of results on different os's
-        $this->root                 = vfsStream::setup('root');
-        $this->virtualSource        = sprintf('%s/source', vfsStream::url('root'), $this->getName(false));
-        $this->virtualDestination   = sprintf('%s/destination', vfsStream::url('root'), $this->getName(false));
-
-        mkdir($this->virtualSource);
-        mkdir($this->virtualDestination);
-
         $this->assertInstanceOf(
             'MagentoHackathon\Composer\Magento\InstallStrategy\InstallStrategyInterface',
             new Link(new FileSystem)
@@ -38,8 +25,7 @@ class LinkTest extends AbstractStrategyTest
         $fileSystem = $this->getMock('MagentoHackathon\Composer\Magento\Util\FileSystem');
         $link = new Link($fileSystem);
 
-        $source = sprintf('%s/local.xml', $this->source);
-        $destination = sprintf('%s/local.xml', $this->destination);
+        $map = new Map('local.xml', 'local.xml', $this->source, $this->destination);
 
         $this->createFileStructure(array('local.xml'), $this->destination);
 
@@ -47,8 +33,8 @@ class LinkTest extends AbstractStrategyTest
             'MagentoHackathon\Composer\Magento\InstallStrategy\Exception\TargetExistsException'
         );
 
-        $link->create($source, $destination, false);
-        $this->assertFileExists($destination);
+        $link->create($map, false);
+        $this->assertFileExists($map->getAbsoluteDestination());
     }
 
     public function testIfFileExistsAtDestinationItIsRemovedIfForceSpecified()
@@ -56,12 +42,12 @@ class LinkTest extends AbstractStrategyTest
         $fileSystem = $this->getMock('MagentoHackathon\Composer\Magento\Util\FileSystem');
         $link = new Link($fileSystem);
 
-        $source = sprintf('%s/local.xml', $this->source);
-        $destination = sprintf('%s/local.xml', $this->destination);
+        $map = new Map('local.xml', 'local.xml', $this->source, $this->destination);
 
         $this->createFileStructure(array('local.xml'), $this->source);
         $this->createFileStructure(array('local.xml'), $this->destination);
 
+        $destination = $map->getAbsoluteDestination();
         $fileSystem
             ->expects($this->once())
             ->method('remove')
@@ -70,7 +56,7 @@ class LinkTest extends AbstractStrategyTest
                 unlink($destination);
             }));
 
-        $link->create($source, $destination, true);
+        $link->create($map, true);
         $this->assertFileExists($destination);
     }
 
@@ -101,8 +87,7 @@ class LinkTest extends AbstractStrategyTest
         $this->createFileStructure($sourceFileStructure, $this->virtualSource);
         $this->createFileStructure($destinationFileStructure, $this->virtualDestination);
 
-        $resolvedMapping = $link->resolve($mapping[0], $mapping[1]);
-
+        $resolvedMapping = $link->resolve($mapping[0], $mapping[1], $mapping[2], $mapping[3]);
         $this->assertEquals($expectedMappings, $resolvedMapping);
     }
 
@@ -115,13 +100,13 @@ class LinkTest extends AbstractStrategyTest
                 ),
                 'destinationFileStructure' => array(),
                 'mapping' => array(
-                    '%s/local1.xml',
-                    '%s/local2.xml',
+                    'local1.xml',
+                    'local2.xml',
                 ),
                 'expectedMappings' => array(
                     array(
-                        '%s/local1.xml',
-                        '%s/local2.xml',
+                        'local1.xml',
+                        'local2.xml',
                     )
                 ),
             ),
@@ -132,13 +117,13 @@ class LinkTest extends AbstractStrategyTest
                 ),
                 'destinationFileStructure' => array(),
                 'mapping' => array(
-                    '%s/folder',
-                    '%s/destination-folder',
+                    'folder',
+                    'destination-folder',
                 ),
                 'expectedMappings' => array(
                     array(
-                        '%s/folder/local.xml',
-                        '%s/destination-folder/local.xml',
+                        'folder/local.xml',
+                        'destination-folder/local.xml',
                     )
                 ),
             ),
@@ -151,13 +136,13 @@ class LinkTest extends AbstractStrategyTest
                     'destination-folder/'
                 ),
                 'mapping' => array(
-                    '%s/folder/local.xml',
-                    '%s/destination-folder',
+                    'folder/local.xml',
+                    'destination-folder',
                 ),
                 'expectedMappings' => array(
                     array(
-                        '%s/folder/local.xml',
-                        '%s/destination-folder/local.xml',
+                        'folder/local.xml',
+                        'destination-folder/local.xml',
                     )
                 ),
             ),
@@ -170,13 +155,13 @@ class LinkTest extends AbstractStrategyTest
                     'destination-folder/child-folder/'
                 ),
                 'mapping' => array(
-                    '%s/folder/child-folder',
-                    '%s/destination-folder',
+                    'folder/child-folder',
+                    'destination-folder',
                 ),
                 'expectedMappings' => array(
                     array(
-                        '%s/folder/child-folder/local.xml',
-                        '%s/destination-folder/child-folder/local.xml',
+                        'folder/child-folder/local.xml',
+                        'destination-folder/child-folder/local.xml',
                     )
                 ),
             ),
@@ -187,13 +172,13 @@ class LinkTest extends AbstractStrategyTest
                 ),
                 'destinationFileStructure' => array(),
                 'mapping' => array(
-                    '%s/folder/child-folder',
-                    '%s/destination-folder',
+                    'folder/child-folder',
+                    'destination-folder',
                 ),
                 'expectedMappings' => array(
                     array(
-                        '%s/folder/child-folder/local.xml',
-                        '%s/destination-folder/local.xml',
+                        'folder/child-folder/local.xml',
+                        'destination-folder/local.xml',
                     )
                 ),
             ),
@@ -206,13 +191,13 @@ class LinkTest extends AbstractStrategyTest
                     'destination-folder/folder/'
                 ),
                 'mapping' => array(
-                    '%s/folder/local.xml',
-                    '%s/destination-folder',
+                    'folder/local.xml',
+                    'destination-folder',
                 ),
                 'expectedMappings' => array(
                     array(
-                        '%s/folder/local.xml',
-                        '%s/destination-folder/local.xml',
+                        'folder/local.xml',
+                        'destination-folder/local.xml',
                     )
                 ),
             ),
@@ -223,13 +208,13 @@ class LinkTest extends AbstractStrategyTest
                 ),
                 'destinationFileStructure' => array(),
                 'mapping' => array(
-                    '%s/folder',
-                    '%s/destination-folder',
+                    'folder',
+                    'destination-folder',
                 ),
                 'expectedMappings' => array(
                     array(
-                        '%s/folder/local.xml',
-                        '%s/destination-folder/local.xml',
+                        'folder/local.xml',
+                        'destination-folder/local.xml',
                     )
                 ),
             ),
@@ -243,21 +228,21 @@ class LinkTest extends AbstractStrategyTest
                 ),
                 'destinationFileStructure' => array(),
                 'mapping' => array(
-                    '%s/folder',
-                    '%s/destination-folder',
+                    'folder',
+                    'destination-folder',
                 ),
                 'expectedMappings' => array(
                     array(
-                        '%s/folder/local.xml',
-                        '%s/destination-folder/local.xml',
+                        'folder/local.xml',
+                        'destination-folder/local.xml',
                     ),
                     array(
-                        '%s/folder/child-dir/file2.txt',
-                        '%s/destination-folder/child-dir/file2.txt',
+                        'folder/child-dir/file2.txt',
+                        'destination-folder/child-dir/file2.txt',
                     ),
                     array(
-                        '%s/folder/child-dir/file3.txt',
-                        '%s/destination-folder/child-dir/file3.txt',
+                        'folder/child-dir/file3.txt',
+                        'destination-folder/child-dir/file3.txt',
                     ),
                 ),
             ),
@@ -270,13 +255,13 @@ class LinkTest extends AbstractStrategyTest
                     'destination-folder/'
                 ),
                 'mapping' => array(
-                    '%s/folder',
-                    '%s/destination-folder',
+                    'folder',
+                    'destination-folder',
                 ),
                 'expectedMappings' => array(
                     array(
-                        '%s/folder/local.xml',
-                        '%s/destination-folder/folder/local.xml',
+                        'folder/local.xml',
+                        'destination-folder/folder/local.xml',
                     )
                 ),
             ),
