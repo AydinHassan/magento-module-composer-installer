@@ -2,6 +2,8 @@
 
 namespace MagentoHackathon\Composer\Magento\Installer;
 
+use GlobIterator;
+use LogicException;
 use MagentoHackathon\Composer\Magento\InstallStrategy\Exception\SourceNotExistsException;
 use MagentoHackathon\Composer\Magento\Map\Map;
 use MagentoHackathon\Composer\Magento\Map\MapCollection;
@@ -21,7 +23,7 @@ final class GlobResolver
      *
      * @param MapCollection $maps
      *
-     * @return array
+     * @return MapCollection
      */
     public function resolve(MapCollection $maps)
     {
@@ -36,10 +38,19 @@ final class GlobResolver
             }
 
             //not a file, is it a glob?
-            $iterator = new \GlobIterator($mapping->getAbsoluteSource());
+            $iterator = new GlobIterator($mapping->getAbsoluteSource());
 
-            if (!$iterator->count()) {
-                //maybe this error is wrong, as it could be a valid glob, just there were no results.
+            try {
+                if (!$iterator->count()) {
+                    //maybe this error is wrong, as it could be a valid glob, just there were no results.
+                    //should we really die?
+                    throw new SourceNotExistsException($mapping->getAbsoluteSource());
+                }
+            } catch (LogicException $e) {
+                /**
+                 * This a PHP bug where a LogicException is thrown if no files exist
+                 * @link https://bugs.php.net/bug.php?id=55701
+                 */
                 throw new SourceNotExistsException($mapping->getAbsoluteSource());
             }
 

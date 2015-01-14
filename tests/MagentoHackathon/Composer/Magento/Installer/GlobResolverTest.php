@@ -57,6 +57,10 @@ class GlobResolverTest extends \PHPUnit_Framework_TestCase
         touch(sprintf('%s/source/directory/1.txt', $this->root));
         touch(sprintf('%s/source/directory/2.txt', $this->root));
 
+        $resolvedMappings = $this->globResolver->resolve($mappings);
+        $this->assertContainsOnlyInstancesOf('\MagentoHackathon\Composer\Magento\Map\Map', $resolvedMappings);
+        $this->assertCount(4, $resolvedMappings);
+
         $expected = array(
             array('1.php', '1.php', sprintf('%s/source/1.php', $this->root), '/1.php'),
             array('2.php', '2.php', sprintf('%s/source/2.php', $this->root), '/2.php'),
@@ -64,50 +68,12 @@ class GlobResolverTest extends \PHPUnit_Framework_TestCase
             array('directory/2.txt', 'dir/2.txt', sprintf('%s/source/directory/2.txt', $this->root), '/dir/2.txt'),
         );
 
-        $resolvedMappings = $this->globResolver->resolve($mappings);
-        //$this->assertSame($expected, $resolvedMappings);
-        $this->assertContainsOnlyInstancesOf('\MagentoHackathon\Composer\Magento\Map\Map', $resolvedMappings);
-        $this->assertCount(4, $resolvedMappings);
-
         $maps = $resolvedMappings->all();
 
-        $this->assertSame($expected[0][0], $maps[0]->getSource());
-        $this->assertSame($expected[1][0], $maps[1]->getSource());
-        $this->assertSame($expected[2][0], $maps[2]->getSource());
-        $this->assertSame($expected[3][0], $maps[3]->getSource());
-
-        $this->assertSame($expected[0][1], $maps[0]->getDestination());
-        $this->assertSame($expected[1][1], $maps[1]->getDestination());
-        $this->assertSame($expected[2][1], $maps[2]->getDestination());
-        $this->assertSame($expected[3][1], $maps[3]->getDestination());
-
-        $this->assertSame($expected[0][2], $maps[0]->getAbsoluteSource());
-        $this->assertSame($expected[1][2], $maps[1]->getAbsoluteSource());
-        $this->assertSame($expected[2][2], $maps[2]->getAbsoluteSource());
-        $this->assertSame($expected[3][2], $maps[3]->getAbsoluteSource());
-
-        $this->assertSame($expected[0][3], $maps[0]->getAbsoluteDestination());
-        $this->assertSame($expected[1][3], $maps[1]->getAbsoluteDestination());
-        $this->assertSame($expected[2][3], $maps[2]->getAbsoluteDestination());
-        $this->assertSame($expected[3][3], $maps[3]->getAbsoluteDestination());
-    }
-
-    public function testIfGlobIsDirectoryDirectoryIsAddedToDestination()
-    {
-        mkdir(sprintf('%s/source/app/code', $this->root), 0777, true);
-        mkdir(sprintf('%s/destination', $this->root));
-        touch(sprintf('%s/source/app/code/test.php', $this->root));
-
-        $mappings = array(
-            array('*', '')
-        );
-
-        $expected = array(
-            array('app', 'app'),
-        );
-
-        $resolvedMappings = $this->globResolver->resolve(sprintf('%s/source', $this->root), $mappings);
-        $this->assertSame($expected, $resolvedMappings);
+        $this->assertSame($expected[0], $this->mapToArray($maps[0]));
+        $this->assertSame($expected[1], $this->mapToArray($maps[1]));
+        $this->assertSame($expected[2], $this->mapToArray($maps[2]));
+        $this->assertSame($expected[3], $this->mapToArray($maps[3]));
     }
 
     public function testFileDestinationIncludesFileName()
@@ -117,16 +83,23 @@ class GlobResolverTest extends \PHPUnit_Framework_TestCase
         touch(sprintf('%s/source/sourcedir/test2.xml', $this->root));
 
         $mappings = array(
-            array('sourcedir/*', 'targetdir')
+            new Map('sourcedir/*', 'targetdir', sprintf('%s/source', $this->root), '/'),
+        );
+        $mappings = new MapCollection($mappings);
+
+        $resolvedMappings = $this->globResolver->resolve($mappings);
+        $this->assertContainsOnlyInstancesOf('\MagentoHackathon\Composer\Magento\Map\Map', $resolvedMappings);
+        $this->assertCount(2, $resolvedMappings);
+
+        $expected = array(
+            array('sourcedir/test1.xml', 'targetdir/test1.xml', sprintf('%s/source/sourcedir/test1.xml', $this->root), '/targetdir/test1.xml'),
+            array('sourcedir/test2.xml', 'targetdir/test2.xml', sprintf('%s/source/sourcedir/test2.xml', $this->root), '/targetdir/test2.xml'),
         );
 
-        $expected = array (
-            array('sourcedir/test1.xml', 'targetdir/test1.xml'),
-            array('sourcedir/test2.xml', 'targetdir/test2.xml'),
-        );
+        $maps = $resolvedMappings->all();
 
-        $resolvedMappings = $this->globResolver->resolve(sprintf('%s/source', $this->root), $mappings);
-        $this->assertSame($expected, $resolvedMappings);
+        $this->assertSame($expected[0], $this->mapToArray($maps[0]));
+        $this->assertSame($expected[1], $this->mapToArray($maps[1]));
     }
 
     public function testSourceNotFoundExceptionIsThrownIfNoGlobResults()
@@ -134,16 +107,16 @@ class GlobResolverTest extends \PHPUnit_Framework_TestCase
         mkdir(sprintf('%s/source/sourcedir', $this->root), 0777, true);
 
         $mappings = array(
-            array('sourcedir/*', 'targetdir')
+            new Map('sourcedir/*', 'targetdir', sprintf('%s/source', $this->root), '/'),
         );
+        $mappings = new MapCollection($mappings);
 
         $this->setExpectedException(
             'MagentoHackathon\Composer\Magento\InstallStrategy\Exception\SourceNotExistsException'
         );
 
-        $this->globResolver->resolve(sprintf('%s/source', $this->root), $mappings);
+        $this->globResolver->resolve($mappings);
     }
-
 
     public function testIfMappingIsAFileMappingIsReturnedAsIs()
     {
@@ -152,15 +125,36 @@ class GlobResolverTest extends \PHPUnit_Framework_TestCase
         touch(sprintf('%s/source/sourcedir/test2.xml', $this->root));
 
         $mappings = array(
-            array('sourcedir/test1.xml', 'targetdir')
+            new Map('sourcedir/test1.xml', 'targetdir', sprintf('%s/source', $this->root), '/'),
         );
-        
-        $expected = array (
-            array('sourcedir/test1.xml', 'targetdir'),
+        $mappings = new MapCollection($mappings);
+
+        $resolvedMappings = $this->globResolver->resolve($mappings);
+        $this->assertContainsOnlyInstancesOf('\MagentoHackathon\Composer\Magento\Map\Map', $resolvedMappings);
+        $this->assertCount(1, $resolvedMappings);
+
+        $expected = array(
+            array('sourcedir/test1.xml', 'targetdir', sprintf('%s/source/sourcedir/test1.xml', $this->root), '/targetdir'),
         );
 
-        $resolvedMappings = $this->globResolver->resolve(sprintf('%s/source', $this->root), $mappings);
-        $this->assertSame($expected, $resolvedMappings);
+        $maps = $resolvedMappings->all();
+        $this->assertSame($expected[0], $this->mapToArray($maps[0]));
+    }
+
+    /**
+     * Helper function to convert map to an array
+     *
+     * @param Map $map
+     * @return array
+     */
+    protected function mapToArray(Map $map)
+    {
+        return array(
+            $map->getSource(),
+            $map->getDestination(),
+            $map->getAbsoluteSource(),
+            $map->getAbsoluteDestination()
+        );
     }
 
     public function tearDown()
