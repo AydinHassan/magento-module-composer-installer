@@ -190,8 +190,8 @@ class ProjectConfig
      */
     public function getMagentoDeployIgnore()
     {
-        return (array)$this->transformArrayKeysToLowerCase(
-            $this->fetchVarFromExtraConfig(self::MAGENTO_DEPLOY_IGNORE_KEY)
+        return $this->transformArrayKeysToLowerCase(
+            $this->fetchVarFromExtraConfig(self::MAGENTO_DEPLOY_IGNORE_KEY, array())
         );
     }
 
