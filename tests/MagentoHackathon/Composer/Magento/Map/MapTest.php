@@ -34,4 +34,12 @@ class MapTest extends PHPUnit_Framework_TestCase
         $this->assertEquals('/tmp/source', $map->getAbsoluteSource());
         $this->assertEquals('/tmp/destination', $map->getAbsoluteDestination());
     }
+
+    public function testGetRootDirsRTrimsValues()
+    {
+        $map = new Map('/source/', '/destination/', '/tmp/', '/tmp/');
+
+        $this->assertEquals('/tmp', $map->getSourceRoot());
+        $this->assertEquals('/tmp', $map->getDestinationRoot());
+    }
 }

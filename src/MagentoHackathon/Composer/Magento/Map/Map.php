@@ -90,4 +90,20 @@ final class Map
     {
         return sprintf('%s/%s', rtrim($this->destinationRoot, '\\/'), $this->getDestination());
     }
+
+    /**
+     * @return string
+     */
+    public function getSourceRoot()
+    {
+        return rtrim($this->sourceRoot, '\\/');
+    }
+
+    /**
+     * @return string
+     */
+    public function getDestinationRoot()
+    {
+        return rtrim($this->destinationRoot, '\\/');
+    }
 }
