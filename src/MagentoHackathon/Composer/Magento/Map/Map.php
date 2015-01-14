@@ -39,8 +39,8 @@ final class Map
     {
         $this->source           = $source;
         $this->destination      = $destination;
-        $this->sourceRoot       = $sourceRoot;
-        $this->destinationRoot  = $destinationRoot;
+        $this->sourceRoot       = realpath($sourceRoot);
+        $this->destinationRoot  = realpath($destinationRoot);
     }
 
     /**

@@ -78,7 +78,7 @@ class Installer
     ) {
         $this->installStrategyFactory   = $installStrategyFactory;
         $this->fileSystem               = $fileSystem;
-        $this->projectConfig            = $config;
+        $this->config                   = $config;
         $this->globResolver             = $globResolver;
         $this->targetFilter             = $targetFilter;
         $this->parser                   = $parser;
@@ -100,14 +100,10 @@ class Installer
         $mappings        = $this->parser->getMappings($package, $packageSourceDirectory, $this->config->getMagentoRootDir());
 
         //lets expand glob mappings first
-        $mappings = $this->globResolver->resolve($package, $packageSourceDirectory, $mappings);
+        $mappings = $this->globResolver->resolve($mappings);
+        $this->createMissingDirectories($mappings);
 
-        //$this->eventManager->dispatch(new PreMappingsResolveEvent($mapCollection));
-
-        $this->prepareInstall($mappings);
         $mappings = $this->resolveMappings($mappings, $installStrategy);
-
-        //$this->eventManager->dispatch(new PreMappingsCreate($mapCollection))
 
         //remove ignored mappings
         $targetFilter = $this->targetFilter;
@@ -115,14 +111,12 @@ class Installer
             return !$targetFilter->isTargetIgnored($package, $map->getDestination());
         });
 
-        $missingSourceFiles = array_filter(
-            $mappings,
-            function (Map $map) {
-                return !file_exists(($map->getAbsoluteSource()));
-            }
-        );
-
-        //throw exceptions for missing source?
+        //remove mappings where source doesn't exist
+        $mappings = $mappings->filter(function (Map $map) {
+            //throw exceptions for missing source?
+            //trigger event and log?
+            return file_exists($map->getAbsoluteSource());
+        });
 
         foreach ($mappings as $map) {
             /** @var Map $map */
@@ -146,7 +140,7 @@ class Installer
      *
      * @param MapCollection $mappings
      */
-    protected function prepareInstall(MapCollection $mappings)
+    protected function createMissingDirectories(MapCollection $mappings)
     {
         foreach ($mappings as $map) {
             /** @var Map $map */
@@ -180,8 +174,8 @@ class Installer
             );
 
             $maps = array_map(
-                function (array $mapping) {
-                    return new Map($mapping[0], $mapping[1], $mapping[2], $mapping[3]);
+                function (array $mapping) use ($map) {
+                    return new Map($mapping[0], $mapping[1], $map->getSourceRoot(), $map->getDestinationRoot());
                 },
                 $resolvedMappings
             );
