@@ -3,6 +3,8 @@
 namespace MagentoHackathon\Composer\Magento\Installer;
 
 use MagentoHackathon\Composer\Magento\InstallStrategy\Exception\SourceNotExistsException;
+use MagentoHackathon\Composer\Magento\Map\Map;
+use MagentoHackathon\Composer\Magento\Map\MapCollection;
 
 /**
  * Simple class to expand glob mappings to simple file mappings
@@ -17,66 +19,56 @@ final class GlobResolver
     /**
      * Resolve glob mappings to file -> file mappings
      *
-     * @param string $source
-     * @param array $mappings
+     * @param MapCollection $maps
      *
      * @return array
      */
-    public function resolve($source, array $mappings)
+    public function resolve(MapCollection $maps)
     {
-        //enforce type safety - each record should be an array
-        array_map(function (array $map) {
-        }, $mappings);
-
 
         $updatedMappings = array();
-        foreach ($mappings as $mapping) {
-            $relativeSource         = ltrim($mapping[0], '\\/');
-            $relativeDestination    = trim($mapping[1], '\\/');
-            $absoluteSource         = sprintf('%s/%s', $source, $relativeSource);
-
-            if (file_exists($absoluteSource)) {
+        foreach ($maps as $mapping) {
+            /** @var Map $mapping */
+            if (file_exists($mapping->getAbsoluteSource())) {
                 //file is a file, we don't care about this
                 $updatedMappings[] = $mapping;
                 continue;
             }
 
             //not a file, is it a glob?
-            $iterator = new \GlobIterator($absoluteSource, \FilesystemIterator::KEY_AS_FILENAME);
+            $iterator = new \GlobIterator($mapping->getAbsoluteSource());
 
             if (!$iterator->count()) {
                 //maybe this error is wrong, as it could be a valid glob, just there were no results.
-                throw new SourceNotExistsException($absoluteSource);
+                throw new SourceNotExistsException($mapping->getAbsoluteSource());
             }
 
             //add each glob as a separate mapping
-            foreach ($iterator as $file) {
-                $updatedMappings[] = $this->processMapping($file, $relativeDestination, $source);
+            foreach ($iterator as $globResult) {
+                if ($globResult->isFile()) {
+                    $updatedMappings[] = $this->processMapping($globResult, $mapping);
+                }
             }
         }
 
-        return $updatedMappings;
+        return new MapCollection($updatedMappings);
     }
 
     /**
      * @param \SplFileInfo $globMatch
-     * @param string $relativeDestination
-     * @return array
+     * @param Map $map
+     *
+     * @return Map
      */
-    protected function processMapping(\SplFileInfo $globMatch, $relativeDestination, $sourceRoot)
+    protected function processMapping(\SplFileInfo $globMatch, Map $map)
     {
         $absolutePath = $globMatch->getPathname();
 
         //get the relative path to this file/dir - strip of the source path
         //+1 to strip leading slash
-        $source = substr($absolutePath, strlen($sourceRoot) + 1);
+        $source         = substr($absolutePath, strlen($map->getSourceRoot()) + 1);
+        $destination    = sprintf('%s/%s', $map->getDestination(), $globMatch->getFilename());
 
-        if ($globMatch->isDir()) {
-            $destination = ltrim(sprintf('%s/%s', $relativeDestination, $source), '\\/');
-        } else {
-            $destination = ltrim(sprintf('%s/%s', $relativeDestination, $globMatch->getFilename()), '\\/');
-        }
-
-        return array($source, $destination);
+        return new Map($source, $destination, $map->getSourceRoot(), $map->getDestinationRoot());
     }
 }
