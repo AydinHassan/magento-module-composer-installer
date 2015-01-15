@@ -97,26 +97,21 @@ class Installer
     {
         $installStrategy = $this->installStrategyFactory->make($package);
         $force           = $this->config->getMagentoForceByPackageName($package->getName());
-        $mappings        = $this->parser->getMappings($package, $packageSourceDirectory, $this->config->getMagentoRootDir());
+
+        $mappings = $this->parser->getMappings(
+            $package,
+            $packageSourceDirectory,
+            $this->config->getMagentoRootDir()
+        );
 
         //lets expand glob mappings first
         $mappings = $this->globResolver->resolve($mappings);
+
         $this->createMissingDirectories($mappings);
 
         $mappings = $this->resolveMappings($mappings, $installStrategy);
-
-        //remove ignored mappings
-        $targetFilter = $this->targetFilter;
-        $mappings = $mappings->filter(function (Map $map) use ($package, $targetFilter) {
-            return !$targetFilter->isTargetIgnored($package, $map->getDestination());
-        });
-
-        //remove mappings where source doesn't exist
-        $mappings = $mappings->filter(function (Map $map) {
-            //throw exceptions for missing source?
-            //trigger event and log?
-            return file_exists($map->getAbsoluteSource());
-        });
+        $mappings = $this->removeIgnoredMappings($package, $mappings);
+        $mappings = $this->removeNonExistingSourceMappings($mappings);
 
         foreach ($mappings as $map) {
             /** @var Map $map */
@@ -158,7 +153,6 @@ class Installer
     /**
      * @param MapCollection            $mappings
      * @param InstallStrategyInterface $installStrategy
-     *
      * @return MapCollection
      */
     protected function resolveMappings(MapCollection $mappings, InstallStrategyInterface $installStrategy)
@@ -184,5 +178,32 @@ class Installer
         }
 
         return new MapCollection($replacementItems);
+    }
+
+    /**
+     * @param MapCollection $mappings
+     * @return MapCollection
+     */
+    protected function removeNonExistingSourceMappings(MapCollection $mappings)
+    {
+        //remove mappings where source doesn't exist
+        return $mappings->filter(function (Map $map) {
+            //throw exceptions for missing source?
+            //trigger event and log?
+            return file_exists($map->getAbsoluteSource());
+        });
+    }
+
+    /**
+     * @param PackageInterface $package
+     * @param MapCollection    $mappings
+     * @return MapCollection
+     */
+    protected function removeIgnoredMappings(PackageInterface $package, MapCollection $mappings)
+    {
+        $targetFilter = $this->targetFilter;
+        return $mappings->filter(function (Map $map) use ($package, $targetFilter) {
+            return !$targetFilter->isTargetIgnored($package, $map->getDestination());
+        });
     }
 }
