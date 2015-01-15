@@ -25,7 +25,7 @@ class MapCollection implements IteratorAggregate, Countable
     public function __construct(array $maps)
     {
         //enforce type safety
-        array_map(function($map) {
+        array_map(function ($map) {
             if (!$map instanceof Map) {
                 throw new \InvalidArgumentException('Input must be an array of "Map"');
             }

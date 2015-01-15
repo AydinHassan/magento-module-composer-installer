@@ -12,11 +12,25 @@ use RuntimeException;
 class SourceNotExistsException extends RuntimeException
 {
     /**
+     * @var string
+     */
+    protected $sourceFilePath;
+
+    /**
      * @param string $source
      */
     public function __construct($source)
     {
-        $message = sprintf('Source %s does not exist', $source);
+        $this->sourceFilePath = $source;
+        $message = sprintf('Source "%s" does not exist', $source);
         parent::__construct($message);
+    }
+
+    /**
+     * @return string
+     */
+    public function getSourceFilePath()
+    {
+        return $this->sourceFilePath;
     }
 }

@@ -22,7 +22,7 @@ class TargetExistsException extends RuntimeException
     public function __construct($target)
     {
         $this->targetFilePath = $target;
-        $message = sprintf('Target %s already exists (set extra.magento-force to override)', $target);
+        $message = sprintf('Target "%s" already exists (set extra.magento-force to override)', $target);
         parent::__construct($message);
     }
 
