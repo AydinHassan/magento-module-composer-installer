@@ -58,13 +58,13 @@ class FileSystem extends ComposerFs
 
     /**
      * @param string $absoluteSource
-     * @param string $relativeDir
+     * @param string $rootDirectory
      *
      * @return string
      */
-    public function makePathRelative($absoluteSource, $relativeDir)
+    public function makePathRelative($absoluteSource, $rootDirectory)
     {
-        return substr($absoluteSource, strlen($relativeDir) + 1);
+        return substr($absoluteSource, strlen($rootDirectory) + 1);
     }
 
     /**
