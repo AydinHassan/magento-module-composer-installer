@@ -42,16 +42,20 @@ final class GlobResolver
 
             try {
                 if (!$iterator->count()) {
-                    //maybe this error is wrong, as it could be a valid glob, just there were no results.
-                    //should we really die?
-                    throw new SourceNotExistsException($mapping->getAbsoluteSource());
+                    //we just skip this if there are no results
+                    //if there are no results should we just remove this mapping?
+                    //it kind of makes sense to as it is not necessarily an error
+                    //if a glob produces no results
+                    $updatedMappings[] = $mapping;
+                    continue;
                 }
             } catch (LogicException $e) {
                 /**
                  * This a PHP bug where a LogicException is thrown if no files exist
                  * @link https://bugs.php.net/bug.php?id=55701
                  */
-                throw new SourceNotExistsException($mapping->getAbsoluteSource());
+                $updatedMappings[] = $mapping;
+                continue;
             }
 
             //add each glob as a separate mapping

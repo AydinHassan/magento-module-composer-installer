@@ -136,7 +136,7 @@ class GlobResolverTest extends \PHPUnit_Framework_TestCase
         $this->assertSame($expected[1], $this->mapToArray($maps[1]));
     }
 
-    public function testSourceNotFoundExceptionIsThrownIfNoGlobResults()
+    public function testMappingReturnedAsIsIfNoResultsFromGlob()
     {
         mkdir(sprintf('%s/source/sourcedir', $this->root), 0777, true);
 
@@ -148,13 +148,10 @@ class GlobResolverTest extends \PHPUnit_Framework_TestCase
                 sprintf('%s/destination', $this->root)
             ),
         );
-        $mappings = new MapCollection($mappings);
+        $collection = new MapCollection($mappings);
 
-        $this->setExpectedException(
-            'MagentoHackathon\Composer\Magento\InstallStrategy\Exception\SourceNotExistsException'
-        );
-
-        $this->globResolver->resolve($mappings);
+        $resolved = $this->globResolver->resolve($collection)->all();
+        $this->assertSame($mappings[0], $resolved[0]);
     }
 
     public function testIfMappingIsAFileMappingIsReturnedAsIs()
