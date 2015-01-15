@@ -56,9 +56,7 @@ final class GlobResolver
 
             //add each glob as a separate mapping
             foreach ($iterator as $globResult) {
-                if ($globResult->isFile()) {
-                    $updatedMappings[] = $this->processMapping($globResult, $mapping);
-                }
+                $updatedMappings[] = $this->processMapping($globResult, $mapping);
             }
         }
 
@@ -77,8 +75,8 @@ final class GlobResolver
 
         //get the relative path to this file/dir - strip of the source path
         //+1 to strip leading slash
-        $source         = substr($absolutePath, strlen($map->getSourceRoot()) + 1);
-        $destination    = sprintf('%s/%s', $map->getDestination(), $globMatch->getFilename());
+        $source       = substr($absolutePath, strlen($map->getSourceRoot()) + 1);
+        $destination  = sprintf('%s/%s', $map->getDestination(), $globMatch->getFilename());
 
         return new Map($source, $destination, $map->getSourceRoot(), $map->getDestinationRoot());
     }
