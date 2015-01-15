@@ -71,8 +71,8 @@ abstract class AbstractStrategyTest extends PHPUnit_Framework_TestCase
         return array(
             $mapping[0],
             $mapping[1],
-            ($source ? $source : $this->source) . "/" . $mapping[0],
-            ($destination ? $destination : $this->destination) . "/" . $mapping[1],
+            ($source ? $source : $this->source) . '/' . $mapping[0],
+            ($destination ? $destination : $this->destination) . '/' . $mapping[1],
         );
     }
 

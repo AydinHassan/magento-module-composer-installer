@@ -43,10 +43,10 @@ class CopyTest extends AbstractStrategyTest
         $fileSystem = $this->getMock('MagentoHackathon\Composer\Magento\Util\FileSystem');
         $copy = new Copy($fileSystem);
 
-        $map = new Map('local.xml', 'local.xml', $this->virtualSource, $this->virtualDestination);
+        $map = new Map('local.xml', 'local.xml', $this->source, $this->destination);
 
-        $this->createFileStructure(array('local.xml'), $this->virtualSource);
-        $this->createFileStructure(array('local.xml'), $this->virtualDestination);
+        $this->createFileStructure(array('local.xml'), $this->source);
+        $this->createFileStructure(array('local.xml'), $this->destination);
 
         $destination = $map->getAbsoluteDestination();
         $fileSystem
@@ -76,7 +76,7 @@ class CopyTest extends AbstractStrategyTest
         array $expectedMappings
     ) {
         $copy = new Copy(new FileSystem);
-        $expectedMappings = $this->applyRootDirectoryToExpectedMappings($expectedMappings, $this->virtualSource, $this->virtualDestination);
+        //$expectedMappings = $this->applyRootDirectoryToExpectedMappings($expectedMappings, $this->virtualSource, $this->virtualDestination);
         $mapping = $this->applyRootDirectoryToMapping($mapping, $this->virtualSource, $this->virtualDestination);
 
         $this->createFileStructure($sourceFileStructure, $this->virtualSource);

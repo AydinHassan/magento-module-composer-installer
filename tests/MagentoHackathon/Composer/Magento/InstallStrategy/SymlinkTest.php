@@ -208,7 +208,6 @@ class SymlinkTest extends AbstractStrategyTest
         $symlink = new Symlink(new FileSystem);
 
         $mapping = $this->applyRootDirectoryToMapping($mapping);
-        $expectedMappings = $this->applyRootDirectoryToExpectedMappings($expectedMappings);
 
         $this->createFileStructure($sourceFileStructure, $this->source);
         $this->createFileStructure($destinationFileStructure, $this->destination);

@@ -50,9 +50,7 @@ class Copy implements InstallStrategyInterface
             // would result in Some_Module.xml being placed inside: app/etc/modules
             // - so: app/etc/modules/Some_Module.xml
             //
-
-            $destination            = sprintf('%s/%s', $destination, basename($source));
-            $absoluteDestination    = sprintf('%s/%s', $absoluteDestination, basename($source));
+            $destination = sprintf('%s/%s', $destination, basename($source));
         }
 
         //dir - dir
@@ -61,7 +59,7 @@ class Copy implements InstallStrategyInterface
         }
 
         //file - to - file
-        return array(array($source, $destination, $absoluteSource, $absoluteDestination));
+        return array(array($source, $destination));
     }
 
     /**
@@ -85,12 +83,11 @@ class Copy implements InstallStrategyInterface
         $resolvedMappings = array();
         foreach ($iterator as $item) {
             /** @var SplFileinfo $item */
+
             if ($item->isFile()) {
                 $resolvedMappings[] = array(
                     sprintf('%s/%s', $source, $iterator->getSubPathname()),
                     sprintf('%s/%s', $destination, $iterator->getSubPathname()),
-                    sprintf('%s/%s', $absoluteSource, $iterator->getSubPathname()),
-                    sprintf('%s/%s', $absoluteDestination, $iterator->getSubPathName())
                 );
             }
         }

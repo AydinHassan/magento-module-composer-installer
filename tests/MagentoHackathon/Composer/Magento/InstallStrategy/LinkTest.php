@@ -78,12 +78,6 @@ class LinkTest extends AbstractStrategyTest
 
         $mapping = $this->applyRootDirectoryToMapping($mapping, $this->virtualSource, $this->virtualDestination);
 
-        $expectedMappings = $this->applyRootDirectoryToExpectedMappings(
-            $expectedMappings,
-            $this->virtualSource,
-            $this->virtualDestination
-        );
-
         $this->createFileStructure($sourceFileStructure, $this->virtualSource);
         $this->createFileStructure($destinationFileStructure, $this->virtualDestination);
 

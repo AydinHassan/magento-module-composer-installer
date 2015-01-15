@@ -43,11 +43,10 @@ class Symlink implements InstallStrategyInterface
     public function resolve($source, $destination, $absoluteSource, $absoluteDestination)
     {
         if (is_dir($absoluteDestination)) {
-            $destination            = sprintf('%s/%s', $destination, basename($source));
-            $absoluteDestination    = sprintf('%s/%s', $absoluteDestination, basename($source));
+            $destination = sprintf('%s/%s', $destination, basename($source));
         }
 
-        return array(array($source, $destination, $absoluteSource, $absoluteDestination));
+        return array(array($source, $destination));
     }
 
     /**
