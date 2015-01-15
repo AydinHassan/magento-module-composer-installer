@@ -154,6 +154,32 @@ class InstalledFilesFilesystemRepositoryTest extends \PHPUnit_Framework_TestCase
 
     }
 
+    public function testHasPackageReturnsTrueIfPackageExistsInAnyVersion()
+    {
+        $this->assertEmpty($this->repository->findAll());
+        $package = new InstalledPackage('some-package', '1.0.0', array());
+        $this->repository->add($package);
+        $this->assertCount(1, $this->repository->findAll());
+        $this->assertTrue($this->repository->has('some-package'));
+    }
+
+    public function testHasPackageWithSpecificVersion()
+    {
+        $this->assertEmpty($this->repository->findAll());
+        $package = new InstalledPackage('some-package', '1.0.0', array());
+        $this->repository->add($package);
+        $this->assertCount(1, $this->repository->findAll());
+        $this->assertTrue($this->repository->has('some-package', '1.0.0'));
+        $this->assertFalse($this->repository->has('some-package', '1.1.0'));
+    }
+
+    public function testHasPackageReturnsFalseIfItDoesNotExist()
+    {
+        $this->assertEmpty($this->repository->findAll());
+        $this->assertCount(0, $this->repository->findAll());
+        $this->assertFalse($this->repository->has('some-package'));
+    }
+
     public function tearDown()
     {
         unset($this->repository);
