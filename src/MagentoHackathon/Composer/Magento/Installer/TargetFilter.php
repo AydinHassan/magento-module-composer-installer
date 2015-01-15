@@ -59,7 +59,7 @@ class TargetFilter
             array_filter(
                 $moduleSpecificDeployIgnores,
                 function ($ignore) use ($target) {
-                    return 0 === strpos($ignore, $target);
+                    return $target === $ignore;
                 }
             )
         ) > 0;
