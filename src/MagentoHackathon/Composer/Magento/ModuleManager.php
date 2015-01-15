@@ -7,6 +7,8 @@ use MagentoHackathon\Composer\Magento\Event\EventManager;
 use MagentoHackathon\Composer\Magento\Event\PackageDeployEvent;
 use MagentoHackathon\Composer\Magento\Event\PackageUnInstallEvent;
 use MagentoHackathon\Composer\Magento\Factory\InstallStrategyFactory;
+use MagentoHackathon\Composer\Magento\Installer\Installer;
+use MagentoHackathon\Composer\Magento\Map\Map;
 use MagentoHackathon\Composer\Magento\Repository\InstalledPackageRepositoryInterface;
 use MagentoHackathon\Composer\Magento\UnInstallStrategy\UnInstallStrategyInterface;
 
@@ -38,29 +40,29 @@ class ModuleManager
     protected $unInstallStrategy;
 
     /**
-     * @var InstallStrategyFactory
+     * @var Installer
      */
-    protected $installStrategyFactory;
+    protected $installer;
 
     /**
      * @param InstalledPackageRepositoryInterface $installedRepository
      * @param EventManager $eventManager
      * @param ProjectConfig $config
      * @param UnInstallStrategyInterface $unInstallStrategy
-     * @param InstallStrategyFactory $installStrategyFactory
+     * @param Installer $installer
      */
     public function __construct(
         InstalledPackageRepositoryInterface $installedRepository,
         EventManager $eventManager,
         ProjectConfig $config,
         UnInstallStrategyInterface $unInstallStrategy,
-        InstallStrategyFactory $installStrategyFactory
+        Installer $installer
     ) {
-        $this->installedPackageRepository = $installedRepository;
-        $this->eventManager = $eventManager;
-        $this->config = $config;
-        $this->unInstallStrategy = $unInstallStrategy;
-        $this->installStrategyFactory = $installStrategyFactory;
+        $this->installedPackageRepository   = $installedRepository;
+        $this->eventManager                 = $eventManager;
+        $this->config                       = $config;
+        $this->unInstallStrategy            = $unInstallStrategy;
+        $this->installer                    = $installer;
     }
 
     /**
@@ -74,26 +76,10 @@ class ModuleManager
             $this->installedPackageRepository->findAll()
         );
 
-        $packagesToInstall  = $this->getInstalls($currentComposerInstalledPackages);
+        $packagesToInstall = $this->getInstalls($currentComposerInstalledPackages);
 
         $this->doRemoves($packagesToRemove);
         //$this->doInstalls($packagesToInstall);
-
-
-
-        foreach ($packagesToInstall as $install) {
-//            $installStrategy = $this->installStrategyFactory->make(
-//                $install,
-//                $this->getPackageSourceDirectory($install)
-//            );
-//
-//            $files = $installStrategy->deploy()->getDeployedFiles();
-//            $this->installedPackageRepository->add(new InstalledPackage(
-//                $install->getName(),
-//                $install->getVersion(),
-//                $files
-//            ));
-        }
 
         return array(
             $packagesToRemove,
@@ -152,7 +138,7 @@ class ModuleManager
     public function getInstalls(array $currentComposerInstalledPackages)
     {
         $repo = $this->installedPackageRepository;
-        return array_filter($currentComposerInstalledPackages, function(PackageInterface $package) use ($repo) {
+        return array_filter($currentComposerInstalledPackages, function (PackageInterface $package) use ($repo) {
             return !$repo->has($package->getName(), $package->getVersion());
         });
     }
@@ -171,5 +157,28 @@ class ModuleManager
         }
 
         return $path;
+    }
+
+    /**
+     * @param PackageInterface[] $packagesToInstall
+     */
+    protected function doInstalls(array $packagesToInstall)
+    {
+        foreach ($packagesToInstall as $package) {
+            $mappings = $this->installer->install($package, $this->getPackageSourceDirectory($package));
+
+            $installedFiles = array_map(
+                function (Map $map) {
+                    return $map->getAbsoluteDestination();
+                },
+                $mappings->all()
+            );
+
+            $this->installedPackageRepository->add(new InstalledPackage(
+                $package->getName(),
+                $package->getVersion(),
+                $installedFiles
+            ));
+        }
     }
 }

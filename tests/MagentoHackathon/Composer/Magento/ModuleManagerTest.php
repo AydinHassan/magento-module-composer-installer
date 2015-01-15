@@ -1,9 +1,11 @@
 <?php
 
 namespace MagentoHackathon\Composer\Magento;
+use Composer\EventDispatcher\Event;
 use Composer\Package\Package;
 use MagentoHackathon\Composer\Magento\Deploystrategy\None;
 use MagentoHackathon\Composer\Magento\Event\EventManager;
+use MagentoHackathon\Composer\Magento\Factory\InstallerFactory;
 use MagentoHackathon\Composer\Magento\Factory\InstallStrategyFactory;
 use MagentoHackathon\Composer\Magento\Factory\ParserFactory;
 use MagentoHackathon\Composer\Magento\Repository\InstalledPackageFileSystemRepository;
@@ -39,13 +41,13 @@ class ModuleManagerTest extends \PHPUnit_Framework_TestCase
             ->method('make')
             ->will($this->returnValue(new None('src', 'dest')));
 
-        $this->installStrategyFactory = new InstallStrategyFactory($config, $parserFactory);
+        $installerFactory = new InstallerFactory();
         $this->moduleManager = new ModuleManager(
             $this->installedPackageRepository,
             new EventManager,
             $config,
             $this->unInstallStrategy,
-            $this->installStrategyFactory
+            $installerFactory->make($config, new EventManager)
         );
     }
 
