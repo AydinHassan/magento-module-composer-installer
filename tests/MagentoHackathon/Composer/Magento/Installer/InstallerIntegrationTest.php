@@ -32,11 +32,12 @@ class InstallerIntegrationTest extends PHPUnit_Framework_TestCase
     {
         $this->projectLocation      = sprintf('%s/%s/root', sys_get_temp_dir(), $this->getName(false));
         mkdir($this->projectLocation, 0777, true);
+        $this->projectLocation      = realpath($this->projectLocation);
         $this->config               = new ProjectConfig(array('magento-root-dir' => $this->projectLocation), array());
         $this->factory              = new InstallerFactory;
         $this->installer            = $this->factory->make($this->config, new EventManager);
         $this->root                 = vfsStream::setup('root');
-        $this->testPackageLocation  = __DIR__ . '/../../../../res/real-packages';
+        $this->testPackageLocation  = realpath(__DIR__ . '/../../../../res/real-packages');
     }
 
     /**
