@@ -5,8 +5,6 @@ namespace MagentoHackathon\Composer\Magento\Installer;
 use Composer\Package\PackageInterface;
 use MagentoHackathon\Composer\Magento\Event\EventManager;
 use MagentoHackathon\Composer\Magento\Factory\InstallStrategyFactory;
-use MagentoHackathon\Composer\Magento\Factory\ParserFactoryInterface;
-use MagentoHackathon\Composer\Magento\InstallStrategy\Exception\SourceNotExistsException;
 use MagentoHackathon\Composer\Magento\InstallStrategy\Exception\TargetExistsException;
 use MagentoHackathon\Composer\Magento\InstallStrategy\InstallStrategyInterface;
 use MagentoHackathon\Composer\Magento\Map\Map;
@@ -20,7 +18,7 @@ use MagentoHackathon\Composer\Magento\Util\FileSystem;
  * @package MagentoHackathon\Composer\Magento
  * @author  Aydin Hassan <aydin@hotmail.co.uk>
  */
-class Installer
+class Installer implements InstallerInterface
 {
 
     /**
@@ -90,7 +88,7 @@ class Installer
      *
      * @param PackageInterface $package
      * @param string $packageSourceDirectory
-     * @return array
+     * @return MapCollection
      * @throws \ErrorException
      */
     public function install(PackageInterface $package, $packageSourceDirectory)

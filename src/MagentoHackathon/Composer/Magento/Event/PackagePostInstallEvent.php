@@ -7,11 +7,11 @@ use Composer\Package\PackageInterface;
 use MagentoHackathon\Composer\Magento\Deploy\Manager\Entry;
 
 /**
- * Class PackagePreInstallEvent
+ * Class PackagePostInstallEvent
  * @package MagentoHackathon\Composer\Magento\Event
  * @author  Aydin Hassan <aydin@hotmail.co.uk>
  */
-class PackagePreInstallEvent extends Event
+class PackagePostInstallEvent extends Event
 {
     /**
      * @var PackageInterface
@@ -25,11 +25,13 @@ class PackagePreInstallEvent extends Event
 
     /**
      * @param PackageInterface $package
+     * @param array            $installedFiles
      */
-    public function __construct(PackageInterface $package)
+    public function __construct(PackageInterface $package, array $installedFiles)
     {
-        parent::__construct('package-pre-install');
-        $this->package = $package;
+        parent::__construct('package-post-install');
+        $this->package          = $package;
+        $this->installedFiles   = $installedFiles;
     }
 
     /**

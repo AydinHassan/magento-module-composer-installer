@@ -3,8 +3,6 @@
 namespace MagentoHackathon\Composer\Magento\Event;
 
 use Composer\EventDispatcher\Event;
-use Composer\Package\PackageInterface;
-use MagentoHackathon\Composer\Magento\Deploy\Manager\Entry;
 use MagentoHackathon\Composer\Magento\InstalledPackage;
 
 /**
@@ -18,21 +16,15 @@ class PackageUnInstallEvent extends Event
      * @var InstalledPackage
      */
     protected $package;
-    /**
-     * @var PackageInterface
-     */
-    protected $composerPackage;
 
     /**
      * @param string           $name
      * @param InstalledPackage $package
-     * @param PackageInterface $composerPackage
      */
-    public function __construct($name, InstalledPackage $package, PackageInterface $composerPackage)
+    public function __construct($name, InstalledPackage $package)
     {
         parent::__construct($name);
         $this->package = $package;
-        $this->composerPackage = $composerPackage;
     }
 
     /**
@@ -44,10 +36,10 @@ class PackageUnInstallEvent extends Event
     }
 
     /**
-     * @return PackageInterface
+     * @return array
      */
-    public function getComposerPackage()
+    public function getUnInstalledFiles()
     {
-        return $this->composerPackage;
+        return $this->package->getInstalledFiles();
     }
 }

@@ -4,11 +4,10 @@ namespace MagentoHackathon\Composer\Magento;
 
 use Composer\Package\PackageInterface;
 use MagentoHackathon\Composer\Magento\Event\EventManager;
-use MagentoHackathon\Composer\Magento\Event\PackageDeployEvent;
+use MagentoHackathon\Composer\Magento\Event\PackagePostInstallEvent;
+use MagentoHackathon\Composer\Magento\Event\PackagePreInstallEvent;
 use MagentoHackathon\Composer\Magento\Event\PackageUnInstallEvent;
-use MagentoHackathon\Composer\Magento\Factory\InstallStrategyFactory;
-use MagentoHackathon\Composer\Magento\Installer\Installer;
-use MagentoHackathon\Composer\Magento\Map\Map;
+use MagentoHackathon\Composer\Magento\Installer\InstallerInterface;
 use MagentoHackathon\Composer\Magento\Repository\InstalledPackageRepositoryInterface;
 use MagentoHackathon\Composer\Magento\UnInstallStrategy\UnInstallStrategyInterface;
 
@@ -40,7 +39,7 @@ class ModuleManager
     protected $unInstallStrategy;
 
     /**
-     * @var Installer
+     * @var InstallerInterface
      */
     protected $installer;
 
@@ -49,14 +48,14 @@ class ModuleManager
      * @param EventManager $eventManager
      * @param ProjectConfig $config
      * @param UnInstallStrategyInterface $unInstallStrategy
-     * @param Installer $installer
+     * @param InstallerInterface $installer
      */
     public function __construct(
         InstalledPackageRepositoryInterface $installedRepository,
         EventManager $eventManager,
         ProjectConfig $config,
         UnInstallStrategyInterface $unInstallStrategy,
-        Installer $installer
+        InstallerInterface $installer
     ) {
         $this->installedPackageRepository   = $installedRepository;
         $this->eventManager                 = $eventManager;
@@ -76,27 +75,48 @@ class ModuleManager
             $this->installedPackageRepository->findAll()
         );
 
-        $packagesToInstall = $this->getInstalls($currentComposerInstalledPackages);
+        $packagesToInstall = $this->getInstalls(
+            $currentComposerInstalledPackages
+        );
 
         $this->doRemoves($packagesToRemove);
-        //$this->doInstalls($packagesToInstall);
-
-        return array(
-            $packagesToRemove,
-            $packagesToInstall
-        );
+        $this->doInstalls($packagesToInstall);
     }
 
     /**
-     * @param array $packagesToRemove
+     * @param InstalledPackage[] $packagesToRemove
      */
     public function doRemoves(array $packagesToRemove)
     {
-        foreach ($packagesToRemove as $remove) {
-            //$this->eventManager->dispatch(new PackageUnInstallEvent('pre-package-uninstall', $remove));
-            $this->unInstallStrategy->unInstall($remove->getInstalledFiles());
-            //$this->eventManager->dispatch(new PackageUnInstallEvent('post-package-uninstall', $remove));
-            $this->installedPackageRepository->remove($remove);
+        foreach ($packagesToRemove as $package) {
+            $unInstalledFiles = $package->getInstalledFiles();
+
+            $this->eventManager->dispatch(new PackageUnInstallEvent('pre-package-uninstall', $package, $unInstalledFiles));
+
+            $this->unInstallStrategy->unInstall($unInstalledFiles);
+            $this->installedPackageRepository->remove($package);
+
+            $this->eventManager->dispatch(new PackageUnInstallEvent('post-package-uninstall', $package, $unInstalledFiles));
+        }
+    }
+
+    /**
+     * @param PackageInterface[] $packagesToInstall
+     */
+    protected function doInstalls(array $packagesToInstall)
+    {
+        foreach ($packagesToInstall as $package) {
+            $this->eventManager->dispatch(new PackagePreInstallEvent($package));
+
+            $mappings = $this->installer->install($package, $this->getPackageSourceDirectory($package));
+
+            $this->installedPackageRepository->add(new InstalledPackage(
+                $package->getName(),
+                $package->getVersion(),
+                $mappings->getAllDestinations()
+            ));
+
+            $this->eventManager->dispatch(new PackagePostInstallEvent($package, $mappings->getAllDestinations()));
         }
     }
 
@@ -157,28 +177,5 @@ class ModuleManager
         }
 
         return $path;
-    }
-
-    /**
-     * @param PackageInterface[] $packagesToInstall
-     */
-    protected function doInstalls(array $packagesToInstall)
-    {
-        foreach ($packagesToInstall as $package) {
-            $mappings = $this->installer->install($package, $this->getPackageSourceDirectory($package));
-
-            $installedFiles = array_map(
-                function (Map $map) {
-                    return $map->getAbsoluteDestination();
-                },
-                $mappings->all()
-            );
-
-            $this->installedPackageRepository->add(new InstalledPackage(
-                $package->getName(),
-                $package->getVersion(),
-                $installedFiles
-            ));
-        }
     }
 }

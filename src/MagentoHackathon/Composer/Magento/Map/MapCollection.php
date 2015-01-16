@@ -81,7 +81,7 @@ class MapCollection implements IteratorAggregate, Countable
     public function replace(Map $mapToReplace, array $replacementMaps)
     {
         //enforce type safety
-        array_map(function($map) {
+        array_map(function ($map) {
             if (!$map instanceof Map) {
                 throw new \InvalidArgumentException('Input must be an array of "Map"');
             }
@@ -110,5 +110,18 @@ class MapCollection implements IteratorAggregate, Countable
         }
 
         return new static(array_filter($this->maps, $callback));
+    }
+
+    /**
+     * @return array
+     */
+    public function getAllDestinations()
+    {
+        return array_map(
+            function (Map $map) {
+                return $map->getAbsoluteDestination();
+            },
+            $this->all()
+        );
     }
 }

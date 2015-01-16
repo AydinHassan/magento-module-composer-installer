@@ -3,6 +3,8 @@
 namespace MagentoHackathon\Composer\Magento;
 
 use MagentoHackathon\Composer\Magento\Event\PackageDeployEvent;
+use MagentoHackathon\Composer\Magento\Event\PackagePostInstallEvent;
+use MagentoHackathon\Composer\Magento\Event\PackageUnInstallEvent;
 
 /**
  * Class GitIgnoreListener
@@ -26,21 +28,26 @@ class GitIgnoreListener
     }
 
     /**
-     * Add any files which were deployed to the .gitignore
+     * Add any files which were installed to the .gitignore
+     *
+     * @param PackagePostInstallEvent $e
+     */
+    public function addNewInstalledFiles(PackagePostInstallEvent $e)
+    {
+        $files = $e->getInstalledFiles();
+        $this->gitIgnore->addMultipleEntries($files);
+        $this->gitIgnore->write();
+    }
+
+    /**
      * Remove any files which were removed to the .gitignore
      *
-     * @param PackageDeployEvent $packageDeployEvent
+     * @param PackageUnInstallEvent $e
      */
-    public function __invoke(PackageDeployEvent $packageDeployEvent)
+    public function removeUnInstalledFiles(PackageUnInstallEvent $e)
     {
-        $this->gitIgnore->addMultipleEntries(
-            $packageDeployEvent->getDeployEntry()->getDeployStrategy()->getDeployedFiles()
-        );
-
-        $this->gitIgnore->removeMultipleEntries(
-            $packageDeployEvent->getDeployEntry()->getDeployStrategy()->getRemovedFiles()
-        );
-
+        $files = $e->getUnInstalledFiles();
+        $this->gitIgnore->removeMultipleEntries($files);
         $this->gitIgnore->write();
     }
 }

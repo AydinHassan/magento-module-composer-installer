@@ -93,5 +93,6 @@ class GitIgnore
         if ($this->hasChanges) {
             file_put_contents($this->gitIgnoreLocation, implode("\n", array_flip($this->lines)));
         }
+        $this->hasChanges = false;
     }
 }

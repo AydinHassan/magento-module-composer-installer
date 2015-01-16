@@ -2,9 +2,10 @@
 
 namespace MagentoHackathon\Composer\Magento;
 
-use MagentoHackathon\Composer\Magento\Deploy\Manager\Entry;
-use MagentoHackathon\Composer\Magento\Deploystrategy\Symlink;
+use Composer\Package\Package;
 use MagentoHackathon\Composer\Magento\Event\PackageDeployEvent;
+use MagentoHackathon\Composer\Magento\Event\PackagePostInstallEvent;
+use MagentoHackathon\Composer\Magento\Event\PackageUnInstallEvent;
 
 /**
  * Class GitIgnoreListenerTest
@@ -19,16 +20,6 @@ class GitIgnoreListenerTest extends \PHPUnit_Framework_TestCase
     protected $listener;
 
     /**
-     * @var SymLink
-     */
-    protected $strategy;
-
-    /**
-     * @var PackageDeployEvent
-     */
-    protected $event;
-
-    /**
      * @var GitIgnore
      */
     protected $gitIgnore;
@@ -40,36 +31,23 @@ class GitIgnoreListenerTest extends \PHPUnit_Framework_TestCase
             ->getMock();
 
         $this->listener = new GitIgnoreListener($this->gitIgnore);
-        $this->strategy = new Symlink('src', 'dest');
-        $entry = new Entry();
-        $entry->setPackageName('some-package');
-        $entry->setDeployStrategy($this->strategy);
-
-        $this->event = new PackageDeployEvent('post-deploy-event', $entry);
     }
 
-    public function testInvokeUpdatesGitIgnoreEntries()
+    public function testRemoveUnInstalledFile()
     {
-        $this->strategy->addDeployedFile('file1.txt');
-        $this->strategy->addDeployedFile('file2.txt');
-        $this->strategy->addDeployedFile('folder1/file3.txt');
-
-        $this->strategy->addRemovedFile('file4.txt');
-
-        $this->gitIgnore
-            ->expects($this->once())
-            ->method('addMultipleEntries')
-            ->with(array('file1.txt', 'file2.txt', 'folder1/file3.txt'));
+        $files      = array('file1', 'file2', 'folder/file3');
+        $package    = new InstalledPackage('some/package', '1.0.0', $files);
+        $event      = new PackageUnInstallEvent('package-uninstall', $package);
 
         $this->gitIgnore
             ->expects($this->once())
             ->method('removeMultipleEntries')
-            ->with(array('file4.txt'));
+            ->with($files);
 
         $this->gitIgnore
             ->expects($this->once())
             ->method('write');
 
-        $this->listener->__invoke($this->event);
+        $this->listener->removeUnInstalledFiles($event);
     }
 }
