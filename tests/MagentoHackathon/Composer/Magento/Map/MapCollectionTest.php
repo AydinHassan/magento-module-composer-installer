@@ -152,4 +152,24 @@ class MapCollectionTest extends PHPUnit_Framework_TestCase
 
         $this->assertSame(array($map1), $filtered->all());
     }
+
+    public function testGetAllDestinations()
+    {
+        $map1 = new Map('source', 'destination', '/tmp/', '/tmp/');
+        $map2 = new Map('source1', 'destination1', '/tmp/', '/tmp/');
+        $map3 = new Map('source2', 'destination2', '/tmp/', '/tmp/');
+
+        $items = array($map1, $map2, $map3);
+
+        $collection = new MapCollection($items);
+
+        $expected = array(
+            '/tmp/destination',
+            '/tmp/destination1',
+            '/tmp/destination2',
+        );
+
+        $this->assertEquals($expected, $collection->getAllDestinations());
+
+    }
 }

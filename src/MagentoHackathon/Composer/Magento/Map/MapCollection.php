@@ -121,7 +121,7 @@ class MapCollection implements IteratorAggregate, Countable
             function (Map $map) {
                 return $map->getAbsoluteDestination();
             },
-            $this->all()
+            $this->maps
         );
     }
 }
