@@ -33,12 +33,6 @@ class ModuleManagerTest extends \PHPUnit_Framework_TestCase
         $this->unInstallStrategy =
             $this->getMock('MagentoHackathon\Composer\Magento\UnInstallStrategy\UnInstallStrategyInterface');
 
-        $parserFactory = $this->getMock('MagentoHackathon\Composer\Magento\Factory\ParserFactoryInterface');
-        $parserFactory
-            ->expects($this->any())
-            ->method('make')
-            ->will($this->returnValue(new None('src', 'dest')));
-
         $this->installer = $this->getMock('MagentoHackathon\Composer\Magento\Installer\InstallerInterface');
         $this->moduleManager = new ModuleManager(
             $this->installedPackageRepository,
