@@ -19,11 +19,6 @@ class PackagePreInstallEvent extends Event
     protected $package;
 
     /**
-     * @var array
-     */
-    protected $installedFiles;
-
-    /**
      * @param PackageInterface $package
      */
     public function __construct(PackageInterface $package)
@@ -38,13 +33,5 @@ class PackagePreInstallEvent extends Event
     public function getPackage()
     {
         return $this->package;
-    }
-
-    /**
-     * @return array
-     */
-    public function getInstalledFiles()
-    {
-        return $this->installedFiles;
     }
 }

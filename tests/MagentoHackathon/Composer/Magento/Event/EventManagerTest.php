@@ -3,12 +3,14 @@
 namespace MagentoHackathon\Composer\Magento\Event;
 
 use Composer\EventDispatcher\Event;
+use PHPUnit_Framework_TestCase;
 
 /**
  * Class EventManagerTest
+ * @package MagentoHackathon\Composer\Magento\Event
  * @author Aydin Hassan <aydin@hotmail.co.uk>
  */
-class EventManagerTest extends \PHPUnit_Framework_TestCase
+class EventManagerTest extends PHPUnit_Framework_TestCase
 {
     /**
      * @var EventManager

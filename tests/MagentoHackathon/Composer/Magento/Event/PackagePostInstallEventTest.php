@@ -7,18 +7,19 @@ use MagentoHackathon\Composer\Magento\Event\PackageDeployEvent;
 use PHPUnit_Framework_TestCase;
 
 /**
- * Class PackagePreInstallEventTest
+ * Class PackagePostInstallEventTest
  * @package MagentoHackathon\Composer\Magento\Event
  * @author Aydin Hassan <aydin@hotmail.co.uk>
  */
-class PackagePreInstallEventTest extends PHPUnit_Framework_TestCase
+class PackagePostInstallEventTest extends PHPUnit_Framework_TestCase
 {
     public function testGetters()
     {
         $package    = new Package('some/package', '1.0.0', 'some/package');
-        $event      = new PackagePreInstallEvent($package);
+        $event      = new PackagePostInstallEvent($package, array('file1', 'file2'));
 
-        $this->assertEquals('package-pre-install', $event->getName());
+        $this->assertEquals('package-post-install', $event->getName());
         $this->assertSame($package, $event->getPackage());
+        $this->assertEquals(array('file1', 'file2'), $event->getInstalledFiles());
     }
 }
