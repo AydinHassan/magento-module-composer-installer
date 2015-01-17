@@ -49,15 +49,7 @@ class InstallStrategyFactory
      */
     public function make(PackageInterface $package)
     {
-        $strategyName = $this->config->getDeployStrategy();
-        if ($this->config->hasDeployStrategyOverwrite()) {
-            $moduleSpecificDeployStrategies = $this->config->getDeployStrategyOverwrite();
-
-            if (isset($moduleSpecificDeployStrategies[$package->getName()])) {
-                $strategyName = $moduleSpecificDeployStrategies[$package->getName()];
-            }
-        }
-
+        $strategyName = $this->determineStrategy($package);
         if (!isset(static::$strategies[$strategyName])) {
             $className = static::$strategies['symlink'];
         } else {
@@ -71,5 +63,23 @@ class InstallStrategyFactory
         }
 
         return $instance;
+    }
+
+    /**
+     * @param PackageInterface $package
+     * @return string
+     */
+    public function determineStrategy(PackageInterface $package)
+    {
+        $strategyName = $this->config->getDeployStrategy();
+        if ($this->config->hasDeployStrategyOverwrite()) {
+            $moduleSpecificDeployStrategies = $this->config->getDeployStrategyOverwrite();
+
+            if (isset($moduleSpecificDeployStrategies[$package->getName()])) {
+                $strategyName = $moduleSpecificDeployStrategies[$package->getName()];
+            }
+        }
+
+        return $strategyName;
     }
 }

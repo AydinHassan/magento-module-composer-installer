@@ -13,13 +13,6 @@ use org\bovigo\vfs\vfsStream;
  */
 class InstallStrategyFactoryTest extends \PHPUnit_Framework_TestCase
 {
-    protected $root;
-
-    public function setUp()
-    {
-        $this->root = vfsStream::setup('root', null, array('vendor' => array(), 'htdocs' => array()));
-    }
-
     /**
      * @dataProvider strategyProvider
      * @param string $strategy
@@ -28,12 +21,9 @@ class InstallStrategyFactoryTest extends \PHPUnit_Framework_TestCase
     public function testCorrectDeployStrategyIsReturned($strategy, $expectedClass)
     {
         $package = new Package("some/package", "1.0.0", "some/package");
-        $config = new ProjectConfig(array(
-            'magento-deploystrategy' => $strategy,
-            'magento-root-dir' => vfsStream::url('root/htdocs'),
-        ), array());
+        $config = new ProjectConfig(array('magento-deploystrategy' => $strategy,), array());
         $factory = new InstallStrategyFactory($config);
-        $instance = $factory->make($package, sprintf('%s/some/package', vfsStream::url('root/vendor')));
+        $instance = $factory->make($package);
         $this->assertInstanceOf($expectedClass, $instance);
     }
 
@@ -53,13 +43,10 @@ class InstallStrategyFactoryTest extends \PHPUnit_Framework_TestCase
     public function testSymlinkStrategyIsUsedIfConfiguredStrategyNotFound()
     {
         $package = new Package("some/package", "1.0.0", "some/package");
-        $config = new ProjectConfig(array(
-            'magento-deploystrategy' => 'lolnotarealstrategy',
-            'magento-root-dir' => vfsStream::url('root/htdocs'),
-        ), array());
+        $config = new ProjectConfig(array('magento-deploystrategy' => 'lolnotarealstrategy',), array());
         $factory = new InstallStrategyFactory($config);
 
-        $instance = $factory->make($package, sprintf('%s/some/package', vfsStream::url('root/vendor')));
+        $instance = $factory->make($package);
         $this->assertInstanceOf('\MagentoHackathon\Composer\Magento\InstallStrategy\Symlink', $instance);
     }
 
@@ -69,13 +56,25 @@ class InstallStrategyFactoryTest extends \PHPUnit_Framework_TestCase
         $config = new ProjectConfig(array(
             'magento-deploystrategy' => 'symlink',
             'magento-deploystrategy-overwrite' => array('some/package' => 'none'),
-            'magento-root-dir' => vfsStream::url('root/htdocs'),
         ), array());
 
         $factory = new InstallStrategyFactory($config);
 
-        $instance = $factory->make($package, sprintf('%s/some/package', vfsStream::url('root/vendor')));
+        $instance = $factory->make($package);
         $this->assertInstanceOf('\MagentoHackathon\Composer\Magento\InstallStrategy\None', $instance);
+    }
+
+    /**
+     * @dataProvider strategyProvider
+     * @param string $strategy
+     */
+    public function testDetermineStrategy($strategy)
+    {
+        $package = new Package("some/package", "1.0.0", "some/package");
+        $config = new ProjectConfig(array('magento-deploystrategy' => $strategy,), array());
+        $factory = new InstallStrategyFactory($config);
+        $name = $factory->determineStrategy($package);
+        $this->assertSame($strategy, $name);
     }
 }
 
