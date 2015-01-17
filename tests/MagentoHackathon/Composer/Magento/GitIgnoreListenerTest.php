@@ -33,6 +33,24 @@ class GitIgnoreListenerTest extends \PHPUnit_Framework_TestCase
         $this->listener = new GitIgnoreListener($this->gitIgnore);
     }
 
+    public function testAddNewInstalledFiles()
+    {
+        $files      = array('file1', 'file2', 'folder/file3');
+        $package    = new Package('some/package', '1.0.0', 'some/package');
+        $event      = new PackagePostInstallEvent($package, $files);
+
+        $this->gitIgnore
+            ->expects($this->once())
+            ->method('addMultipleEntries')
+            ->with($files);
+
+        $this->gitIgnore
+            ->expects($this->once())
+            ->method('write');
+
+        $this->listener->addNewInstalledFiles($event);
+    }
+
     public function testRemoveUnInstalledFile()
     {
         $files      = array('file1', 'file2', 'folder/file3');
