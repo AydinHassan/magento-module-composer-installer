@@ -32,7 +32,7 @@ class ModuleManagerFactory
     {
 
         if ($config->hasAutoAppendGitignore()) {
-            $this->addGitIgnoreListener($eventManager);
+            $this->addGitIgnoreListener($eventManager, $config);
         }
 
         if ($io->isDebug()) {
@@ -52,14 +52,15 @@ class ModuleManagerFactory
 
     /**
      * @param EventManager $eventManager
+     * @param ProjectConfig $config
      */
-    protected function addGitIgnoreListener(EventManager $eventManager)
+    protected function addGitIgnoreListener(EventManager $eventManager, ProjectConfig $config)
     {
-        $gitIgnoreLocation  = sprintf('%s/.gitignore', $this->config->getMagentoRootDir());
+        $gitIgnoreLocation  = sprintf('%s/.gitignore', $config->getMagentoRootDir());
         $gitIgnore          = new GitIgnoreListener(new GitIgnore($gitIgnoreLocation));
 
-        $eventManager->listen('post-package-install', array($gitIgnore, 'addNewInstalledFiles'));
-        $eventManager->listen('post-package-uninstall', array($gitIgnore, 'removeUnInstalledFiles'));
+        $eventManager->listen('package-post-install', array($gitIgnore, 'addNewInstalledFiles'));
+        $eventManager->listen('package-post-uninstall', array($gitIgnore, 'removeUnInstalledFiles'));
     }
 
     /**
@@ -68,7 +69,7 @@ class ModuleManagerFactory
      */
     protected function addDebugListener(EventManager $eventManager, IOInterface $io)
     {
-        $eventManager->listen('pre-package-install', function (PackagePreInstallEvent $event) use ($io) {
+        $eventManager->listen('package-pre-install', function (PackagePreInstallEvent $event) use ($io) {
             $io->write('Start magento deploy for ' . $event->getPackage()->getName());
         });
     }
