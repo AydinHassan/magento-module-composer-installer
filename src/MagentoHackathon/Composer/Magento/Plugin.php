@@ -106,9 +106,12 @@ class Plugin implements PluginInterface, EventSubscriberInterface
      */
     public function onNewCodeEvent(CommandEvent $event)
     {
-        $magentoModules = array_map(function (PackageInterface $package) {
-            return $package->getType() === static::PACKAGE_TYPE;
-        }, $this->composer->getRepositoryManager()->getLocalRepository()->getPackages());
+        $magentoModules = array_filter(
+            $this->composer->getRepositoryManager()->getLocalRepository()->getPackages(),
+            function (PackageInterface $package) {
+                return $package->getType() === static::PACKAGE_TYPE;
+            }
+        );
 
         $this->moduleManager->updateInstalledPackages($magentoModules);
     }
