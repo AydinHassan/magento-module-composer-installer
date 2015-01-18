@@ -18,12 +18,20 @@ class UnInstallStrategy implements UnInstallStrategyInterface
     protected $fileSystem;
 
     /**
-     * @param FileSystem $fileSystem
+     * The root dir for uninstalling from. Should be project root.
+     *
+     * @var string
      */
-    public function __construct(FileSystem $fileSystem)
-    {
+    protected $rootDir;
 
-        $this->fileSystem = $fileSystem;
+    /**
+     * @param FileSystem $fileSystem
+     * @param string $root
+     */
+    public function __construct(FileSystem $fileSystem, $root)
+    {
+        $this->fileSystem   = $fileSystem;
+        $this->root         = $root;
     }
 
     /**
@@ -37,7 +45,7 @@ class UnInstallStrategy implements UnInstallStrategyInterface
             $this->fileSystem->unlink($file);
 
             if ($this->fileSystem->isDirEmpty(dirname($file))) {
-                $this->fileSystem->removeDirectory(dirname($file));
+                $this->fileSystem->removeEmptyDirectoriesUpToRoot(dirname($file), $this->root);
             }
         }
     }

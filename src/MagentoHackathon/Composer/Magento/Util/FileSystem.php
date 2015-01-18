@@ -156,4 +156,22 @@ class FileSystem extends ComposerFs
 
         return false;
     }
+
+    /**
+     * @param string $dir
+     * @param string $root
+     */
+    public function removeEmptyDirectoriesUpToRoot($dir, $root)
+    {
+        if (!$this->isDirEmpty($dir)) {
+            return;
+        }
+
+        if ($dir === $root) {
+            return;
+        }
+
+        $this->removeDirectory($dir);
+        $this->removeEmptyDirectoriesUpToRoot(dirname($dir), $root);
+    }
 }

@@ -1,5 +1,6 @@
 <?php
 use MagentoHackathon\Composer\Magento\Util\FileSystem;
+use org\bovigo\vfs\vfsStream;
 
 /**
  * Class FileSystemTest
@@ -132,6 +133,35 @@ class FileSystemTest extends PHPUnit_Framework_TestCase
         $this->fileSystem->createSymlink('lolnotafile', 'lolnotafile');
         unlink('lolnotafile');
         \PHPUnit_Framework_Error_Warning::$enabled = true;
+    }
+
+    public function testRemoveDirectoriesUpToRootDoesNotRemoveDirectoryIfItIsNotEmpty()
+    {
+        vfsStream::setup('root');
+        mkdir(vfsStream::url('root') . '/one/two/three', 0777, true);
+        touch(vfsStream::url('root') . '/one/file1.txt');
+
+        $this->fileSystem->removeEmptyDirectoriesUpToRoot(
+            vfsStream::url('root') . '/one/two/three',
+            vfsStream::url('root')
+        );
+
+        $this->assertFileExists(vfsStream::url('root') . '/one/file1.txt');
+        $this->assertFileNotExists(vfsStream::url('root') . '/one/two');
+    }
+
+    public function testRemoveDirectoriesUpToRootRemovesAllDirectoriesUpToRootIfTheyAreEmpty()
+    {
+        vfsStream::setup('root');
+        mkdir(vfsStream::url('root') . '/one/two/three', 0777, true);
+
+        $this->fileSystem->removeEmptyDirectoriesUpToRoot(
+            vfsStream::url('root') . '/one/two/three',
+            vfsStream::url('root')
+        );
+
+        $this->assertFileExists(vfsStream::url('root'));
+        $this->assertFileNotExists(vfsStream::url('root') . '/one');
     }
 
     public function tearDown()

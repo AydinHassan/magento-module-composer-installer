@@ -44,7 +44,7 @@ class ModuleManagerFactory
             new InstalledPackageFileSystemRepository('some_path.json', new InstalledPackageDumper),
             $eventManager,
             $config,
-            new UnInstallStrategy(new FileSystem),
+            new UnInstallStrategy(new FileSystem, $config->getMagentoRootDir()),
             $installerFactory->make($config, $eventManager),
             new InstallStrategyFactory($config)
         );
