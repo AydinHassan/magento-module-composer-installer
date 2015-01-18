@@ -367,4 +367,14 @@ class ProjectConfig
     {
         return $this->fetchVarFromConfigArray($this->composerConfig, 'vendor-dir');
     }
+
+    /**
+     * Get Package Sort Order
+     *
+     * @return array
+     */
+    public function getSortPriorities()
+    {
+        return $this->fetchVarFromConfigArray($this->extra, self::SORT_PRIORITY_KEY, array());
+    }
 }

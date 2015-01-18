@@ -45,7 +45,8 @@ class ModuleManagerFactory
             $eventManager,
             $config,
             new UnInstallStrategy(new FileSystem),
-            $installerFactory->make($config, $eventManager)
+            $installerFactory->make($config, $eventManager),
+            new InstallStrategyFactory($config)
         );
     }
 

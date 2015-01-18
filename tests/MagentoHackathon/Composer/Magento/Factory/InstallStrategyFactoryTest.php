@@ -76,6 +76,31 @@ class InstallStrategyFactoryTest extends \PHPUnit_Framework_TestCase
         $name = $factory->determineStrategy($package);
         $this->assertSame($strategy, $name);
     }
+
+    /**
+     * @dataProvider priorityProvider
+     * @param string $strategy
+     */
+    public function testDefaultPriorities($strategy, $priority)
+    {
+        $package = new Package("some/package", "1.0.0", "some/package");
+        $config = new ProjectConfig(array('magento-deploystrategy' => $strategy,), array());
+        $factory = new InstallStrategyFactory($config);
+        $this->assertSame($priority, $factory->getDefaultPriority($package));
+    }
+
+    /**
+     * @return array
+     */
+    public function priorityProvider()
+    {
+        return array(
+            array('copy',    101),
+            array('symlink', 100),
+            array('link',    100),
+            array('none',    100),
+        );
+    }
 }
 
 /**

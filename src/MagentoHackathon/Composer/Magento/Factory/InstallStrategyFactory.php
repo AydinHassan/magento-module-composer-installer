@@ -28,6 +28,15 @@ class InstallStrategyFactory
     /**
      * @var array
      */
+    protected static $priorityMap = array(
+        'symlink'   => 100,
+        'link'      => 100,
+        'copy'      => 101,
+    );
+
+    /**
+     * @var array
+     */
     protected static $strategies = array(
         'copy'      => '\MagentoHackathon\Composer\Magento\InstallStrategy\Copy',
         'symlink'   => '\MagentoHackathon\Composer\Magento\InstallStrategy\Symlink',
@@ -81,5 +90,18 @@ class InstallStrategyFactory
         }
 
         return $strategyName;
+    }
+
+    /**
+     * @param PackageInterface $package
+     * @return int
+     */
+    public function getDefaultPriority(PackageInterface $package)
+    {
+        if (isset(static::$priorityMap[$this->determineStrategy($package)])) {
+            return static::$priorityMap[$this->determineStrategy($package)];
+        }
+
+        return 100;
     }
 }
