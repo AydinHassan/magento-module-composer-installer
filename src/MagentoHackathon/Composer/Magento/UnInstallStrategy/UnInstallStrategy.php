@@ -2,7 +2,7 @@
 
 namespace MagentoHackathon\Composer\Magento\UnInstallStrategy;
 
-use MagentoHackathon\Composer\Magento\Util\Filesystem\FileSystem;
+use MagentoHackathon\Composer\Magento\Util\Filesystem;
 
 /**
  * Class UnInstallStrategy
