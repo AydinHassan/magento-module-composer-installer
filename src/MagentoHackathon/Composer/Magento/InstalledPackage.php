@@ -1,6 +1,7 @@
 <?php
 
 namespace MagentoHackathon\Composer\Magento;
+use MagentoHackathon\Composer\Magento\Map\MapCollection;
 
 /**
  * Class InstalledPackage
@@ -20,20 +21,20 @@ class InstalledPackage
     protected $version;
 
     /**
-     * @var array
+     * @var MapCollection
      */
-    protected $installedFiles;
+    protected $mappings;
 
     /**
-     * @param string $name
-     * @param string $version
-     * @param array $files
+     * @param string   $name
+     * @param string   $version
+     * @param MapCollection $mappings
      */
-    public function __construct($name, $version, array $files)
+    public function __construct($name, $version, MapCollection $mappings)
     {
-        $this->name = $name;
-        $this->installedFiles = $files;
-        $this->version = $version;
+        $this->name     = $name;
+        $this->version  = $version;
+        $this->mappings = $mappings;
     }
 
     /**
@@ -61,10 +62,10 @@ class InstalledPackage
     }
 
     /**
-     * @return array
+     * @return MapCollection
      */
-    public function getInstalledFiles()
+    public function getMappings()
     {
-        return $this->installedFiles;
+        return $this->mappings;
     }
 }
