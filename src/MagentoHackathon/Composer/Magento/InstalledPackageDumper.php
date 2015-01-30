@@ -19,7 +19,6 @@ class InstalledPackageDumper
         return array(
             'packageName'       => $installedPackage->getName(),
             'version'           => $installedPackage->getVersion(),
-            'installedFiles'    => $installedPackage->getInstalledFiles(),
             'mappings'          => $this->dumpMappings($installedPackage->getMappings()),
         );
     }

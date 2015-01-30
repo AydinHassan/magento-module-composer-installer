@@ -6,6 +6,8 @@ use Composer\Package\Package;
 use MagentoHackathon\Composer\Magento\Event\PackageDeployEvent;
 use MagentoHackathon\Composer\Magento\Event\PackagePostInstallEvent;
 use MagentoHackathon\Composer\Magento\Event\PackageUnInstallEvent;
+use MagentoHackathon\Composer\Magento\Map\Map;
+use MagentoHackathon\Composer\Magento\Map\MapCollection;
 
 /**
  * Class GitIgnoreListenerTest
@@ -35,14 +37,18 @@ class GitIgnoreListenerTest extends \PHPUnit_Framework_TestCase
 
     public function testAddNewInstalledFiles()
     {
-        $files      = array('file1', 'file2', 'folder/file3');
+        $map1       = new Map('file1', 'file1', '/tmp/', '/tmp/');
+        $map2       = new Map('file2', 'file2', '/tmp/', '/tmp/');
+        $map3       = new Map('folder/file3', 'folder/file3', '/tmp/', '/tmp/');
+        $collection = new MapCollection(array($map1, $map2, $map3));
         $package    = new Package('some/package', '1.0.0', 'some/package');
-        $event      = new PackagePostInstallEvent($package, $files);
+        $installedP = new InstalledPackage('some/package', '1.0.0', $collection);
+        $event      = new PackagePostInstallEvent($package, $installedP);
 
         $this->gitIgnore
             ->expects($this->once())
             ->method('addMultipleEntries')
-            ->with($files);
+            ->with(array('/file1', '/file2', '/folder/file3'));
 
         $this->gitIgnore
             ->expects($this->once())
@@ -53,14 +59,17 @@ class GitIgnoreListenerTest extends \PHPUnit_Framework_TestCase
 
     public function testRemoveUnInstalledFile()
     {
-        $files      = array('file1', 'file2', 'folder/file3');
-        $package    = new InstalledPackage('some/package', '1.0.0', $files);
+        $map1       = new Map('file1', 'file1', '/tmp/', '/tmp/');
+        $map2       = new Map('file2', 'file2', '/tmp/', '/tmp/');
+        $map3       = new Map('folder/file3', 'folder/file3', '/tmp/', '/tmp/');
+        $collection = new MapCollection(array($map1, $map2, $map3));
+        $package    = new InstalledPackage('some/package', '1.0.0', $collection);
         $event      = new PackageUnInstallEvent('package-uninstall', $package);
 
         $this->gitIgnore
             ->expects($this->once())
             ->method('removeMultipleEntries')
-            ->with($files);
+            ->with(array('/file1', '/file2', '/folder/file3'));
 
         $this->gitIgnore
             ->expects($this->once())

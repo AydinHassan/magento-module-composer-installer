@@ -2,6 +2,8 @@
 
 namespace MagentoHackathon\Composer\Magento\UnInstallStrategy;
 
+use MagentoHackathon\Composer\Magento\Map\MapCollection;
+
 /**
  * Interface UnInstallStrategyInterface
  * @package MagentoHackathon\Composer\Magento\UnInstallStrategy
@@ -11,8 +13,7 @@ interface UnInstallStrategyInterface
 {
     /**
      * UnInstall the extension given the list of install files
-     *
-     * @param array $files
+     * @param MapCollection $collection
      */
-    public function unInstall(array $files);
+    public function unInstall(MapCollection $collection);
 }

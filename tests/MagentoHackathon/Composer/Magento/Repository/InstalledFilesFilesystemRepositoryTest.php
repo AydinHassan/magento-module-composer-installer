@@ -4,6 +4,8 @@ namespace MagentoHackathon\Composer\Magento\Repository;
 
 use MagentoHackathon\Composer\Magento\InstalledPackage;
 use MagentoHackathon\Composer\Magento\InstalledPackageDumper;
+use MagentoHackathon\Composer\Magento\Map\Map;
+use MagentoHackathon\Composer\Magento\Map\MapCollection;
 use org\bovigo\vfs\vfsStream;
 use Symfony\Component\Yaml\Dumper;
 
@@ -65,19 +67,36 @@ class InstalledFilesFilesystemRepositoryTest extends \PHPUnit_Framework_TestCase
     public function testGetInstalledMappingsReturnsMappingsCorrectly()
     {
         $files = array(
-            'file1',
-            'file2',
-            'file3',
+            array(
+                'source'            => 'file1',
+                'destination'       => 'file1',
+                'source_root'       => '/tmp',
+                'destination_root'  => '/tmp',
+            ),
+            array(
+                'source'            => 'file2',
+                'destination'       => 'file2',
+                'source_root'       => '/tmp',
+                'destination_root'  => '/tmp',
+            ),
         );
 
         $data = array(array(
             'packageName' => 'some-package',
             'version' => '1.0.0',
-            'installedFiles' => $files,
+            'mappings' => $files,
         ));
         file_put_contents($this->filePath, json_encode($data));
         $package = $this->repository->findByPackageName('some-package');
-        $this->assertEquals($files, $package->getInstalledFiles());
+        $this->assertInstanceOf('MagentoHackathon\Composer\Magento\Map\MapCollection', $package->getMappings());
+
+        foreach ($package->getMappings() as $key => $map) {
+            $this->assertEquals($files[$key]['source'], $map->getSource());
+            $this->assertEquals($files[$key]['source_root'], $map->getSourceRoot());
+            $this->assertEquals($files[$key]['destination'], $map->getDestination());
+            $this->assertEquals($files[$key]['destination_root'], $map->getDestinationRoot());
+        }
+
         $this->assertEquals('some-package', $package->getName());
         $this->assertInstanceOf('MagentoHackathon\Composer\Magento\InstalledPackage', $package);
     }
@@ -86,7 +105,7 @@ class InstalledFilesFilesystemRepositoryTest extends \PHPUnit_Framework_TestCase
     {
         $this->setExpectedException('Exception', 'Package: "some-package" is already installed');
 
-        $package = new InstalledPackage('some-package', '1.0.0', array());
+        $package = new InstalledPackage('some-package', '1.0.0', new MapCollection(array()));
         $this->repository->add($package);
         $this->repository->add($package);
     }
@@ -94,17 +113,31 @@ class InstalledFilesFilesystemRepositoryTest extends \PHPUnit_Framework_TestCase
     public function testAddInstalledMappings()
     {
         $files = array(
-            'file1',
-            'file2',
-            'file3',
+            array(
+                'source'            => 'file1',
+                'destination'       => 'file1',
+                'source_root'       => '/tmp',
+                'destination_root'  => '/tmp',
+            ),
+            array(
+                'source'            => 'file2',
+                'destination'       => 'file2',
+                'source_root'       => '/tmp',
+                'destination_root'  => '/tmp',
+            ),
         );
+
+        $maps = new MapCollection(array(
+           new Map('file1', 'file1', '/tmp', '/tmp'),
+           new Map('file2', 'file2', '/tmp', '/tmp'),
+        ));
 
         $expected = array(array(
             'packageName' => 'some-package',
             'version' => '1.0.0',
-            'installedFiles' => $files,
+            'mappings' => $files,
         ));
-        $package = new InstalledPackage('some-package', '1.0.0', $files);
+        $package = new InstalledPackage('some-package', '1.0.0', $maps);
         $this->repository->add($package);
         unset($this->repository);
         $this->assertEquals($expected, json_decode(file_get_contents($this->filePath), true));
@@ -113,12 +146,12 @@ class InstalledFilesFilesystemRepositoryTest extends \PHPUnit_Framework_TestCase
     public function testExceptionIsThrownIfRemovingMappingsWhichDoNotExist()
     {
         $this->setExpectedException('Exception', 'Package: "some-package" not found');
-        $this->repository->remove(new InstalledPackage('some-package', '1.0.0', array()));
+        $this->repository->remove(new InstalledPackage('some-package', '1.0.0', new MapCollection(array())));
     }
 
     public function testCanSuccessfullyRemovePackageMappings()
     {
-        $package = new InstalledPackage('some-package', '1.0.0', array());
+        $package = new InstalledPackage('some-package', '1.0.0', new MapCollection(array()));
         $this->repository->add($package);
         $this->repository->remove($package);
     }
@@ -147,7 +180,7 @@ class InstalledFilesFilesystemRepositoryTest extends \PHPUnit_Framework_TestCase
     public function testFindAllPackages()
     {
         $this->assertEmpty($this->repository->findAll());
-        $package = new InstalledPackage('some-package', '1.0.0', array());
+        $package = new InstalledPackage('some-package', '1.0.0', new MapCollection(array()));
         $this->repository->add($package);
         $this->assertCount(1, $this->repository->findAll());
         $this->assertSame(array($package), $this->repository->findAll());
@@ -157,7 +190,7 @@ class InstalledFilesFilesystemRepositoryTest extends \PHPUnit_Framework_TestCase
     public function testHasPackageReturnsTrueIfPackageExistsInAnyVersion()
     {
         $this->assertEmpty($this->repository->findAll());
-        $package = new InstalledPackage('some-package', '1.0.0', array());
+        $package = new InstalledPackage('some-package', '1.0.0', new MapCollection(array()));
         $this->repository->add($package);
         $this->assertCount(1, $this->repository->findAll());
         $this->assertTrue($this->repository->has('some-package'));
@@ -166,7 +199,7 @@ class InstalledFilesFilesystemRepositoryTest extends \PHPUnit_Framework_TestCase
     public function testHasPackageWithSpecificVersion()
     {
         $this->assertEmpty($this->repository->findAll());
-        $package = new InstalledPackage('some-package', '1.0.0', array());
+        $package = new InstalledPackage('some-package', '1.0.0', new MapCollection(array()));
         $this->repository->add($package);
         $this->assertCount(1, $this->repository->findAll());
         $this->assertTrue($this->repository->has('some-package', '1.0.0'));

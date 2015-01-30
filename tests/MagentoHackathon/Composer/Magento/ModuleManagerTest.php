@@ -52,8 +52,8 @@ class ModuleManagerTest extends \PHPUnit_Framework_TestCase
         );
 
         $installedMagentoPackages = array(
-            new InstalledPackage("vendor/package1", "1.0.0", array()),
-            new InstalledPackage("vendor/package2", "1.0.0", array('file1')),
+            new InstalledPackage("vendor/package1", "1.0.0", new MapCollection(array())),
+            new InstalledPackage("vendor/package2", "1.0.0", new MapCollection(array())),
         );
 
         $this->installedPackageRepository->add($installedMagentoPackages[0]);
@@ -62,7 +62,7 @@ class ModuleManagerTest extends \PHPUnit_Framework_TestCase
         $this->unInstallStrategy
             ->expects($this->once())
             ->method('unInstall')
-            ->with($installedMagentoPackages[1]->getInstalledFiles());
+            ->with($installedMagentoPackages[1]->getMappings());
 
         $this->moduleManager->updateInstalledPackages($composerInstalledPackages);
     }
@@ -89,7 +89,7 @@ class ModuleManagerTest extends \PHPUnit_Framework_TestCase
         );
 
         $installedMagentoPackages = array(
-            new InstalledPackage("vendor/package1", "1.0.0", array()),
+            new InstalledPackage("vendor/package1", "1.0.0", new MapCollection(array())),
         );
 
         $this->installedPackageRepository->add($installedMagentoPackages[0]);
@@ -97,7 +97,7 @@ class ModuleManagerTest extends \PHPUnit_Framework_TestCase
         $this->unInstallStrategy
             ->expects($this->once())
             ->method('unInstall')
-            ->with($installedMagentoPackages[0]->getInstalledFiles());
+            ->with($installedMagentoPackages[0]->getMappings());
 
         $this->installer
             ->expects($this->once())
@@ -116,8 +116,8 @@ class ModuleManagerTest extends \PHPUnit_Framework_TestCase
         );
 
         $installedMagentoPackages = array(
-            new InstalledPackage("vendor/package1", "1.0.0", array()),
-            new InstalledPackage("vendor/package2", "1.0.0", array()),
+            new InstalledPackage("vendor/package1", "1.0.0", new MapCollection(array())),
+            new InstalledPackage("vendor/package2", "1.0.0", new MapCollection(array())),
         );
 
         $this->installedPackageRepository->add($installedMagentoPackages[0]);
@@ -126,12 +126,12 @@ class ModuleManagerTest extends \PHPUnit_Framework_TestCase
         $this->unInstallStrategy
             ->expects($this->at(0))
             ->method('unInstall')
-            ->with($installedMagentoPackages[0]->getInstalledFiles());
+            ->with($installedMagentoPackages[0]->getMappings());
 
         $this->unInstallStrategy
             ->expects($this->at(1))
             ->method('unInstall')
-            ->with($installedMagentoPackages[1]->getInstalledFiles());
+            ->with($installedMagentoPackages[1]->getMappings());
 
         $this->installer
             ->expects($this->at(0))

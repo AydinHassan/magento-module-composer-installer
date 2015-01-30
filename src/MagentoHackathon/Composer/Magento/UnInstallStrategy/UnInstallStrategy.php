@@ -2,6 +2,8 @@
 
 namespace MagentoHackathon\Composer\Magento\UnInstallStrategy;
 
+use MagentoHackathon\Composer\Magento\Map\Map;
+use MagentoHackathon\Composer\Magento\Map\MapCollection;
 use MagentoHackathon\Composer\Magento\Util\Filesystem;
 
 /**
@@ -37,15 +39,19 @@ class UnInstallStrategy implements UnInstallStrategyInterface
     /**
      * UnInstall the extension given the list of install files
      *
-     * @param array $files
+     * @param MapCollection $collection
      */
-    public function unInstall(array $files)
+    public function unInstall(MapCollection $collection)
     {
-        foreach ($files as $file) {
-            $this->fileSystem->unlink($file);
+        foreach ($collection as $map) {
+            /** @var Map $map */
+            $this->fileSystem->unlink($map->getAbsoluteDestination());
 
-            if ($this->fileSystem->isDirEmpty(dirname($file))) {
-                $this->fileSystem->removeEmptyDirectoriesUpToRoot(dirname($file), $this->root);
+            if ($this->fileSystem->isDirEmpty(dirname($map->getAbsoluteDestination()))) {
+                $this->fileSystem->removeEmptyDirectoriesUpToRoot(
+                    dirname($map->getAbsoluteDestination()),
+                    $this->root
+                );
             }
         }
     }

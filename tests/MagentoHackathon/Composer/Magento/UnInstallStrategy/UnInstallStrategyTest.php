@@ -2,6 +2,8 @@
 
 namespace MagentoHackathon\Composer\Magento\UnInstallStrategy;
 
+use MagentoHackathon\Composer\Magento\Map\Map;
+use MagentoHackathon\Composer\Magento\Map\MapCollection;
 use MagentoHackathon\Composer\Magento\Util\FileSystem;
 use PHPUnit_Framework_TestCase;
 
@@ -31,12 +33,14 @@ class UnInstallStrategyTest extends PHPUnit_Framework_TestCase
         touch($rootDir . '/child3/secondlevelchild3/file3.txt');
         touch($rootDir . '/child4/secondlevelchild4/file4.txt');
 
-        $strategy->unInstall(array(
-            $rootDir . '/child1/secondlevelchild1/file1.txt',
-            $rootDir . '/child2/secondlevelchild2/file2.txt',
-            $rootDir . '/child3/secondlevelchild3/file3.txt',
-            $rootDir . '/child4/secondlevelchild4/file4.txt'
+        $maps = new MapCollection(array(
+           new Map('file1', '/child1/secondlevelchild1/file1.txt', $rootDir, $rootDir),
+           new Map('file1', '/child2/secondlevelchild2/file2.txt', $rootDir, $rootDir),
+           new Map('file1', '/child3/secondlevelchild3/file3.txt', $rootDir, $rootDir),
+           new Map('file1', '/child4/secondlevelchild4/file4.txt', $rootDir, $rootDir),
         ));
+
+        $strategy->unInstall($maps);
 
         $this->assertFileExists($rootDir);
         $this->assertFileNotExists($rootDir . '/child1');
@@ -64,12 +68,14 @@ class UnInstallStrategyTest extends PHPUnit_Framework_TestCase
         touch($rootDir . '/child4/secondlevelchild4/file4.txt');
         touch($rootDir . '/child4/secondlevelchild4/file5.txt');
 
-        $strategy->unInstall(array(
-            $rootDir . '/child1/secondlevelchild1/file1.txt',
-            $rootDir . '/child2/secondlevelchild2/file2.txt',
-            $rootDir . '/child3/secondlevelchild3/file3.txt',
-            $rootDir . '/child4/secondlevelchild4/file4.txt'
+        $maps = new MapCollection(array(
+            new Map('file1', '/child1/secondlevelchild1/file1.txt', $rootDir, $rootDir),
+            new Map('file1', '/child2/secondlevelchild2/file2.txt', $rootDir, $rootDir),
+            new Map('file1', '/child3/secondlevelchild3/file3.txt', $rootDir, $rootDir),
+            new Map('file1', '/child4/secondlevelchild4/file4.txt', $rootDir, $rootDir),
         ));
+
+        $strategy->unInstall($maps);
 
         $this->assertFileExists($rootDir);
         $this->assertFileNotExists($rootDir . '/child1');

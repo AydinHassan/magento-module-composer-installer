@@ -5,6 +5,8 @@ namespace MagentoHackathon\Composer\Magento\Event;
 use Composer\EventDispatcher\Event;
 use Composer\Package\PackageInterface;
 use MagentoHackathon\Composer\Magento\Deploy\Manager\Entry;
+use MagentoHackathon\Composer\Magento\InstalledPackage;
+use MagentoHackathon\Composer\Magento\Map\MapCollection;
 
 /**
  * Class PackagePostInstallEvent
@@ -16,22 +18,22 @@ class PackagePostInstallEvent extends Event
     /**
      * @var PackageInterface
      */
-    protected $package;
+    protected $composerPackage;
 
     /**
-     * @var array
+     * @var InstalledPackage
      */
-    protected $installedFiles;
+    protected $installedPackage;
 
     /**
-     * @param PackageInterface $package
-     * @param array            $installedFiles
+     * @param PackageInterface $composerPackage
+     * @param InstalledPackage $installedPackage
      */
-    public function __construct(PackageInterface $package, array $installedFiles)
+    public function __construct(PackageInterface $composerPackage, InstalledPackage $installedPackage)
     {
         parent::__construct('package-post-install');
-        $this->package          = $package;
-        $this->installedFiles   = $installedFiles;
+        $this->composerPackage  = $composerPackage;
+        $this->installedPackage = $installedPackage;
     }
 
     /**
@@ -39,14 +41,14 @@ class PackagePostInstallEvent extends Event
      */
     public function getPackage()
     {
-        return $this->package;
+        return $this->composerPackage;
     }
 
     /**
-     * @return array
+     * @return MapCollection
      */
-    public function getInstalledFiles()
+    public function getMappings()
     {
-        return $this->installedFiles;
+        return $this->installedPackage->getMappings();
     }
 }

@@ -4,6 +4,7 @@ namespace MagentoHackathon\Composer\Magento\Event;
 
 use Composer\EventDispatcher\Event;
 use MagentoHackathon\Composer\Magento\InstalledPackage;
+use MagentoHackathon\Composer\Magento\Map\MapCollection;
 
 /**
  * Class PackageUnInstallEvent
@@ -36,10 +37,10 @@ class PackageUnInstallEvent extends Event
     }
 
     /**
-     * @return array
+     * @return MapCollection
      */
-    public function getUnInstalledFiles()
+    public function getMappings()
     {
-        return $this->package->getInstalledFiles();
+        return $this->package->getMappings();
     }
 }

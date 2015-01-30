@@ -99,17 +99,17 @@ class ModuleManager
     public function doRemoves(array $packagesToRemove)
     {
         foreach ($packagesToRemove as $package) {
-            $unInstalledFiles = $package->getInstalledFiles();
+            $mappings = $package->getMappings();
 
             $this->eventManager->dispatch(
-                new PackageUnInstallEvent('pre-package-uninstall', $package, $unInstalledFiles)
+                new PackageUnInstallEvent('pre-package-uninstall', $package, $mappings)
             );
 
-            $this->unInstallStrategy->unInstall($unInstalledFiles);
+            $this->unInstallStrategy->unInstall($mappings);
             $this->installedPackageRepository->remove($package);
 
             $this->eventManager->dispatch(
-                new PackageUnInstallEvent('post-package-uninstall', $package, $unInstalledFiles)
+                new PackageUnInstallEvent('post-package-uninstall', $package, $mappings)
             );
         }
     }
@@ -125,13 +125,15 @@ class ModuleManager
 
             $mappings = $this->installer->install($package, $this->getPackageSourceDirectory($package));
 
-            $this->installedPackageRepository->add(new InstalledPackage(
+            $installedPackaged = new InstalledPackage(
                 $package->getName(),
                 $package->getVersion(),
-                $mappings->getAllDestinations()
-            ));
+                $mappings
+            );
 
-            $this->eventManager->dispatch(new PackagePostInstallEvent($package, $mappings->getAllDestinations()));
+            $this->installedPackageRepository->add($installedPackaged);
+
+            $this->eventManager->dispatch(new PackagePostInstallEvent($package, $installedPackaged));
         }
     }
 

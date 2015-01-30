@@ -5,6 +5,8 @@ namespace MagentoHackathon\Composer\Magento;
 use MagentoHackathon\Composer\Magento\Event\PackageDeployEvent;
 use MagentoHackathon\Composer\Magento\Event\PackagePostInstallEvent;
 use MagentoHackathon\Composer\Magento\Event\PackageUnInstallEvent;
+use MagentoHackathon\Composer\Magento\Map\Map;
+use MagentoHackathon\Composer\Magento\Map\MapCollection;
 
 /**
  * Class GitIgnoreListener
@@ -34,7 +36,7 @@ class GitIgnoreListener
      */
     public function addNewInstalledFiles(PackagePostInstallEvent $e)
     {
-        $files = $e->getInstalledFiles();
+        $files = $this->processMappings($e->getMappings());
         $this->gitIgnore->addMultipleEntries($files);
         $this->gitIgnore->write();
     }
@@ -46,8 +48,22 @@ class GitIgnoreListener
      */
     public function removeUnInstalledFiles(PackageUnInstallEvent $e)
     {
-        $files = $e->getUnInstalledFiles();
+        $files = $this->processMappings($e->getMappings());
         $this->gitIgnore->removeMultipleEntries($files);
         $this->gitIgnore->write();
+    }
+
+    /**
+     * @param MapCollection $maps
+     * @return array
+     */
+    private function processMappings(MapCollection $maps)
+    {
+        return array_map(
+            function (Map $map) {
+                return sprintf('/%s', $map->getDestination());
+            },
+            $maps->all()
+        );
     }
 }
