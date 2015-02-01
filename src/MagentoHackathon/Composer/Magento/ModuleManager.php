@@ -103,14 +103,14 @@ class ModuleManager
             $mappings = $package->getMappings();
 
             $this->eventManager->dispatch(
-                new PackageUnInstallEvent('pre-package-uninstall', $package, $mappings)
+                new PackageUnInstallEvent('package-pre-uninstall', $package, $mappings)
             );
 
             $this->unInstallStrategy->unInstall($mappings);
             $this->installedPackageRepository->remove($package);
 
             $this->eventManager->dispatch(
-                new PackageUnInstallEvent('post-package-uninstall', $package, $mappings)
+                new PackageUnInstallEvent('package-post-uninstall', $package, $mappings)
             );
         }
     }
