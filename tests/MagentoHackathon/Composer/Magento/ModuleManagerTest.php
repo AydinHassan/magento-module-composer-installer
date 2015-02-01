@@ -3,7 +3,6 @@
 namespace MagentoHackathon\Composer\Magento;
 
 use Composer\Package\Package;
-use MagentoHackathon\Composer\Magento\Deploystrategy\None;
 use MagentoHackathon\Composer\Magento\Event\EventManager;
 use MagentoHackathon\Composer\Magento\Factory\InstallStrategyFactory;
 use MagentoHackathon\Composer\Magento\Map\MapCollection;
@@ -136,13 +135,13 @@ class ModuleManagerTest extends \PHPUnit_Framework_TestCase
         $this->installer
             ->expects($this->at(0))
             ->method('install')
-            ->with($composerInstalledPackages[1])
+            ->with($composerInstalledPackages[0])
             ->will($this->returnValue(new MapCollection(array())));
 
         $this->installer
             ->expects($this->at(1))
             ->method('install')
-            ->with($composerInstalledPackages[0])
+            ->with($composerInstalledPackages[1])
             ->will($this->returnValue(new MapCollection(array())));
 
         $this->moduleManager->updateInstalledPackages($composerInstalledPackages);

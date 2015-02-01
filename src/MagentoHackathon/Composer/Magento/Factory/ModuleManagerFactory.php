@@ -9,6 +9,7 @@ use MagentoHackathon\Composer\Magento\GitIgnore;
 use MagentoHackathon\Composer\Magento\InstalledPackageDumper;
 use MagentoHackathon\Composer\Magento\Listener\CheckAndCreateMagentoRootDirListener;
 use MagentoHackathon\Composer\Magento\Listener\GitIgnoreListener;
+use MagentoHackathon\Composer\Magento\Listener\PackagePrioritySortListener;
 use MagentoHackathon\Composer\Magento\ModuleManager;
 use MagentoHackathon\Composer\Magento\ProjectConfig;
 use MagentoHackathon\Composer\Magento\Repository\InstalledPackageFileSystemRepository;
@@ -31,6 +32,7 @@ class ModuleManagerFactory
      */
     public function make(ProjectConfig $config, EventManager $eventManager, IOInterface $io)
     {
+        $installStrategyFactory = new InstallStrategyFactory($config);
 
         if ($config->hasAutoAppendGitignore()) {
             $this->addGitIgnoreListener($eventManager, $config);
@@ -45,6 +47,11 @@ class ModuleManagerFactory
             new CheckAndCreateMagentoRootDirListener($config->getMagentoRootDir(false))
         );
 
+        $eventManager->listen(
+            'pre-install',
+            new PackagePrioritySortListener($installStrategyFactory, $config)
+        );
+
         $installerFactory = new InstallerFactory;
         return new ModuleManager(
             new InstalledPackageFileSystemRepository(
@@ -55,7 +62,7 @@ class ModuleManagerFactory
             $config,
             new UnInstallStrategy(new FileSystem, $config->getMagentoRootDir()),
             $installerFactory->make($config, $eventManager),
-            new InstallStrategyFactory($config)
+            $installStrategyFactory
         );
     }
 

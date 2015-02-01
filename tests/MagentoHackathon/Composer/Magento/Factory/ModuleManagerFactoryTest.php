@@ -27,11 +27,19 @@ class ModuleManagerFactoryTest extends PHPUnit_Framework_TestCase
         $io             = new ConsoleIO(new ArrayInput(array()), new ConsoleOutput(), new HelperSet());
 
         $eventManager
-            ->expects($this->once())
+            ->expects($this->at(0))
             ->method('listen')
             ->with(
                 'pre-install',
                 $this->isInstanceOf('MagentoHackathon\Composer\Magento\Listener\CheckAndCreateMagentoRootDirListener')
+            );
+
+        $eventManager
+            ->expects($this->at(1))
+            ->method('listen')
+            ->with(
+                'pre-install',
+                $this->isInstanceOf('MagentoHackathon\Composer\Magento\Listener\PackagePrioritySortListener')
             );
 
         $instance = $factory->make($config, $eventManager, $io);
@@ -62,6 +70,14 @@ class ModuleManagerFactoryTest extends PHPUnit_Framework_TestCase
                 $this->isInstanceOf('MagentoHackathon\Composer\Magento\Listener\CheckAndCreateMagentoRootDirListener')
             );
 
+        $eventManager
+            ->expects($this->at(2))
+            ->method('listen')
+            ->with(
+                'pre-install',
+                $this->isInstanceOf('MagentoHackathon\Composer\Magento\Listener\PackagePrioritySortListener')
+            );
+
         $factory->make($config, $eventManager, $io);
     }
 
@@ -88,6 +104,14 @@ class ModuleManagerFactoryTest extends PHPUnit_Framework_TestCase
             ->with(
                 'pre-install',
                 $this->isInstanceOf('MagentoHackathon\Composer\Magento\Listener\CheckAndCreateMagentoRootDirListener')
+            );
+
+        $eventManager
+            ->expects($this->at(3))
+            ->method('listen')
+            ->with(
+                'pre-install',
+                $this->isInstanceOf('MagentoHackathon\Composer\Magento\Listener\PackagePrioritySortListener')
             );
 
         $factory->make($config, $eventManager, $io);
