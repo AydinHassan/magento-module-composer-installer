@@ -142,4 +142,13 @@ class ProjectConfigTest extends PHPUnit_Framework_TestCase
         $config = new ProjectConfig(array(), array());
         $this->assertSame('root', $config->getMagentoRootDir());
     }
+
+    public function testGetInstalledModuleRepositoryFile()
+    {
+        $config = new ProjectConfig(array('magento-root-dir' => '/htdocs/'), array('vendor-dir' => 'vendor'));
+        $this->assertSame('vendor/magento-installed.json', $config->getModuleRepositoryLocation());
+
+        $config = new ProjectConfig(array('module-repository-location' => 'htdocs'), array('vendor-dir'));
+        $this->assertSame('htdocs/magento-installed.json', $config->getModuleRepositoryLocation());
+    }
 }

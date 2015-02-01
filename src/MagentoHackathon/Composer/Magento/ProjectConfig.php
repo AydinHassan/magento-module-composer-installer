@@ -30,6 +30,7 @@ class ProjectConfig
     const MAGENTO_FORCE_KEY                         = 'magento-force';
     const AUTO_APPEND_GITIGNORE_KEY                 = 'auto-append-gitignore';
     const PATH_MAPPINGS_TRANSLATIONS_KEY            = 'path-mapping-translations';
+    const MODULE_REPOSITORY_LOCATION_KEY            = 'module-repository-location';
 
     // Default Values
     const DEFAULT_MAGENTO_ROOT_DIR = 'root';
@@ -51,7 +52,7 @@ class ProjectConfig
     public function __construct(array $extra, array $composerConfig)
     {
         $this->extra            = $extra;
-        $this->composerConfig    = $composerConfig;
+        $this->composerConfig   = $composerConfig;
     }
 
     /**
@@ -238,5 +239,21 @@ class ProjectConfig
     public function getSortPriorities()
     {
         return $this->fetchVarFromConfigArray($this->extra, self::SORT_PRIORITY_KEY, array());
+    }
+
+    /**
+     * @return string
+     */
+    public function getModuleRepositoryLocation()
+    {
+        $moduleRepoDir = $this->fetchVarFromExtraConfig(
+            self::MODULE_REPOSITORY_LOCATION_KEY,
+            $this->fetchVarFromConfigArray(
+                $this->composerConfig,
+                'vendor-dir'
+            )
+        );
+
+        return sprintf('%s/magento-installed.json', $moduleRepoDir);
     }
 }

@@ -74,7 +74,8 @@ class Plugin implements PluginInterface, EventSubscriberInterface
     {
         $this->io               = $io;
         $this->composer         = $composer;
-        $this->config           = new ProjectConfig($composer->getPackage()->getExtra(), $composer->getConfig()->all());
+        $composerConfig         = $composer->getConfig()->all();
+        $this->config           = new ProjectConfig($composer->getPackage()->getExtra(), $composerConfig['config']);
         $this->eventManager     = new EventManager;
         $moduleManagerFactory   = new ModuleManagerFactory;
         $this->moduleManager    = $moduleManagerFactory->make($this->config, $this->eventManager, $io);

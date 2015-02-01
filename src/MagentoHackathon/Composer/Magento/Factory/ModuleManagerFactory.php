@@ -41,7 +41,10 @@ class ModuleManagerFactory
 
         $installerFactory = new InstallerFactory;
         return new ModuleManager(
-            new InstalledPackageFileSystemRepository('some_path.json', new InstalledPackageDumper),
+            new InstalledPackageFileSystemRepository(
+                $config->getModuleRepositoryLocation(),
+                new InstalledPackageDumper
+            ),
             $eventManager,
             $config,
             new UnInstallStrategy(new FileSystem, $config->getMagentoRootDir()),

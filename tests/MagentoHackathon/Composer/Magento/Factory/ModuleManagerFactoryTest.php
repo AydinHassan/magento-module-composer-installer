@@ -22,7 +22,7 @@ class ModuleManagerFactoryTest extends PHPUnit_Framework_TestCase
     public function testFactoryReturnsInstance()
     {
         $factory        = new ModuleManagerFactory;
-        $config         = new ProjectConfig(array(), array());
+        $config         = new ProjectConfig(array(), array('vendor-dir' => 'vendor'));
         $eventManager   = new EventManager;
         $io             = new ConsoleIO(new ArrayInput(array()), new ConsoleOutput(), new HelperSet());
 
@@ -33,7 +33,7 @@ class ModuleManagerFactoryTest extends PHPUnit_Framework_TestCase
     public function testDebugPrinterIsAddedIfDebugMode()
     {
         $factory        = new ModuleManagerFactory;
-        $config         = new ProjectConfig(array(), array());
+        $config         = new ProjectConfig(array(), array('vendor-dir' => 'vendor'));
         $eventManager   = $this->getMock('MagentoHackathon\Composer\Magento\Event\EventManager');
         $io             = new ConsoleIO(
             new ArrayInput(array()),
@@ -52,7 +52,7 @@ class ModuleManagerFactoryTest extends PHPUnit_Framework_TestCase
     public function testGitIgnoreListenerIsAddedIfConfigPresent()
     {
         $factory        = new ModuleManagerFactory;
-        $config         = new ProjectConfig(array('auto-append-gitignore' => true), array());
+        $config         = new ProjectConfig(array('auto-append-gitignore' => true), array('vendor-dir' => 'vendor'));
         $eventManager   = $this->getMock('MagentoHackathon\Composer\Magento\Event\EventManager');
         $io             = new ConsoleIO(new ArrayInput(array()), new ConsoleOutput(), new HelperSet());
 
@@ -72,7 +72,7 @@ class ModuleManagerFactoryTest extends PHPUnit_Framework_TestCase
     public function testDebugListenerCallback()
     {
         $factory        = new ModuleManagerFactory;
-        $config         = new ProjectConfig(array('auto-append-gitignore' => true), array());
+        $config         = new ProjectConfig(array('auto-append-gitignore' => true), array('vendor-dir' => 'vendor'));
         $eventManager   = new EventManager;
         $io             = $this->getMock('Composer\IO\IOInterface');
 
