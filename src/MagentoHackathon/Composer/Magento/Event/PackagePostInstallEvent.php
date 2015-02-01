@@ -4,7 +4,6 @@ namespace MagentoHackathon\Composer\Magento\Event;
 
 use Composer\EventDispatcher\Event;
 use Composer\Package\PackageInterface;
-use MagentoHackathon\Composer\Magento\Deploy\Manager\Entry;
 use MagentoHackathon\Composer\Magento\InstalledPackage;
 use MagentoHackathon\Composer\Magento\Map\MapCollection;
 
