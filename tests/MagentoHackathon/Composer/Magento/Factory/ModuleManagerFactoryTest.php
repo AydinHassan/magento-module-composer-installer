@@ -23,8 +23,16 @@ class ModuleManagerFactoryTest extends PHPUnit_Framework_TestCase
     {
         $factory        = new ModuleManagerFactory;
         $config         = new ProjectConfig(array(), array('vendor-dir' => 'vendor'));
-        $eventManager   = new EventManager;
+        $eventManager   = $this->getMock('MagentoHackathon\Composer\Magento\Event\EventManager');
         $io             = new ConsoleIO(new ArrayInput(array()), new ConsoleOutput(), new HelperSet());
+
+        $eventManager
+            ->expects($this->once())
+            ->method('listen')
+            ->with(
+                'pre-install',
+                $this->isInstanceOf('MagentoHackathon\Composer\Magento\Listener\CheckAndCreateMagentoRootDir')
+            );
 
         $instance = $factory->make($config, $eventManager, $io);
         $this->assertInstanceOf('MagentoHackathon\Composer\Magento\ModuleManager', $instance);
@@ -42,9 +50,17 @@ class ModuleManagerFactoryTest extends PHPUnit_Framework_TestCase
         );
 
         $eventManager
-            ->expects($this->once())
+            ->expects($this->at(0))
             ->method('listen')
             ->with('package-pre-install', $this->isInstanceOf('Closure'));
+
+        $eventManager
+            ->expects($this->at(1))
+            ->method('listen')
+            ->with(
+                'pre-install',
+                $this->isInstanceOf('MagentoHackathon\Composer\Magento\Listener\CheckAndCreateMagentoRootDir')
+            );
 
         $factory->make($config, $eventManager, $io);
     }
@@ -65,6 +81,14 @@ class ModuleManagerFactoryTest extends PHPUnit_Framework_TestCase
             ->expects($this->at(1))
             ->method('listen')
             ->with('package-post-uninstall', $this->isType('array'));
+
+        $eventManager
+            ->expects($this->at(2))
+            ->method('listen')
+            ->with(
+                'pre-install',
+                $this->isInstanceOf('MagentoHackathon\Composer\Magento\Listener\CheckAndCreateMagentoRootDir')
+            );
 
         $factory->make($config, $eventManager, $io);
     }
