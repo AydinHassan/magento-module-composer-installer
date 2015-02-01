@@ -148,7 +148,7 @@ class ModuleManager
         $currentComposerInstalledPackages = array_combine(
             array_map(
                 function (PackageInterface $package) {
-                    return $package->getPrettyName();
+                    return $package->getName();
                 },
                 $currentComposerInstalledPackages
             ),
