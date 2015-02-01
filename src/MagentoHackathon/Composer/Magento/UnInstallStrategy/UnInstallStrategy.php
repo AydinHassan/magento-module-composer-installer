@@ -28,12 +28,12 @@ class UnInstallStrategy implements UnInstallStrategyInterface
 
     /**
      * @param FileSystem $fileSystem
-     * @param string $root
+     * @param string $rootDir
      */
-    public function __construct(FileSystem $fileSystem, $root)
+    public function __construct(FileSystem $fileSystem, $rootDir)
     {
         $this->fileSystem   = $fileSystem;
-        $this->root         = $root;
+        $this->rootDir      = $rootDir;
     }
 
     /**
@@ -50,7 +50,7 @@ class UnInstallStrategy implements UnInstallStrategyInterface
             if ($this->fileSystem->isDirEmpty(dirname($map->getAbsoluteDestination()))) {
                 $this->fileSystem->removeEmptyDirectoriesUpToRoot(
                     dirname($map->getAbsoluteDestination()),
-                    $this->root
+                    $this->rootDir
                 );
             }
         }
