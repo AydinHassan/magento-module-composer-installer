@@ -184,7 +184,12 @@ class InstalledPackageFileSystemRepository implements InstalledPackageRepository
                 $data[] = $this->dumper->dump($installedPackage);
             }
 
-            file_put_contents($this->filePath, json_encode($data));
+            $flags = JSON_UNESCAPED_SLASHES;
+            if (version_compare(PHP_VERSION, '5.4.0') >= 0) {
+                $flags |= JSON_PRETTY_PRINT;
+            }
+
+            file_put_contents($this->filePath, json_encode($data, $flags));
         }
     }
 }
