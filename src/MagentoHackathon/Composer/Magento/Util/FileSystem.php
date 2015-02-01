@@ -116,7 +116,7 @@ class FileSystem extends ComposerFs
             $param = is_dir($source) ? '/D' : '';
             exec(sprintf('mklink %s %s %s', $param, $destination, $relativeSourcePath), $output, $return);
         } else {
-            $result = symlink($relativeSourcePath, $destination);
+            $result = @symlink($relativeSourcePath, $destination);
 
             if (false === $result) {
                 throw new \ErrorException(sprintf('An error occurred while creating symlink: %s', $relativeSourcePath));
