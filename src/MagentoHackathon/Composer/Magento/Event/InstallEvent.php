@@ -2,8 +2,8 @@
 
 namespace MagentoHackathon\Composer\Magento\Event;
 
+use ArrayObject;
 use Composer\EventDispatcher\Event;
-use Composer\Package\PackageInterface;
 
 /**
  * Class InstallEvent
@@ -13,22 +13,22 @@ use Composer\Package\PackageInterface;
 class InstallEvent extends Event
 {
     /**
-     * @var PackageInterface
+     * @var ArrayObject
      */
     protected $packages;
 
     /**
      * @param string             $name
-     * @param PackageInterface[] $packages
+     * @param ArrayObject $packages
      */
-    public function __construct($name, array $packages)
+    public function __construct($name, ArrayObject $packages)
     {
         parent::__construct($name);
-        $this->packages  = $packages;
+        $this->packages = $packages;
     }
 
     /**
-     * @return PackageInterface
+     * @return ArrayObject
      */
     public function getPackages()
     {

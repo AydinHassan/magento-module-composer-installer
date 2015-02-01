@@ -2,6 +2,7 @@
 
 namespace MagentoHackathon\Composer\Magento;
 
+use ArrayObject;
 use Composer\Package\PackageInterface;
 use MagentoHackathon\Composer\Magento\Event\EventManager;
 use MagentoHackathon\Composer\Magento\Event\InstallEvent;
@@ -9,7 +10,6 @@ use MagentoHackathon\Composer\Magento\Event\PackagePostInstallEvent;
 use MagentoHackathon\Composer\Magento\Event\PackagePreInstallEvent;
 use MagentoHackathon\Composer\Magento\Event\PackageUnInstallEvent;
 use MagentoHackathon\Composer\Magento\Factory\InstallStrategyFactory;
-use MagentoHackathon\Composer\Magento\Installer\Installer;
 use MagentoHackathon\Composer\Magento\Installer\InstallerInterface;
 use MagentoHackathon\Composer\Magento\Repository\InstalledPackageRepositoryInterface;
 use MagentoHackathon\Composer\Magento\UnInstallStrategy\UnInstallStrategyInterface;
@@ -95,9 +95,9 @@ class ModuleManager
     }
 
     /**
-     * @param InstalledPackage[] $packagesToRemove
+     * @param ArrayObject $packagesToRemove
      */
-    public function doRemoves(array $packagesToRemove)
+    public function doRemoves(ArrayObject $packagesToRemove)
     {
         foreach ($packagesToRemove as $package) {
             $mappings = $package->getMappings();
@@ -116,13 +116,12 @@ class ModuleManager
     }
 
     /**
-     * @param PackageInterface[] $packagesToInstall
+     * @param ArrayObject $packagesToInstall
      */
-    protected function doInstalls(array $packagesToInstall)
+    protected function doInstalls(ArrayObject $packagesToInstall)
     {
         $this->eventManager->dispatch(new InstallEvent('pre-install', $packagesToInstall));
 
-        $packagesToInstall = $this->sortInstalls($packagesToInstall);
         foreach ($packagesToInstall as $package) {
             $this->eventManager->dispatch(new PackagePreInstallEvent($package));
 
@@ -145,7 +144,7 @@ class ModuleManager
     /**
      * @param PackageInterface[] $currentComposerInstalledPackages
      * @param InstalledPackage[] $magentoInstalledPackages
-     * @return InstalledPackage[]
+     * @return ArrayObject
      */
     protected function getRemoves(array $currentComposerInstalledPackages, array $magentoInstalledPackages)
     {
@@ -160,29 +159,33 @@ class ModuleManager
             $currentComposerInstalledPackages
         );
 
-        return array_filter(
-            $magentoInstalledPackages,
-            function (InstalledPackage $package) use ($currentComposerInstalledPackages) {
-                if (!isset($currentComposerInstalledPackages[$package->getName()])) {
-                    return true;
-                }
+        return new ArrayObject(
+            array_filter(
+                $magentoInstalledPackages,
+                function (InstalledPackage $package) use ($currentComposerInstalledPackages) {
+                    if (!isset($currentComposerInstalledPackages[$package->getName()])) {
+                        return true;
+                    }
 
-                $composerPackage = $currentComposerInstalledPackages[$package->getName()];
-                return $package->getUniqueName() !== $composerPackage->getUniqueName();
-            }
+                    $composerPackage = $currentComposerInstalledPackages[$package->getName()];
+                    return $package->getUniqueName() !== $composerPackage->getUniqueName();
+                }
+            )
         );
     }
 
     /**
      * @param PackageInterface[] $currentComposerInstalledPackages
-     * @return PackageInterface[]
+     * @return ArrayObject
      */
     protected function getInstalls(array $currentComposerInstalledPackages)
     {
         $repo = $this->installedPackageRepository;
-        return array_filter($currentComposerInstalledPackages, function (PackageInterface $package) use ($repo) {
-            return !$repo->has($package->getName(), $package->getVersion());
-        });
+        return new ArrayObject(
+            array_filter($currentComposerInstalledPackages, function (PackageInterface $package) use ($repo) {
+                return !$repo->has($package->getName(), $package->getVersion());
+            })
+        );
     }
 
     /**
@@ -199,42 +202,5 @@ class ModuleManager
         }
 
         return $path;
-    }
-
-    /**
-     * Sort Packages To Install
-     *
-     * @param array $packagesToInstall
-     * @return array
-     */
-    private function sortInstalls(array $packagesToInstall)
-    {
-        $userPriorities = $this->config->getSortPriorities();
-        $priorities     = array();
-        foreach ($packagesToInstall as $package) {
-            /** @var PackageInterface $package */
-            if (isset($userPriorities[$package->getName()])) {
-                $priority = $userPriorities[$package->getName()];
-            } else {
-                $priority = $this->installStrategyFactory->getDefaultPriority($package);
-            }
-
-            $priorities[$package->getName()] = $priority;
-        }
-
-        usort(
-            $packagesToInstall,
-            function (PackageInterface $a, PackageInterface $b) use ($priorities) {
-                $aVal = $priorities[$a->getName()];
-                $bVal = $priorities[$b->getName()];
-
-                if ($aVal === $bVal) {
-                    return 0;
-                }
-                return ($aVal > $bVal) ? -1 : 1;
-            }
-        );
-
-        return $packagesToInstall;
     }
 }

@@ -2,6 +2,7 @@
 
 namespace MagentoHackathon\Composer\Magento\Listener;
 
+use ArrayObject;
 use MagentoHackathon\Composer\Magento\Event\InstallEvent;
 use PHPUnit_Framework_TestCase;
 
@@ -23,7 +24,7 @@ class CheckAndCreateMagentoRootDirTest extends PHPUnit_Framework_TestCase
         $this->assertFalse(is_dir($expectedDirectory));
 
         $listener = new CheckAndCreateMagentoRootDirListener('htdocs');
-        $listener->__invoke(new InstallEvent('pre-install', array()));
+        $listener->__invoke(new InstallEvent('pre-install', new ArrayObject()));
 
         $this->assertTrue(is_dir($expectedDirectory));
         chdir($oldWd);
