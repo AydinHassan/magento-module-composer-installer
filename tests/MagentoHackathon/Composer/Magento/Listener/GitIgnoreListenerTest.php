@@ -1,11 +1,13 @@
 <?php
 
-namespace MagentoHackathon\Composer\Magento;
+namespace MagentoHackathon\Composer\Magento\Listener;
 
 use Composer\Package\Package;
 use MagentoHackathon\Composer\Magento\Event\PackageDeployEvent;
 use MagentoHackathon\Composer\Magento\Event\PackagePostInstallEvent;
 use MagentoHackathon\Composer\Magento\Event\PackageUnInstallEvent;
+use MagentoHackathon\Composer\Magento\GitIgnore;
+use MagentoHackathon\Composer\Magento\InstalledPackage;
 use MagentoHackathon\Composer\Magento\Map\Map;
 use MagentoHackathon\Composer\Magento\Map\MapCollection;
 

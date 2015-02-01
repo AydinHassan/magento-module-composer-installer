@@ -1,16 +1,17 @@
 <?php
 
-namespace MagentoHackathon\Composer\Magento;
+namespace MagentoHackathon\Composer\Magento\Listener;
 
 use MagentoHackathon\Composer\Magento\Event\PackageDeployEvent;
 use MagentoHackathon\Composer\Magento\Event\PackagePostInstallEvent;
 use MagentoHackathon\Composer\Magento\Event\PackageUnInstallEvent;
+use MagentoHackathon\Composer\Magento\GitIgnore;
 use MagentoHackathon\Composer\Magento\Map\Map;
 use MagentoHackathon\Composer\Magento\Map\MapCollection;
 
 /**
  * Class GitIgnoreListener
- * @package MagentoHackathon\Composer\Magento
+ * @package MagentoHackathon\Composer\Magento\Listener
  * @author  Aydin Hassan <aydin@hotmail.co.uk>
  */
 class GitIgnoreListener
