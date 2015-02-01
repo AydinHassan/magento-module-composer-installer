@@ -134,13 +134,13 @@ class ProjectConfigTest extends PHPUnit_Framework_TestCase
     public function testGetMagentoRootDir()
     {
         $config = new ProjectConfig(array('magento-root-dir' => '/htdocs/'), array());
-        $this->assertSame('/htdocs', $config->getMagentoRootDir());
+        $this->assertSame('/htdocs', $config->getMagentoRootDir(false));
 
         $config = new ProjectConfig(array('magento-root-dir' => 'htdocs/'), array());
-        $this->assertSame('htdocs', $config->getMagentoRootDir());
+        $this->assertSame('htdocs', $config->getMagentoRootDir(false));
 
         $config = new ProjectConfig(array(), array());
-        $this->assertSame('root', $config->getMagentoRootDir());
+        $this->assertSame('root', $config->getMagentoRootDir(false));
     }
 
     public function testGetInstalledModuleRepositoryFile()

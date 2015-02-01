@@ -84,11 +84,12 @@ class ProjectConfig
     }
 
     /**
+     * @param bool $realPath
      * @return string
      */
-    public function getMagentoRootDir()
+    public function getMagentoRootDir($realPath = true)
     {
-        return rtrim(
+        $rootDir = rtrim(
             trim(
                 $this->fetchVarFromExtraConfig(
                     self::MAGENTO_ROOT_DIR_KEY,
@@ -97,6 +98,12 @@ class ProjectConfig
             ),
             DIRECTORY_SEPARATOR
         );
+
+        if ($realPath) {
+            return realpath($rootDir);
+        }
+
+        return $rootDir;
     }
 
     /**
