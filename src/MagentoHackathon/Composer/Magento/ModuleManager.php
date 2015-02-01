@@ -4,6 +4,7 @@ namespace MagentoHackathon\Composer\Magento;
 
 use Composer\Package\PackageInterface;
 use MagentoHackathon\Composer\Magento\Event\EventManager;
+use MagentoHackathon\Composer\Magento\Event\InstallEvent;
 use MagentoHackathon\Composer\Magento\Event\PackagePostInstallEvent;
 use MagentoHackathon\Composer\Magento\Event\PackagePreInstallEvent;
 use MagentoHackathon\Composer\Magento\Event\PackageUnInstallEvent;
@@ -119,6 +120,8 @@ class ModuleManager
      */
     protected function doInstalls(array $packagesToInstall)
     {
+        $this->eventManager->dispatch(new InstallEvent('pre-install', $packagesToInstall));
+
         $packagesToInstall = $this->sortInstalls($packagesToInstall);
         foreach ($packagesToInstall as $package) {
             $this->eventManager->dispatch(new PackagePreInstallEvent($package));
@@ -135,6 +138,8 @@ class ModuleManager
 
             $this->eventManager->dispatch(new PackagePostInstallEvent($package, $installedPackaged));
         }
+
+        $this->eventManager->dispatch(new InstallEvent('post-install', $packagesToInstall));
     }
 
     /**
