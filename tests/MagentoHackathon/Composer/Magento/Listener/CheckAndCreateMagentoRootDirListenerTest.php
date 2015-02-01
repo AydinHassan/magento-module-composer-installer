@@ -22,7 +22,7 @@ class CheckAndCreateMagentoRootDirTest extends PHPUnit_Framework_TestCase
 
         $this->assertFalse(is_dir($expectedDirectory));
 
-        $listener = new CheckAndCreateMagentoRootDir('htdocs');
+        $listener = new CheckAndCreateMagentoRootDirListener('htdocs');
         $listener->__invoke(new InstallEvent('pre-install', array()));
 
         $this->assertTrue(is_dir($expectedDirectory));

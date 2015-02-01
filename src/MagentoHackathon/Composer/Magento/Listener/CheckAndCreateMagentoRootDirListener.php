@@ -5,11 +5,11 @@ namespace MagentoHackathon\Composer\Magento\Listener;
 use MagentoHackathon\Composer\Magento\Event\InstallEvent;
 
 /**
- * Class MagentoRootDir
+ * Class CheckAndCreateMagentoRootDirListener
  * @package MagentoHackathon\Composer\Magento\Listener
  * @author  Aydin Hassan <aydin@hotmail.co.uk>
  */
-class CheckAndCreateMagentoRootDir
+class CheckAndCreateMagentoRootDirListener
 {
 
     /**

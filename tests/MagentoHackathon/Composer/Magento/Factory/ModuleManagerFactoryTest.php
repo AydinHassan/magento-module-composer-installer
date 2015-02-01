@@ -31,7 +31,7 @@ class ModuleManagerFactoryTest extends PHPUnit_Framework_TestCase
             ->method('listen')
             ->with(
                 'pre-install',
-                $this->isInstanceOf('MagentoHackathon\Composer\Magento\Listener\CheckAndCreateMagentoRootDir')
+                $this->isInstanceOf('MagentoHackathon\Composer\Magento\Listener\CheckAndCreateMagentoRootDirListener')
             );
 
         $instance = $factory->make($config, $eventManager, $io);
@@ -59,7 +59,7 @@ class ModuleManagerFactoryTest extends PHPUnit_Framework_TestCase
             ->method('listen')
             ->with(
                 'pre-install',
-                $this->isInstanceOf('MagentoHackathon\Composer\Magento\Listener\CheckAndCreateMagentoRootDir')
+                $this->isInstanceOf('MagentoHackathon\Composer\Magento\Listener\CheckAndCreateMagentoRootDirListener')
             );
 
         $factory->make($config, $eventManager, $io);
@@ -87,7 +87,7 @@ class ModuleManagerFactoryTest extends PHPUnit_Framework_TestCase
             ->method('listen')
             ->with(
                 'pre-install',
-                $this->isInstanceOf('MagentoHackathon\Composer\Magento\Listener\CheckAndCreateMagentoRootDir')
+                $this->isInstanceOf('MagentoHackathon\Composer\Magento\Listener\CheckAndCreateMagentoRootDirListener')
             );
 
         $factory->make($config, $eventManager, $io);

@@ -7,7 +7,7 @@ use MagentoHackathon\Composer\Magento\Event\EventManager;
 use MagentoHackathon\Composer\Magento\Event\PackagePreInstallEvent;
 use MagentoHackathon\Composer\Magento\GitIgnore;
 use MagentoHackathon\Composer\Magento\InstalledPackageDumper;
-use MagentoHackathon\Composer\Magento\Listener\CheckAndCreateMagentoRootDir;
+use MagentoHackathon\Composer\Magento\Listener\CheckAndCreateMagentoRootDirListener;
 use MagentoHackathon\Composer\Magento\Listener\GitIgnoreListener;
 use MagentoHackathon\Composer\Magento\ModuleManager;
 use MagentoHackathon\Composer\Magento\ProjectConfig;
@@ -40,7 +40,10 @@ class ModuleManagerFactory
             $this->addDebugListener($eventManager, $io);
         }
 
-        $eventManager->listen('pre-install', new CheckAndCreateMagentoRootDir($config->getMagentoRootDir(false)));
+        $eventManager->listen(
+            'pre-install',
+            new CheckAndCreateMagentoRootDirListener($config->getMagentoRootDir(false))
+        );
 
         $installerFactory = new InstallerFactory;
         return new ModuleManager(
