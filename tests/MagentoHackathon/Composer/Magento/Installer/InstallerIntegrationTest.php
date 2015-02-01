@@ -198,6 +198,7 @@ class InstallerIntegrationTest extends PHPUnit_Framework_TestCase
      */
     public function moduleProviderCopy()
     {
+        // @codingStandardsIgnoreStart
         return array(
             array(
                 'name'      => 'danslo-apiimport-1.1.1',
@@ -469,6 +470,7 @@ class InstallerIntegrationTest extends PHPUnit_Framework_TestCase
                 ),
             )
         );
+        // @codingStandardsIgnoreEnd
     }
 
     /**
@@ -505,6 +507,7 @@ class InstallerIntegrationTest extends PHPUnit_Framework_TestCase
      */
     public function moduleProviderLink()
     {
+        // @codingStandardsIgnoreStart
         return array(
             array(
                 'name'      => 'danslo-apiimport-1.1.1',
@@ -776,6 +779,7 @@ class InstallerIntegrationTest extends PHPUnit_Framework_TestCase
                 ),
             )
         );
+        // @codingStandardsIgnoreEnd
     }
 
     public function tearDown()

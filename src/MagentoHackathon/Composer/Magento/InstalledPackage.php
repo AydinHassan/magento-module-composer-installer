@@ -1,6 +1,7 @@
 <?php
 
 namespace MagentoHackathon\Composer\Magento;
+
 use MagentoHackathon\Composer\Magento\Map\MapCollection;
 
 /**

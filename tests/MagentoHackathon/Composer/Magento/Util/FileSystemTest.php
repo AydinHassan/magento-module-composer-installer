@@ -1,6 +1,9 @@
 <?php
-use MagentoHackathon\Composer\Magento\Util\FileSystem;
+
+namespace MagentoHackathon\Composer\Magento\Util;
+
 use org\bovigo\vfs\vfsStream;
+use PHPUnit_Framework_TestCase;
 
 /**
  * Class FileSystemTest
@@ -33,7 +36,10 @@ class FileSystemTest extends PHPUnit_Framework_TestCase
     public function relativePathProvider()
     {
         return array(
-            array('/source/one/two/local.xml', '/destination/one/two/local.xml', '../../../destination/one/two/local.xml'),
+            array(
+                '/source/one/two/local.xml', '/destination/one/two/local.xml',
+                '../../../destination/one/two/local.xml'
+            ),
             array('local.xml', 'destination.xml', './destination.xml'),
             array('/source/local.xml', '/destination/local.xml', '../destination/local.xml'),
             array('/source/local.xml', '/destination/file.xml', '../destination/file.xml'),

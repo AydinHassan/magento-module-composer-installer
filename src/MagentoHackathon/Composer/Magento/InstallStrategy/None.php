@@ -4,6 +4,7 @@
  */
 
 namespace MagentoHackathon\Composer\Magento\InstallStrategy;
+
 use MagentoHackathon\Composer\Magento\Map\Map;
 
 /**

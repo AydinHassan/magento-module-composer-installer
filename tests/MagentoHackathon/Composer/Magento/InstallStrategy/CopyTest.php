@@ -76,7 +76,6 @@ class CopyTest extends AbstractStrategyTest
         array $expectedMappings
     ) {
         $copy = new Copy(new FileSystem);
-        //$expectedMappings = $this->applyRootDirectoryToExpectedMappings($expectedMappings, $this->virtualSource, $this->virtualDestination);
         $mapping = $this->applyRootDirectoryToMapping($mapping, $this->virtualSource, $this->virtualDestination);
 
         $this->createFileStructure($sourceFileStructure, $this->virtualSource);
