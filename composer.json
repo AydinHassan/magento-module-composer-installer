@@ -14,6 +14,10 @@
     ],
     "authors":[
         {
+            "name":"Aydin Hassan",
+            "email":"aydin@hotmail.co.uk"
+        },
+        {
             "name":"Daniel Fahlke aka Flyingmana",
             "email":"flyingmana@googlemail.com"
         },
@@ -44,18 +48,10 @@
         "composer-plugin-api": "1.0.0"
     },
     "require-dev":{
-        "ext-SPL_Types":"*",
         "phpunit/phpunit":"~4.4",
-        "phpunit/phpunit-mock-objects": "~2.3",
         "squizlabs/php_codesniffer": "~2.1",
-        "cotya/composer-test-framework": "dev-master",
         "composer/composer":"1.0.*@dev",
-        "symfony/process":"~2.5",
         "mikey179/vfsStream":"~1.4"
-    },
-    "suggest":{
-        "theseer/autoload": "~1.14",
-        "colinmollenhour/modman": "*"
     },
     "autoload":{
         "psr-0":{
@@ -67,18 +63,12 @@
             "MagentoHackathon\\Composer\\Magento":"tests/"
         }
     },
-    "bin": [
-        "bin/magento-composer-installer.php"
-    ],
     "archive": {
         "exclude": [
-            "vendor",
-            "/tests/FullStackTest/"
+            "vendor"
         ]
     },
-    "test_version":"999.0.0",
     "extra":{
-        "composer-command-registry": [ "MagentoHackathon\\Composer\\Magento\\Command\\ComposerDeployCommand" ],
         "class":"MagentoHackathon\\Composer\\Magento\\Plugin"
     }
 }
