@@ -14,35 +14,35 @@ class PathMappingTranslationTest extends \PHPUnit_Framework_TestCase
 
     public function testTranslate()
     {
-        $mappings = array(
-            array('src/app/etc/modules/Example_Name.xml',   'app/etc/modules/Example_Name.xml'),
-            array('src/app/code/community/Example/Name',    'app/code/community/Example/Name'),
-            array('src/skin',                               'skin/frontend/default/default/examplename'),
-            array('src/js',                                 'js/examplename'),
-            array('src/media/images',                       'media/examplename_images'),
-            array('src2/skin',                              './skin/frontend/default/default/examplename'),
-            array('src2/js',                                './js/examplename'),
-            array('src2/media/images',                      './media/examplename_images'),
-        );
+        $mappings = [
+            ['src/app/etc/modules/Example_Name.xml',   'app/etc/modules/Example_Name.xml'],
+            ['src/app/code/community/Example/Name',    'app/code/community/Example/Name'],
+            ['src/skin',                               'skin/frontend/default/default/examplename'],
+            ['src/js',                                 'js/examplename'],
+            ['src/media/images',                       'media/examplename_images'],
+            ['src2/skin',                              './skin/frontend/default/default/examplename'],
+            ['src2/js',                                './js/examplename'],
+            ['src2/media/images',                      './media/examplename_images'],
+        ];
 
-        $translations = array(
+        $translations = [
             'js/'       =>  'public/js/',
             'media/'    =>  'public/media/',
             'skin/'     =>  'public/skin/',
-        );
+        ];
 
         $parser = new PathTranslationParser(new MapParser($mappings), $translations);
 
-        $expected = array(
-            array('src/app/etc/modules/Example_Name.xml',   'app/etc/modules/Example_Name.xml'),
-            array('src/app/code/community/Example/Name',    'app/code/community/Example/Name'),
-            array('src/skin',                               'public/skin/frontend/default/default/examplename'),
-            array('src/js',                                 'public/js/examplename'),
-            array('src/media/images',                       'public/media/examplename_images'),
-            array('src2/skin',                              'public/skin/frontend/default/default/examplename'),
-            array('src2/js',                                'public/js/examplename'),
-            array('src2/media/images',                      'public/media/examplename_images'),
-        );
+        $expected = [
+            ['src/app/etc/modules/Example_Name.xml',   'app/etc/modules/Example_Name.xml'],
+            ['src/app/code/community/Example/Name',    'app/code/community/Example/Name'],
+            ['src/skin',                               'public/skin/frontend/default/default/examplename'],
+            ['src/js',                                 'public/js/examplename'],
+            ['src/media/images',                       'public/media/examplename_images'],
+            ['src2/skin',                              'public/skin/frontend/default/default/examplename'],
+            ['src2/js',                                'public/js/examplename'],
+            ['src2/media/images',                      'public/media/examplename_images'],
+        ];
 
         $this->assertEquals($expected, $parser->getMappings());
     }

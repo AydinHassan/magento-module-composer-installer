@@ -155,7 +155,7 @@ class Installer implements InstallerInterface
      */
     protected function resolveMappings(MapCollection $mappings, InstallStrategyInterface $installStrategy)
     {
-        $replacementItems = array();
+        $replacementItems = [];
         foreach ($mappings as $map) {
             /** @var Map $map */
             $resolvedMappings = $installStrategy->resolve(

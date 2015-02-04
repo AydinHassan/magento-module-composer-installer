@@ -16,7 +16,7 @@ class InstallerFactoryTest extends PHPUnit_Framework_TestCase
     public function testInstanceIsReturned()
     {
         $factory = new InstallerFactory;
-        $instance = $factory->make(new ProjectConfig(array(), array()), new EventManager);
+        $instance = $factory->make(new ProjectConfig([], []), new EventManager);
 
         $this->assertInstanceOf('MagentoHackathon\Composer\Magento\Installer\Installer', $instance);
     }

@@ -21,7 +21,7 @@ class InstallStrategyFactoryTest extends \PHPUnit_Framework_TestCase
     public function testCorrectDeployStrategyIsReturned($strategy, $expectedClass)
     {
         $package = new Package("some/package", "1.0.0", "some/package");
-        $config = new ProjectConfig(array('magento-deploystrategy' => $strategy,), array());
+        $config = new ProjectConfig(['magento-deploystrategy' => $strategy,], []);
         $factory = new InstallStrategyFactory($config);
         $instance = $factory->make($package);
         $this->assertInstanceOf($expectedClass, $instance);
@@ -32,18 +32,18 @@ class InstallStrategyFactoryTest extends \PHPUnit_Framework_TestCase
      */
     public function strategyProvider()
     {
-        return array(
-            array('copy',    '\MagentoHackathon\Composer\Magento\InstallStrategy\Copy'),
-            array('symlink', '\MagentoHackathon\Composer\Magento\InstallStrategy\Symlink'),
-            array('link',    '\MagentoHackathon\Composer\Magento\InstallStrategy\Link'),
-            array('none',    '\MagentoHackathon\Composer\Magento\InstallStrategy\None'),
-        );
+        return [
+            ['copy',    '\MagentoHackathon\Composer\Magento\InstallStrategy\Copy'],
+            ['symlink', '\MagentoHackathon\Composer\Magento\InstallStrategy\Symlink'],
+            ['link',    '\MagentoHackathon\Composer\Magento\InstallStrategy\Link'],
+            ['none',    '\MagentoHackathon\Composer\Magento\InstallStrategy\None'],
+        ];
     }
 
     public function testSymlinkStrategyIsUsedIfConfiguredStrategyNotFound()
     {
         $package = new Package("some/package", "1.0.0", "some/package");
-        $config = new ProjectConfig(array('magento-deploystrategy' => 'lolnotarealstrategy',), array());
+        $config = new ProjectConfig(['magento-deploystrategy' => 'lolnotarealstrategy',], []);
         $factory = new InstallStrategyFactory($config);
 
         $instance = $factory->make($package);
@@ -53,10 +53,10 @@ class InstallStrategyFactoryTest extends \PHPUnit_Framework_TestCase
     public function testIndividualOverrideTakesPrecedence()
     {
         $package = new Package("some/package", "1.0.0", "some/package");
-        $config = new ProjectConfig(array(
+        $config = new ProjectConfig([
             'magento-deploystrategy' => 'symlink',
-            'magento-deploystrategy-overwrite' => array('some/package' => 'none'),
-        ), array());
+            'magento-deploystrategy-overwrite' => ['some/package' => 'none'],
+        ], []);
 
         $factory = new InstallStrategyFactory($config);
 
@@ -71,7 +71,7 @@ class InstallStrategyFactoryTest extends \PHPUnit_Framework_TestCase
     public function testDetermineStrategy($strategy)
     {
         $package = new Package("some/package", "1.0.0", "some/package");
-        $config = new ProjectConfig(array('magento-deploystrategy' => $strategy,), array());
+        $config = new ProjectConfig(['magento-deploystrategy' => $strategy,], []);
         $factory = new InstallStrategyFactory($config);
         $name = $factory->determineStrategy($package);
         $this->assertSame($strategy, $name);
@@ -84,7 +84,7 @@ class InstallStrategyFactoryTest extends \PHPUnit_Framework_TestCase
     public function testDefaultPriorities($strategy, $priority)
     {
         $package = new Package("some/package", "1.0.0", "some/package");
-        $config = new ProjectConfig(array('magento-deploystrategy' => $strategy,), array());
+        $config = new ProjectConfig(['magento-deploystrategy' => $strategy,], []);
         $factory = new InstallStrategyFactory($config);
         $this->assertSame($priority, $factory->getDefaultPriority($package));
     }
@@ -94,12 +94,12 @@ class InstallStrategyFactoryTest extends \PHPUnit_Framework_TestCase
      */
     public function priorityProvider()
     {
-        return array(
-            array('copy',    101),
-            array('symlink', 100),
-            array('link',    100),
-            array('none',    100),
-        );
+        return [
+            ['copy',    101],
+            ['symlink', 100],
+            ['link',    100],
+            ['none',    100],
+        ];
     }
 }
 

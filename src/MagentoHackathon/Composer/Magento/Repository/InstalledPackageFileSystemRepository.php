@@ -21,7 +21,7 @@ class InstalledPackageFileSystemRepository implements InstalledPackageRepository
     /**
      * @var array
      */
-    protected $packages = array();
+    protected $packages = [];
 
     /**
      * @var bool Flag to indicate if we have read the existing file
@@ -179,7 +179,7 @@ class InstalledPackageFileSystemRepository implements InstalledPackageRepository
     public function __destruct()
     {
         if ($this->hasChanges) {
-            $data = array();
+            $data = [];
             foreach ($this->packages as $installedPackage) {
                 $data[] = $this->dumper->dump($installedPackage);
             }

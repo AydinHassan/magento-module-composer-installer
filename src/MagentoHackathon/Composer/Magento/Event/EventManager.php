@@ -14,7 +14,7 @@ class EventManager
     /**
      * @var array
      */
-    private $listeners = array();
+    private $listeners = [];
 
     /**
      * @param string   $event
@@ -30,7 +30,7 @@ class EventManager
         }
 
         if (!isset($this->listeners[$event])) {
-            $this->listeners[$event] = array($callback);
+            $this->listeners[$event] = [$callback];
         } else {
             $this->listeners[$event][] = $callback;
         }
@@ -46,7 +46,7 @@ class EventManager
         }
 
         foreach ($this->listeners[$event->getName()] as $listener) {
-            call_user_func_array($listener, array($event));
+            call_user_func_array($listener, [$event]);
         }
     }
 }

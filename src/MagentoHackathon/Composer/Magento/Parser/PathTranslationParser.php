@@ -15,13 +15,13 @@ class PathTranslationParser implements ParserInterface
      * @var array Variants on each prefix that path mappings are checked
      * against.
      */
-    protected $pathPrefixVariants = array('', './');
+    protected $pathPrefixVariants = ['', './'];
 
     /**
      * @var array Path mapping prefixes that need to be translated (i.e. to
      * use a public directory as the web server root).
      */
-    protected $pathPrefixTranslations = array();
+    protected $pathPrefixTranslations = [];
 
     /**
      * @var ParserInterface
@@ -50,7 +50,7 @@ class PathTranslationParser implements ParserInterface
      */
     protected function createPrefixVariants($translations)
     {
-        $newTranslations = array();
+        $newTranslations = [];
         foreach ($translations as $key => $value) {
             foreach ($this->pathPrefixVariants as $variant) {
                 $newTranslations[$variant . $key] = $value;
@@ -73,7 +73,7 @@ class PathTranslationParser implements ParserInterface
      */
     public function getMappings()
     {
-        $translatedMappings = array();
+        $translatedMappings = [];
         foreach ($this->parser->getMappings() as $index => $mapping) {
             $translatedMappings[$index] = $mapping;
             foreach ($this->pathPrefixTranslations as $prefix => $translate) {

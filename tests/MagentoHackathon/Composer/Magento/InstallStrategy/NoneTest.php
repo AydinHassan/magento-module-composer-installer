@@ -14,7 +14,7 @@ class NoneTest extends PHPUnit_Framework_TestCase
     {
         $none = new None;
         $this->assertInstanceOf('MagentoHackathon\Composer\Magento\InstallStrategy\InstallStrategyInterface', $none);
-        $this->assertSame(array(), $none->resolve('some/source', 'some/destination', '/root', '/root'));
+        $this->assertSame([], $none->resolve('some/source', 'some/destination', '/root', '/root'));
     }
 
     public function testCreateDoesNothing()

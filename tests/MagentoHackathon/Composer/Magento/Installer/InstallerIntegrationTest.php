@@ -33,7 +33,7 @@ class InstallerIntegrationTest extends PHPUnit_Framework_TestCase
         $this->projectLocation      = sprintf('%s/%s/root', sys_get_temp_dir(), $this->getName(false));
         mkdir($this->projectLocation, 0777, true);
         $this->projectLocation      = realpath($this->projectLocation);
-        $this->config               = new ProjectConfig(array('magento-root-dir' => $this->projectLocation), array());
+        $this->config               = new ProjectConfig(['magento-root-dir' => $this->projectLocation], []);
         $this->factory              = new InstallerFactory;
         $this->installer            = $this->factory->make($this->config, new EventManager);
         $this->root                 = vfsStream::setup('root');
@@ -74,8 +74,8 @@ class InstallerIntegrationTest extends PHPUnit_Framework_TestCase
         $this->unzipPackage($sourcePath);
 
         $package    = $this->loadPackage($sourcePath, $version);
-        $extra      = array('magento-root-dir' => $this->projectLocation, 'magento-deploystrategy' => 'symlink');
-        $config     = new ProjectConfig($extra, array());
+        $extra      = ['magento-root-dir' => $this->projectLocation, 'magento-deploystrategy' => 'symlink'];
+        $config     = new ProjectConfig($extra, []);
         $installer  = $this->factory->make($config, new EventManager);
         $installer->install($package, $sourcePath);
 
@@ -107,19 +107,19 @@ class InstallerIntegrationTest extends PHPUnit_Framework_TestCase
      */
     public function moduleProviderSymlink()
     {
-        return array(
-            array(
+        return [
+            [
                 'name'      => 'danslo-apiimport-1.1.1',
                 'version'   => '1.1.1',
-                'destinationFiles' => array(
+                'destinationFiles' => [
                     'app/etc/modules/Danslo_ApiImport.xml',
                     'app/code/local/Danslo/ApiImport',
-                ),
-            ),
-            array(
+                ],
+            ],
+            [
                 'name'      => 'ecomdev-phpunit-0.3.7',
                 'version'   => '0.3.7',
-                'destinationFiles' => array(
+                'destinationFiles' => [
                     'shell/ecomdev-phpunit.php',
                     'lib/vfsStream',
                     'lib/Spyc',
@@ -130,12 +130,12 @@ class InstallerIntegrationTest extends PHPUnit_Framework_TestCase
                     'app/code/community/EcomDev/PHPUnitTest',
                     'app/etc/modules/EcomDev_PHPUnit.xml',
                     'app/etc/modules/EcomDev_PHPUnitTest.xml',
-                ),
-            ),
-            array(
+                ],
+            ],
+            [
                 'name'      => 'aoe-scheduler-0.4.3',
                 'version'   => '0.4.3',
-                'destinationFiles' => array(
+                'destinationFiles' => [
                     'app/code/community/Aoe/Scheduler',
                     'app/etc/modules/Aoe_Scheduler.xml',
                     'shell/scheduler.php',
@@ -145,12 +145,12 @@ class InstallerIntegrationTest extends PHPUnit_Framework_TestCase
                     'app/design/adminhtml/default/default/layout/aoe_scheduler',
                     'skin/adminhtml/default/default/aoe_scheduler',
                     'var/connect/Aoe_Scheduler.xml',
-                ),
-            ),
-            array(
+                ],
+            ],
+            [
                 'name'      => 'magento-turpentine-0.6.1',
                 'version'   => '0.4.3',
-                'destinationFiles' => array(
+                'destinationFiles' => [
                     'app/etc/modules/Nexcessnet_Turpentine.xml',
                     'app/code/community/Nexcessnet/Turpentine',
                     'app/code/local/Mage/Core/Model/Session.php',
@@ -159,9 +159,9 @@ class InstallerIntegrationTest extends PHPUnit_Framework_TestCase
                     'app/design/frontend/base/default/layout/turpentine_esi.xml',
                     'app/design/frontend/base/default/template/turpentine',
                     'shell/varnishadm.php',
-                ),
-            ),
-        );
+                ],
+            ],
+        ];
     }
 
     /**
@@ -177,8 +177,8 @@ class InstallerIntegrationTest extends PHPUnit_Framework_TestCase
         $this->unzipPackage($sourcePath);
 
         $package    = $this->loadPackage($sourcePath, $version);
-        $extra      = array('magento-root-dir' => $this->projectLocation, 'magento-deploystrategy' => 'copy');
-        $config     = new ProjectConfig($extra, array());
+        $extra      = ['magento-root-dir' => $this->projectLocation, 'magento-deploystrategy' => 'copy'];
+        $config     = new ProjectConfig($extra, []);
         $installer  = $this->factory->make($config, new EventManager);
         $installer->install($package, $sourcePath);
 
@@ -199,11 +199,11 @@ class InstallerIntegrationTest extends PHPUnit_Framework_TestCase
     public function moduleProviderCopy()
     {
         // @codingStandardsIgnoreStart
-        return array(
-            array(
+        return [
+            [
                 'name'      => 'danslo-apiimport-1.1.1',
                 'version'   => '1.1.1',
-                'destinationFiles' => array(
+                'destinationFiles' => [
                     'app/etc/modules/Danslo_ApiImport.xml',
                     'app/code/local/Danslo/ApiImport/etc/api.xml',
                     'app/code/local/Danslo/ApiImport/etc/config.xml',
@@ -223,12 +223,12 @@ class InstallerIntegrationTest extends PHPUnit_Framework_TestCase
                     'app/code/local/Danslo/ApiImport/Model/Resource/Import/Data.php',
                     'app/code/local/Danslo/ApiImport/Model/Import.php',
                     'app/code/local/Danslo/ApiImport/Model/Observer.php',
-                ),
-            ),
-            array(
+                ],
+            ],
+            [
                 'name'      => 'ecomdev-phpunit-0.3.7',
                 'version'   => '0.3.7',
-                'destinationFiles' => array(
+                'destinationFiles' => [
                     'app/etc/modules/EcomDev_PHPUnitTest.xml',
                     'app/etc/modules/EcomDev_PHPUnit.xml',
                     'app/code/community/EcomDev/PHPUnit/bootstrap.php',
@@ -373,12 +373,12 @@ class InstallerIntegrationTest extends PHPUnit_Framework_TestCase
                     'lib/EcomDev/PHPUnit/IsolationInterface.php',
                     'lib/EcomDev/PHPUnit/AbstractHelper.php',
                     'lib/EcomDev/Utils/Reflection.php',
-                ),
-            ),
-            array(
+                ],
+            ],
+            [
                 'name'      => 'aoe-scheduler-0.4.3',
                 'version'   => '0.4.3',
-                'destinationFiles' => array(
+                'destinationFiles' => [
                     'skin/adminhtml/default/default/aoe_scheduler/StyleSheet/timeline.css',
                     'skin/adminhtml/default/default/aoe_scheduler/StyleSheet/bars.css',
                     'skin/adminhtml/default/default/aoe_scheduler/Images/hour.gif',
@@ -416,12 +416,12 @@ class InstallerIntegrationTest extends PHPUnit_Framework_TestCase
                     'app/code/community/Aoe/Scheduler/Block/Adminhtml/Cron.php',
                     'app/code/community/Aoe/Scheduler/Block/Adminhtml/Timeline.php',
                     'app/code/community/Aoe/Scheduler/Block/Adminhtml/Scheduler.php',
-                ),
-            ),
-            array(
+                ],
+            ],
+            [
                 'name'      => 'magento-turpentine-0.6.1',
                 'version'   => '0.4.3',
-                'destinationFiles' => array(
+                'destinationFiles' => [
                     'app/design/frontend/base/default/template/turpentine/ajax.phtml',
                     'app/design/frontend/base/default/template/turpentine/notices.phtml',
                     'app/design/frontend/base/default/template/turpentine/esi.phtml',
@@ -467,9 +467,9 @@ class InstallerIntegrationTest extends PHPUnit_Framework_TestCase
                     'app/code/community/Nexcessnet/Turpentine/Block/Core/Messages.php',
                     'app/code/community/Nexcessnet/Turpentine/Block/Catalog/Product/List/Toolbar.php',
                     'app/code/local/Mage/Core/Model/Session.php',
-                ),
-            )
-        );
+                ],
+            ]
+        ];
         // @codingStandardsIgnoreEnd
     }
 
@@ -486,8 +486,8 @@ class InstallerIntegrationTest extends PHPUnit_Framework_TestCase
         $this->unzipPackage($sourcePath);
 
         $package    = $this->loadPackage($sourcePath, $version);
-        $extra      = array('magento-root-dir' => $this->projectLocation, 'magento-deploystrategy' => 'copy');
-        $config     = new ProjectConfig($extra, array());
+        $extra      = ['magento-root-dir' => $this->projectLocation, 'magento-deploystrategy' => 'copy'];
+        $config     = new ProjectConfig($extra, []);
         $installer  = $this->factory->make($config, new EventManager);
         $installer->install($package, $sourcePath);
 
@@ -508,11 +508,11 @@ class InstallerIntegrationTest extends PHPUnit_Framework_TestCase
     public function moduleProviderLink()
     {
         // @codingStandardsIgnoreStart
-        return array(
-            array(
+        return [
+            [
                 'name'      => 'danslo-apiimport-1.1.1',
                 'version'   => '1.1.1',
-                'destinationFiles' => array(
+                'destinationFiles' => [
                     'app/etc/modules/Danslo_ApiImport.xml',
                     'app/code/local/Danslo/ApiImport/etc/api.xml',
                     'app/code/local/Danslo/ApiImport/etc/config.xml',
@@ -532,12 +532,12 @@ class InstallerIntegrationTest extends PHPUnit_Framework_TestCase
                     'app/code/local/Danslo/ApiImport/Model/Resource/Import/Data.php',
                     'app/code/local/Danslo/ApiImport/Model/Import.php',
                     'app/code/local/Danslo/ApiImport/Model/Observer.php',
-                ),
-            ),
-            array(
+                ],
+            ],
+            [
                 'name'      => 'ecomdev-phpunit-0.3.7',
                 'version'   => '0.3.7',
-                'destinationFiles' => array(
+                'destinationFiles' => [
                     'app/etc/modules/EcomDev_PHPUnitTest.xml',
                     'app/etc/modules/EcomDev_PHPUnit.xml',
                     'app/code/community/EcomDev/PHPUnit/bootstrap.php',
@@ -682,12 +682,12 @@ class InstallerIntegrationTest extends PHPUnit_Framework_TestCase
                     'lib/EcomDev/PHPUnit/IsolationInterface.php',
                     'lib/EcomDev/PHPUnit/AbstractHelper.php',
                     'lib/EcomDev/Utils/Reflection.php',
-                ),
-            ),
-            array(
+                ],
+            ],
+            [
                 'name'      => 'aoe-scheduler-0.4.3',
                 'version'   => '0.4.3',
-                'destinationFiles' => array(
+                'destinationFiles' => [
                     'skin/adminhtml/default/default/aoe_scheduler/StyleSheet/timeline.css',
                     'skin/adminhtml/default/default/aoe_scheduler/StyleSheet/bars.css',
                     'skin/adminhtml/default/default/aoe_scheduler/Images/hour.gif',
@@ -725,12 +725,12 @@ class InstallerIntegrationTest extends PHPUnit_Framework_TestCase
                     'app/code/community/Aoe/Scheduler/Block/Adminhtml/Cron.php',
                     'app/code/community/Aoe/Scheduler/Block/Adminhtml/Timeline.php',
                     'app/code/community/Aoe/Scheduler/Block/Adminhtml/Scheduler.php',
-                ),
-            ),
-            array(
+                ],
+            ],
+            [
                 'name'      => 'magento-turpentine-0.6.1',
                 'version'   => '0.4.3',
-                'destinationFiles' => array(
+                'destinationFiles' => [
                     'app/design/frontend/base/default/template/turpentine/ajax.phtml',
                     'app/design/frontend/base/default/template/turpentine/notices.phtml',
                     'app/design/frontend/base/default/template/turpentine/esi.phtml',
@@ -776,9 +776,9 @@ class InstallerIntegrationTest extends PHPUnit_Framework_TestCase
                     'app/code/community/Nexcessnet/Turpentine/Block/Core/Messages.php',
                     'app/code/community/Nexcessnet/Turpentine/Block/Catalog/Product/List/Toolbar.php',
                     'app/code/local/Mage/Core/Model/Session.php',
-                ),
-            )
-        );
+                ],
+            ]
+        ];
         // @codingStandardsIgnoreEnd
     }
 

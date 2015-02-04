@@ -128,7 +128,7 @@ class ProjectConfig
     public function getDeployStrategyOverwrite()
     {
         return $this->transformArrayKeysToLowerCase(
-            $this->fetchVarFromExtraConfig(self::MAGENTO_DEPLOY_STRATEGY_OVERWRITE_KEY, array())
+            $this->fetchVarFromExtraConfig(self::MAGENTO_DEPLOY_STRATEGY_OVERWRITE_KEY, [])
         );
     }
 
@@ -146,7 +146,7 @@ class ProjectConfig
     public function getMagentoDeployIgnore()
     {
         return $this->transformArrayKeysToLowerCase(
-            $this->fetchVarFromExtraConfig(self::MAGENTO_DEPLOY_IGNORE_KEY, array())
+            $this->fetchVarFromExtraConfig(self::MAGENTO_DEPLOY_IGNORE_KEY, [])
         );
     }
 
@@ -188,7 +188,7 @@ class ProjectConfig
      */
     public function getPathMappingTranslations()
     {
-        return $this->fetchVarFromExtraConfig(self::PATH_MAPPINGS_TRANSLATIONS_KEY, array());
+        return $this->fetchVarFromExtraConfig(self::PATH_MAPPINGS_TRANSLATIONS_KEY, []);
     }
 
     /**
@@ -205,7 +205,7 @@ class ProjectConfig
     public function getMagentoMapOverwrite()
     {
         return $this->transformArrayKeysToLowerCase(
-            $this->fetchVarFromExtraConfig(self::MAGENTO_MAP_OVERWRITE_KEY, array())
+            $this->fetchVarFromExtraConfig(self::MAGENTO_MAP_OVERWRITE_KEY, [])
         );
     }
 
@@ -245,7 +245,7 @@ class ProjectConfig
      */
     public function getSortPriorities()
     {
-        return $this->fetchVarFromConfigArray($this->extra, self::SORT_PRIORITY_KEY, array());
+        return $this->fetchVarFromConfigArray($this->extra, self::SORT_PRIORITY_KEY, []);
     }
 
     /**

@@ -60,7 +60,7 @@ class Link implements InstallStrategyInterface
         }
 
         //file - to - file
-        return array(array($source, $destination));
+        return [[$source, $destination]];
     }
 
     /**
@@ -81,14 +81,14 @@ class Link implements InstallStrategyInterface
             \RecursiveIteratorIterator::SELF_FIRST
         );
 
-        $resolvedMappings = array();
+        $resolvedMappings = [];
         foreach ($iterator as $item) {
             /** @var SplFileinfo $item */
             if ($item->isFile()) {
-                $resolvedMappings[] = array(
+                $resolvedMappings[] = [
                     sprintf('%s/%s', $source, $iterator->getSubPathname()),
                     sprintf('%s/%s', $destination, $iterator->getSubPathname()),
-                );
+                ];
             }
         }
         return $resolvedMappings;

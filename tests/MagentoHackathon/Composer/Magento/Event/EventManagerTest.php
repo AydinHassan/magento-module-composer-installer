@@ -45,13 +45,13 @@ class EventManagerTest extends PHPUnit_Framework_TestCase
 
     public function testListenerIsCalledForAppropriateEvent()
     {
-        $mockCallback = $this->getMock('stdClass', array('callback'));
+        $mockCallback = $this->getMock('stdClass', ['callback']);
         $mockCallback->expects($this->exactly(2))
             ->method('callback')
             ->will($this->returnValue(true));
 
-        $this->eventManager->listen('some-event', array($mockCallback, 'callback'));
-        $this->eventManager->listen('some-event', array($mockCallback, 'callback'));
+        $this->eventManager->listen('some-event', [$mockCallback, 'callback']);
+        $this->eventManager->listen('some-event', [$mockCallback, 'callback']);
 
         $this->eventManager->dispatch(new Event('some-event'));
     }

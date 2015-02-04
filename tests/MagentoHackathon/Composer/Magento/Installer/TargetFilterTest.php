@@ -19,15 +19,15 @@ class TargetFilterTest extends PHPUnit_Framework_TestCase
 
     public function setUp()
     {
-        $ignores = array(
-            '*' => array(
+        $ignores = [
+            '*' => [
                 'global-ignore-me'
-            ),
-            'ignored/package' => array(
+            ],
+            'ignored/package' => [
                 'ignore-me-1',
                 'ignore-me-2'
-            )
-        );
+            ]
+        ];
         $this->targetFilter = new TargetFilter($ignores);
     }
 

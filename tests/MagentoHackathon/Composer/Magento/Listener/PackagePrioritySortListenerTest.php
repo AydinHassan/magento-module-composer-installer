@@ -22,19 +22,19 @@ class PackagePrioritySortListenerTest extends PHPUnit_Framework_TestCase
 
         $package1 = new Package("vendor/package1", "1.1.0", "vendor/package1");
         $package2 = new Package("vendor/package2", "1.1.0", "vendor/package2");
-        $packages = new ArrayObject(array($package1, $package2));
+        $packages = new ArrayObject([$package1, $package2]);
 
-        $config = new ProjectConfig(array(), array());
+        $config = new ProjectConfig([], []);
         $installStrategyFactory = new InstallStrategyFactory($config);
 
         $listener = new PackagePrioritySortListener($installStrategyFactory, $config);
         $listener->__invoke(new InstallEvent('pre-install', $packages));
 
         $this->assertEquals(
-            array(
+            [
                 $package1,
                 $package2
-            ),
+            ],
             $packages->getArrayCopy()
         );
     }
@@ -44,16 +44,16 @@ class PackagePrioritySortListenerTest extends PHPUnit_Framework_TestCase
 
         $package1 = new Package("vendor/package1", "1.1.0", "vendor/package1");
         $package2 = new Package("vendor/package2", "1.1.0", "vendor/package2");
-        $packages = new ArrayObject(array($package1, $package2));
+        $packages = new ArrayObject([$package1, $package2]);
 
         $config = new ProjectConfig(
-            array(
-                'magento-deploystrategy-overwrite' => array(
+            [
+                'magento-deploystrategy-overwrite' => [
                     'vendor/package1' => 'symlink',
                     'vendor/package2' => 'copy',
-                ),
-            ),
-            array()
+                ],
+            ],
+            []
         );
         $installStrategyFactory = new InstallStrategyFactory($config);
 
@@ -61,10 +61,10 @@ class PackagePrioritySortListenerTest extends PHPUnit_Framework_TestCase
         $listener->__invoke(new InstallEvent('pre-install', $packages));
 
         $this->assertEquals(
-            array(
+            [
                 $package2,
                 $package1,
-            ),
+            ],
             array_values($packages->getArrayCopy())
         );
     }
@@ -75,17 +75,17 @@ class PackagePrioritySortListenerTest extends PHPUnit_Framework_TestCase
         $package1 = new Package("vendor/package1", "1.1.0", "vendor/package1");
         $package2 = new Package("vendor/package2", "1.1.0", "vendor/package2");
         $package3 = new Package("vendor/package3", "1.1.0", "vendor/package3");
-        $packages = new ArrayObject(array($package1, $package2, $package3));
+        $packages = new ArrayObject([$package1, $package2, $package3]);
 
         $config = new ProjectConfig(
-            array(
-                'magento-deploy-sort-priority' => array(
+            [
+                'magento-deploy-sort-priority' => [
                     'vendor/package1' => 200,
                     'vendor/package2' => 400,
                     'vendor/package3' => 1000,
-                ),
-            ),
-            array()
+                ],
+            ],
+            []
         );
         $installStrategyFactory = new InstallStrategyFactory($config);
 
@@ -93,11 +93,11 @@ class PackagePrioritySortListenerTest extends PHPUnit_Framework_TestCase
         $listener->__invoke(new InstallEvent('pre-install', $packages));
 
         $this->assertEquals(
-            array(
+            [
                 $package3,
                 $package2,
                 $package1,
-            ),
+            ],
             array_values($packages->getArrayCopy())
         );
     }

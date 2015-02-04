@@ -30,7 +30,7 @@ class TargetFilter
      */
     public function isTargetIgnored(PackageInterface $package, $target)
     {
-        $moduleSpecificDeployIgnores = array();
+        $moduleSpecificDeployIgnores = [];
 
         if (isset($this->ignores['*'])) {
             $moduleSpecificDeployIgnores = $this->ignores['*'];

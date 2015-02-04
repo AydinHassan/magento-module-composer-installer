@@ -17,11 +17,11 @@ class InstalledPackageDumper
      */
     public function dump(InstalledPackage $installedPackage)
     {
-        return array(
+        return [
             'packageName'       => $installedPackage->getName(),
             'version'           => $installedPackage->getVersion(),
             'mappings'          => $this->dumpMappings($installedPackage->getMappings()),
-        );
+        ];
     }
 
     /**
@@ -42,12 +42,12 @@ class InstalledPackageDumper
     {
         return array_map(
             function (Map $map) {
-                return array(
+                return [
                     'source'            => $map->getSource(),
                     'destination'       => $map->getDestination(),
                     'source_root'       => $map->getSourceRoot(),
                     'destination_root'  => $map->getDestinationRoot()
-                );
+                ];
             },
             $mappings->all()
         );

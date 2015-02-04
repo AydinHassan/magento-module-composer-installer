@@ -40,7 +40,7 @@ class PluginTest extends \PHPUnit_Framework_TestCase
         $this->composer = new Composer;
         $this->config = $this->getMock('Composer\Config');
         $this->composer->setConfig($this->config);
-        $this->root = vfsStream::setup('root', null, array('vendor' => array('bin' => array()), 'htdocs' => array()));
+        $this->root = vfsStream::setup('root', null, ['vendor' => ['bin' => []], 'htdocs' => []]);
 
         $this->config->expects($this->any())
             ->method('get')
@@ -55,13 +55,13 @@ class PluginTest extends \PHPUnit_Framework_TestCase
 
         $this->config->expects($this->any())
             ->method('all')
-            ->will($this->returnValue(array(
-                'repositories' => array(),
-                'config' => array(
+            ->will($this->returnValue([
+                'repositories' => [],
+                'config' => [
                     'vendor-dir' => vfsStream::url('root/vendor'),
                     'bin-dir' => vfsStream::url('root/vendor/bin'),
-                ),
-            )));
+                ],
+            ]));
 
         $this->composer->setInstallationManager(new InstallationManager());
         $this->io = $this->getMock('Composer\IO\IOInterface');
@@ -88,10 +88,10 @@ class PluginTest extends \PHPUnit_Framework_TestCase
 
     public function testGetSubscribedEvents()
     {
-        $expected = array(
-            'post-install-cmd'  => array(array('onNewCodeEvent', 0)),
-            'post-update-cmd'   => array(array('onNewCodeEvent', 0)),
-        );
+        $expected = [
+            'post-install-cmd'  => [['onNewCodeEvent', 0]],
+            'post-update-cmd'   => [['onNewCodeEvent', 0]],
+        ];
 
         $this->assertSame($expected, Plugin::getSubscribedEvents());
     }
@@ -103,7 +103,7 @@ class PluginTest extends \PHPUnit_Framework_TestCase
 
         $moduleManagerMock = $this->getMockBuilder('MagentoHackathon\Composer\Magento\ModuleManager')
             ->disableOriginalConstructor()
-            ->setMethods(array('updateInstalledPackages'))
+            ->setMethods(['updateInstalledPackages'])
             ->getMock();
 
         $refObject   = new ReflectionObject($this->plugin);
@@ -123,7 +123,7 @@ class PluginTest extends \PHPUnit_Framework_TestCase
         $moduleManagerMock
             ->expects($this->once())
             ->method('updateInstalledPackages')
-            ->with(array($mPackage1, $mPackage2));
+            ->with([$mPackage1, $mPackage2]);
 
         $this->plugin->onNewCodeEvent(new CommandEvent('event', $this->composer, $this->io));
     }
@@ -132,7 +132,7 @@ class PluginTest extends \PHPUnit_Framework_TestCase
      * @param array $extra
      * @return RootPackage
      */
-    private function createRootPackage(array $extra = array())
+    private function createRootPackage(array $extra = [])
     {
         $package = new RootPackage("root/package", "1.0.0", "root/package");
         $extra['magento-root-dir'] = vfsStream::url('root/htdocs');

@@ -14,11 +14,11 @@ class MapParserTest extends \PHPUnit_Framework_TestCase
      */
     public function testGetMappings()
     {
-        $expected = array(
-            array('line/with/tab', 'record/one'),
-            array('line/with/space', 'record/two'),
-            array('line/with/space/and/tab', 'record/three')
-        );
+        $expected = [
+            ['line/with/tab', 'record/one'],
+            ['line/with/space', 'record/two'],
+            ['line/with/space/and/tab', 'record/three']
+        ];
 
         $parser = new MapParser($expected);
 

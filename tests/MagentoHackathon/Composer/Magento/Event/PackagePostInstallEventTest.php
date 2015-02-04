@@ -19,7 +19,7 @@ class PackagePostInstallEventTest extends PHPUnit_Framework_TestCase
     public function testGetters()
     {
         $map        = new Map('source', 'destination', '/tmp/', '/tmp/');
-        $collection = new MapCollection(array($map));
+        $collection = new MapCollection([$map]);
         $installedP = new InstalledPackage('some/package', '1.0.0', $collection);
 
         $package    = new Package('some/package', '1.0.0', 'some/package');

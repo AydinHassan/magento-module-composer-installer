@@ -12,7 +12,7 @@ class GitIgnore
     /**
      * @var array
      */
-    protected $lines = array();
+    protected $lines = [];
 
     /**
      * @var string|null

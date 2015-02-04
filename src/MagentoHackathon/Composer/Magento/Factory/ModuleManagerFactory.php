@@ -75,8 +75,8 @@ class ModuleManagerFactory
         $gitIgnoreLocation  = sprintf('%s/.gitignore', $config->getMagentoRootDir());
         $gitIgnore          = new GitIgnoreListener(new GitIgnore($gitIgnoreLocation));
 
-        $eventManager->listen('package-post-install', array($gitIgnore, 'addNewInstalledFiles'));
-        $eventManager->listen('package-post-uninstall', array($gitIgnore, 'removeUnInstalledFiles'));
+        $eventManager->listen('package-post-install', [$gitIgnore, 'addNewInstalledFiles']);
+        $eventManager->listen('package-post-uninstall', [$gitIgnore, 'removeUnInstalledFiles']);
     }
 
     /**

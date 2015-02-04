@@ -46,7 +46,7 @@ class Symlink implements InstallStrategyInterface
             $destination = sprintf('%s/%s', $destination, basename($source));
         }
 
-        return array(array($source, $destination));
+        return [[$source, $destination]];
     }
 
     /**

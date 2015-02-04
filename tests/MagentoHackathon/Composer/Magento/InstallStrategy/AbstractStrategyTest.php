@@ -68,12 +68,12 @@ abstract class AbstractStrategyTest extends PHPUnit_Framework_TestCase
      */
     public function applyRootDirectoryToMapping(array $mapping, $source = null, $destination = null)
     {
-        return array(
+        return [
             $mapping[0],
             $mapping[1],
             ($source ? $source : $this->source) . '/' . $mapping[0],
             ($destination ? $destination : $this->destination) . '/' . $mapping[1],
-        );
+        ];
     }
 
     /**

@@ -45,10 +45,10 @@ class ModmanParser implements ParserInterface
      */
     protected function parseMappings()
     {
-        $map = array();
+        $map = [];
         foreach ($this->file as $line => $row) {
             $row = trim($row);
-            if ('' === $row || in_array($row[0], array('#', '@'))) {
+            if ('' === $row || in_array($row[0], ['#', '@'])) {
                 continue;
             }
             $parts = preg_split('/\s+/', $row, 2, PREG_SPLIT_NO_EMPTY);

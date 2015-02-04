@@ -29,7 +29,7 @@ class GitIgnoreTest extends \PHPUnit_Framework_TestCase
 
     public function testIfFileExistsExistingLinesAreLoaded()
     {
-        $lines = array('line1', 'line2');
+        $lines = ['line1', 'line2'];
         file_put_contents($this->gitIgnoreFile, implode("\n", $lines));
         $gitIgnore = new GitIgnore($this->gitIgnoreFile);
         $this->assertFileExists($this->gitIgnoreFile);
@@ -46,7 +46,7 @@ class GitIgnoreTest extends \PHPUnit_Framework_TestCase
 
     public function testGitIgnoreIsNotWrittenIfNoAdditions()
     {
-        $lines = array('line1', 'line2');
+        $lines = ['line1', 'line2'];
         file_put_contents($this->gitIgnoreFile, implode("\n", $lines));
         $writeTime = filemtime($this->gitIgnoreFile);
         $gitIgnore = new GitIgnore($this->gitIgnoreFile);
@@ -57,26 +57,26 @@ class GitIgnoreTest extends \PHPUnit_Framework_TestCase
 
     public function testCanRemoveEntry()
     {
-        $lines = array('line1', 'line2');
+        $lines = ['line1', 'line2'];
         file_put_contents($this->gitIgnoreFile, implode("\n", $lines));
         $gitIgnore = new GitIgnore($this->gitIgnoreFile);
         $gitIgnore->removeEntry('line1');
-        $this->assertEquals(array('line2'), $gitIgnore->getEntries());
+        $this->assertEquals(['line2'], $gitIgnore->getEntries());
     }
 
     public function testCanAddMultipleEntries()
     {
         $gitIgnore = new GitIgnore($this->gitIgnoreFile);
-        $gitIgnore->addMultipleEntries(array('file1.txt', 'file2.txt'));
-        $this->assertSame(array('file1.txt', 'file2.txt'), $gitIgnore->getEntries());
+        $gitIgnore->addMultipleEntries(['file1.txt', 'file2.txt']);
+        $this->assertSame(['file1.txt', 'file2.txt'], $gitIgnore->getEntries());
     }
 
     public function testCanRemoveMultipleEntries()
     {
-        $lines = array('line1', 'line2');
+        $lines = ['line1', 'line2'];
         file_put_contents($this->gitIgnoreFile, implode("\n", $lines));
         $gitIgnore = new GitIgnore($this->gitIgnoreFile);
-        $gitIgnore->removeMultipleEntries(array('line1', 'line2'));
-        $this->assertSame(array(), $gitIgnore->getEntries());
+        $gitIgnore->removeMultipleEntries(['line1', 'line2']);
+        $this->assertSame([], $gitIgnore->getEntries());
     }
 }

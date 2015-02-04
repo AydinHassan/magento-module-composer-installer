@@ -15,7 +15,7 @@ class MapParser implements ParserInterface
     /**
      * @var array
      */
-    protected $mappings = array();
+    protected $mappings = [];
 
     /**
      * @param array $mappings

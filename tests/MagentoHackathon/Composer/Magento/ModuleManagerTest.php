@@ -29,7 +29,7 @@ class ModuleManagerTest extends \PHPUnit_Framework_TestCase
             new InstalledPackageDumper()
         );
 
-        $config = new ProjectConfig(array(), array('vendor-dir' => 'vendor'));
+        $config = new ProjectConfig([], ['vendor-dir' => 'vendor']);
         $this->unInstallStrategy =
             $this->getMock('MagentoHackathon\Composer\Magento\UnInstallStrategy\UnInstallStrategyInterface');
 
@@ -46,14 +46,14 @@ class ModuleManagerTest extends \PHPUnit_Framework_TestCase
 
     public function testPackagesRemovedFromComposerAreMarkedForUninstall()
     {
-        $composerInstalledPackages = array(
+        $composerInstalledPackages = [
             new Package("vendor/package1", "1.0.0", "vendor/package1")
-        );
+        ];
 
-        $installedMagentoPackages = array(
-            new InstalledPackage("vendor/package1", "1.0.0", new MapCollection(array())),
-            new InstalledPackage("vendor/package2", "1.0.0", new MapCollection(array())),
-        );
+        $installedMagentoPackages = [
+            new InstalledPackage("vendor/package1", "1.0.0", new MapCollection([])),
+            new InstalledPackage("vendor/package2", "1.0.0", new MapCollection([])),
+        ];
 
         $this->installedPackageRepository->add($installedMagentoPackages[0]);
         $this->installedPackageRepository->add($installedMagentoPackages[1]);
@@ -68,28 +68,28 @@ class ModuleManagerTest extends \PHPUnit_Framework_TestCase
 
     public function testPackagesNotInstalledAreMarkedForInstall()
     {
-        $composerInstalledPackages = array(
+        $composerInstalledPackages = [
             new Package("vendor/package1", "1.0.0", "vendor/package1")
-        );
+        ];
 
         $this->installer
             ->expects($this->once())
             ->method('install')
             ->with($composerInstalledPackages[0])
-            ->will($this->returnValue(new MapCollection(array())));
+            ->will($this->returnValue(new MapCollection([])));
 
         $this->moduleManager->updateInstalledPackages($composerInstalledPackages);
     }
 
     public function testUpdatedPackageIsMarkedForUninstallAndReInstall()
     {
-        $composerInstalledPackages = array(
+        $composerInstalledPackages = [
             new Package("vendor/package1", "1.1.0", "vendor/package1")
-        );
+        ];
 
-        $installedMagentoPackages = array(
-            new InstalledPackage("vendor/package1", "1.0.0", new MapCollection(array())),
-        );
+        $installedMagentoPackages = [
+            new InstalledPackage("vendor/package1", "1.0.0", new MapCollection([])),
+        ];
 
         $this->installedPackageRepository->add($installedMagentoPackages[0]);
 
@@ -102,22 +102,22 @@ class ModuleManagerTest extends \PHPUnit_Framework_TestCase
             ->expects($this->once())
             ->method('install')
             ->with($composerInstalledPackages[0])
-            ->will($this->returnValue(new MapCollection(array())));
+            ->will($this->returnValue(new MapCollection([])));
 
         $this->moduleManager->updateInstalledPackages($composerInstalledPackages);
     }
 
     public function testMultipleInstallsAndUnInstalls()
     {
-        $composerInstalledPackages = array(
+        $composerInstalledPackages = [
             new Package("vendor/package1", "1.1.0", "vendor/package1"),
             new Package("vendor/package2", "1.1.0", "vendor/package2"),
-        );
+        ];
 
-        $installedMagentoPackages = array(
-            new InstalledPackage("vendor/package1", "1.0.0", new MapCollection(array())),
-            new InstalledPackage("vendor/package2", "1.0.0", new MapCollection(array())),
-        );
+        $installedMagentoPackages = [
+            new InstalledPackage("vendor/package1", "1.0.0", new MapCollection([])),
+            new InstalledPackage("vendor/package2", "1.0.0", new MapCollection([])),
+        ];
 
         $this->installedPackageRepository->add($installedMagentoPackages[0]);
         $this->installedPackageRepository->add($installedMagentoPackages[1]);
@@ -136,13 +136,13 @@ class ModuleManagerTest extends \PHPUnit_Framework_TestCase
             ->expects($this->at(0))
             ->method('install')
             ->with($composerInstalledPackages[0])
-            ->will($this->returnValue(new MapCollection(array())));
+            ->will($this->returnValue(new MapCollection([])));
 
         $this->installer
             ->expects($this->at(1))
             ->method('install')
             ->with($composerInstalledPackages[1])
-            ->will($this->returnValue(new MapCollection(array())));
+            ->will($this->returnValue(new MapCollection([])));
 
         $this->moduleManager->updateInstalledPackages($composerInstalledPackages);
     }

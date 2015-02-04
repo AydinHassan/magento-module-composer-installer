@@ -15,7 +15,7 @@ class MapCollectionTest extends PHPUnit_Framework_TestCase
     public function testCollectionThrowsExceptionIfNonMapPassedIn()
     {
         $this->setExpectedException('InvalidArgumentException', 'Input must be an array of "Map"');
-        new MapCollection(array(new \stdClass));
+        new MapCollection([new \stdClass]);
     }
 
     public function testGetIterator()
@@ -25,7 +25,7 @@ class MapCollectionTest extends PHPUnit_Framework_TestCase
         $map3 = new Map('source2', 'destination2', '/tmp/', '/tmp/');
         $map4 = new Map('source3', 'destination3', '/tmp/', '/tmp/');
 
-        $items = array($map1, $map2, $map3, $map4);
+        $items = [$map1, $map2, $map3, $map4];
 
         $collection = new MapCollection($items);
         $this->assertSame($items, iterator_to_array($collection));
@@ -38,7 +38,7 @@ class MapCollectionTest extends PHPUnit_Framework_TestCase
         $map3 = new Map('source2', 'destination2', '/tmp/', '/tmp/');
         $map4 = new Map('source3', 'destination3', '/tmp/', '/tmp/');
 
-        $items = array($map1, $map2, $map3, $map4);
+        $items = [$map1, $map2, $map3, $map4];
 
         $collection = new MapCollection($items);
         $this->assertCount(4, $collection);
@@ -51,7 +51,7 @@ class MapCollectionTest extends PHPUnit_Framework_TestCase
         $map3 = new Map('source2', 'destination2', '/tmp/', '/tmp/');
         $map4 = new Map('source3', 'destination3', '/tmp/', '/tmp/');
 
-        $items = array($map1, $map2, $map3, $map4);
+        $items = [$map1, $map2, $map3, $map4];
 
         $collection = new MapCollection($items);
         $this->assertCount(4, $collection);
@@ -60,7 +60,7 @@ class MapCollectionTest extends PHPUnit_Framework_TestCase
         $this->assertCount(4, $collection);
         $this->assertCount(3, $newCollection);
 
-        $updatedItems = array($map1, $map3, $map4);
+        $updatedItems = [$map1, $map3, $map4];
         $this->assertSame($updatedItems, iterator_to_array($newCollection));
     }
 
@@ -70,7 +70,7 @@ class MapCollectionTest extends PHPUnit_Framework_TestCase
         $map2 = new Map('source1', 'destination1', '/tmp/', '/tmp/');
         $map3 = new Map('source2', 'destination2', '/tmp/', '/tmp/');
 
-        $items = array($map1, $map2, $map3);
+        $items = [$map1, $map2, $map3];
 
         $collection = new MapCollection($items);
         $this->assertCount(3, $collection);
@@ -78,9 +78,9 @@ class MapCollectionTest extends PHPUnit_Framework_TestCase
         $newMap1 = new Map('new-source', 'new-destination', '/tmp/', '/tmp/');
         $newMap2 = new Map('new-source1', 'new-destination1', '/tmp/', '/tmp/');
 
-        $newCollection = $collection->replace($map2, array($newMap1, $newMap2));
+        $newCollection = $collection->replace($map2, [$newMap1, $newMap2]);
 
-        $expectedItems = array($map1, $newMap1, $newMap2, $map3);
+        $expectedItems = [$map1, $newMap1, $newMap2, $map3];
 
         $this->assertCount(4, $newCollection);
         $this->assertCount(3, $collection);
@@ -93,13 +93,13 @@ class MapCollectionTest extends PHPUnit_Framework_TestCase
         $map2 = new Map('source1', 'destination1', '/tmp/', '/tmp/');
         $map3 = new Map('source2', 'destination2', '/tmp/', '/tmp/');
 
-        $items = array($map1, $map2, $map3);
+        $items = [$map1, $map2, $map3];
 
         $collection = new MapCollection($items);
         $this->assertCount(3, $collection);
 
         $this->setExpectedException('InvalidArgumentException', 'Input must be an array of "Map"');
-        $collection->replace($map2, array(new \stdClass));
+        $collection->replace($map2, [new \stdClass]);
     }
 
     public function testReplaceThrowsExceptionIfMapDoesNotExistInCollection()
@@ -108,12 +108,12 @@ class MapCollectionTest extends PHPUnit_Framework_TestCase
         $map2 = new Map('source1', 'destination1', '/tmp/', '/tmp/');
         $map3 = new Map('source2', 'destination2', '/tmp/', '/tmp/');
 
-        $items = array($map1, $map2, $map3);
+        $items = [$map1, $map2, $map3];
 
         $collection = new MapCollection($items);
 
         $this->setExpectedException('InvalidArgumentException', 'Map does not belong to this collection');
-        $collection->replace(new Map('nope', 'nope', 'nope', 'nope'), array());
+        $collection->replace(new Map('nope', 'nope', 'nope', 'nope'), []);
     }
 
     public function testAllReturnsAllItems()
@@ -122,7 +122,7 @@ class MapCollectionTest extends PHPUnit_Framework_TestCase
         $map2 = new Map('source1', 'destination1', '/tmp/', '/tmp/');
         $map3 = new Map('source2', 'destination2', '/tmp/', '/tmp/');
 
-        $items = array($map1, $map2, $map3);
+        $items = [$map1, $map2, $map3];
 
         $collection = new MapCollection($items);
         $this->assertSame($items, $collection->all());
@@ -130,7 +130,7 @@ class MapCollectionTest extends PHPUnit_Framework_TestCase
 
     public function testFilterThrowsExceptionIfArgumentNotCallable()
     {
-        $collection = new MapCollection(array());
+        $collection = new MapCollection([]);
         $this->setExpectedException('InvalidArgumentException', 'Expected callable, got "stdClass"');
         $collection->filter(new \stdClass);
     }
@@ -141,7 +141,7 @@ class MapCollectionTest extends PHPUnit_Framework_TestCase
         $map2 = new Map('source1', 'destination1', '/tmp/', '/tmp/');
         $map3 = new Map('source2', 'destination2', '/tmp/', '/tmp/');
 
-        $items = array($map1, $map2, $map3);
+        $items = [$map1, $map2, $map3];
 
         $collection = new MapCollection($items);
 
@@ -150,7 +150,7 @@ class MapCollectionTest extends PHPUnit_Framework_TestCase
         });
 
 
-        $this->assertSame(array($map1), $filtered->all());
+        $this->assertSame([$map1], $filtered->all());
     }
 
     public function testGetAllDestinations()
@@ -159,15 +159,15 @@ class MapCollectionTest extends PHPUnit_Framework_TestCase
         $map2 = new Map('source1', 'destination1', '/tmp/', '/tmp/');
         $map3 = new Map('source2', 'destination2', '/tmp/', '/tmp/');
 
-        $items = array($map1, $map2, $map3);
+        $items = [$map1, $map2, $map3];
 
         $collection = new MapCollection($items);
 
-        $expected = array(
+        $expected = [
             '/tmp/destination',
             '/tmp/destination1',
             '/tmp/destination2',
-        );
+        ];
 
         $this->assertEquals($expected, $collection->getAllDestinations());
 

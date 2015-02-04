@@ -22,9 +22,9 @@ class ModuleManagerFactoryTest extends PHPUnit_Framework_TestCase
     public function testFactoryReturnsInstance()
     {
         $factory        = new ModuleManagerFactory;
-        $config         = new ProjectConfig(array(), array('vendor-dir' => 'vendor'));
+        $config         = new ProjectConfig([], ['vendor-dir' => 'vendor']);
         $eventManager   = $this->getMock('MagentoHackathon\Composer\Magento\Event\EventManager');
-        $io             = new ConsoleIO(new ArrayInput(array()), new ConsoleOutput(), new HelperSet());
+        $io             = new ConsoleIO(new ArrayInput([]), new ConsoleOutput(), new HelperSet());
 
         $eventManager
             ->expects($this->at(0))
@@ -49,10 +49,10 @@ class ModuleManagerFactoryTest extends PHPUnit_Framework_TestCase
     public function testDebugPrinterIsAddedIfDebugMode()
     {
         $factory        = new ModuleManagerFactory;
-        $config         = new ProjectConfig(array(), array('vendor-dir' => 'vendor'));
+        $config         = new ProjectConfig([], ['vendor-dir' => 'vendor']);
         $eventManager   = $this->getMock('MagentoHackathon\Composer\Magento\Event\EventManager');
         $io             = new ConsoleIO(
-            new ArrayInput(array()),
+            new ArrayInput([]),
             new ConsoleOutput(ConsoleOutput::VERBOSITY_DEBUG),
             new HelperSet()
         );
@@ -84,9 +84,9 @@ class ModuleManagerFactoryTest extends PHPUnit_Framework_TestCase
     public function testGitIgnoreListenerIsAddedIfConfigPresent()
     {
         $factory        = new ModuleManagerFactory;
-        $config         = new ProjectConfig(array('auto-append-gitignore' => true), array('vendor-dir' => 'vendor'));
+        $config         = new ProjectConfig(['auto-append-gitignore' => true], ['vendor-dir' => 'vendor']);
         $eventManager   = $this->getMock('MagentoHackathon\Composer\Magento\Event\EventManager');
-        $io             = new ConsoleIO(new ArrayInput(array()), new ConsoleOutput(), new HelperSet());
+        $io             = new ConsoleIO(new ArrayInput([]), new ConsoleOutput(), new HelperSet());
 
         $eventManager
             ->expects($this->at(0))
@@ -120,7 +120,7 @@ class ModuleManagerFactoryTest extends PHPUnit_Framework_TestCase
     public function testDebugListenerCallback()
     {
         $factory        = new ModuleManagerFactory;
-        $config         = new ProjectConfig(array('auto-append-gitignore' => true), array('vendor-dir' => 'vendor'));
+        $config         = new ProjectConfig(['auto-append-gitignore' => true], ['vendor-dir' => 'vendor']);
         $eventManager   = new EventManager;
         $io             = $this->getMock('Composer\IO\IOInterface');
 

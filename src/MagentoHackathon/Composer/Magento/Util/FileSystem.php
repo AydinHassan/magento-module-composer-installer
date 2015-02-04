@@ -27,8 +27,8 @@ class FileSystem extends ComposerFs
         $from = str_replace('\\', '/', $from);
         $to = str_replace('\\', '/', $to);
 
-        $from = str_replace(array('/./', '//'), '/', $from);
-        $to = str_replace(array('/./', '//'), '/', $to);
+        $from = str_replace(['/./', '//'], '/', $from);
+        $to = str_replace(['/./', '//'], '/', $to);
 
         $from = explode('/', $from);
         $to = explode('/', $to);
@@ -130,7 +130,7 @@ class FileSystem extends ComposerFs
      */
     public function endsWithDirectorySeparator($path)
     {
-        return in_array(substr($path, -1), array('/', '\\'));
+        return in_array(substr($path, -1), ['/', '\\']);
     }
 
     /**

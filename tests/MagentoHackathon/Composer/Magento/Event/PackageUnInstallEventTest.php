@@ -17,10 +17,10 @@ class PackageUnInstallEventTest extends PHPUnit_Framework_TestCase
     public function testGetters()
     {
 
-        $maps = new MapCollection(array(
+        $maps = new MapCollection([
             new Map('file1', 'file1', '/', '/'),
             new Map('file2', 'file2', '/', '/'),
-        ));
+        ]);
         $package    = new InstalledPackage('some/package', '1.0.0', $maps);
         $event      = new PackageUnInstallEvent('package-uninstall-event', $package);
 

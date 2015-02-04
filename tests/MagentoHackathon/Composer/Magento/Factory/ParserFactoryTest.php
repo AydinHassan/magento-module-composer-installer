@@ -23,9 +23,9 @@ class ParserFactoryTest extends \PHPUnit_Framework_TestCase
     public function testMapParserIsReturnedIfMapOverwriteFound()
     {
         $package = new Package('module-package', '1.0.0', 'module-package');
-        $config = new ProjectConfig(array(
-            'magento-map-overwrite' => array('module-package' => array())
-        ), array());
+        $config = new ProjectConfig([
+            'magento-map-overwrite' => ['module-package' => []]
+        ], []);
         $factory = new ParserFactory($config);
         $instance = $factory->make($package, vfsStream::url('root'));
         $this->assertInstanceOf('MagentoHackathon\Composer\Magento\Parser\MapParser', $instance);
@@ -35,9 +35,9 @@ class ParserFactoryTest extends \PHPUnit_Framework_TestCase
     {
 
         $package = new Package('module-package', '1.0.0', 'module-package');
-        $package->setExtra(array('map' => array()));
+        $package->setExtra(['map' => []]);
 
-        $config = new ProjectConfig(array(), array());
+        $config = new ProjectConfig([], []);
         $factory = new ParserFactory($config);
         $instance = $factory->make($package, vfsStream::url('root'));
         $this->assertInstanceOf('MagentoHackathon\Composer\Magento\Parser\MapParser', $instance);
@@ -48,9 +48,9 @@ class ParserFactoryTest extends \PHPUnit_Framework_TestCase
 
         vfsStream::newFile('Package.xml')->at($this->root);
         $package = new Package('module-package', '1.0.0', 'module-package');
-        $package->setExtra(array('package-xml' => 'Package.xml'));
+        $package->setExtra(['package-xml' => 'Package.xml']);
 
-        $config = new ProjectConfig(array(), array());
+        $config = new ProjectConfig([], []);
         $factory = new ParserFactory($config);
         $instance = $factory->make($package, vfsStream::url('root'));
         $this->assertInstanceOf('MagentoHackathon\Composer\Magento\Parser\PackageXmlParser', $instance);
@@ -62,7 +62,7 @@ class ParserFactoryTest extends \PHPUnit_Framework_TestCase
         vfsStream::newFile('modman')->at($this->root);
         $package = new Package('module-package', '1.0.0', 'module-package');
 
-        $config = new ProjectConfig(array(), array());
+        $config = new ProjectConfig([], []);
         $factory = new ParserFactory($config);
         $instance = $factory->make($package, vfsStream::url('root'));
         $this->assertInstanceOf('MagentoHackathon\Composer\Magento\Parser\ModmanParser', $instance);
@@ -77,7 +77,7 @@ class ParserFactoryTest extends \PHPUnit_Framework_TestCase
 
         $package = new Package('module-package', '1.0.0', 'module-package');
 
-        $config = new ProjectConfig(array(), array());
+        $config = new ProjectConfig([], []);
         $factory = new ParserFactory($config);
         $instance = $factory->make($package, vfsStream::url('root'));
     }

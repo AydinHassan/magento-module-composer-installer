@@ -22,7 +22,7 @@ class PackageXmlParser implements ParserInterface
     /**
      * @var array Map of package content types to path prefixes
      */
-    protected $targets = array();
+    protected $targets = [];
 
     /**
      * @param string $packageXmlFile
@@ -52,7 +52,7 @@ class PackageXmlParser implements ParserInterface
      */
     protected function parseMappings()
     {
-        $map = array();
+        $map = [];
 
         /** @var $package SimpleXMLElement */
         $package = simplexml_load_file($this->file->getPathname());
@@ -64,7 +64,7 @@ class PackageXmlParser implements ParserInterface
                     foreach ($target->children() as $child) {
                         foreach ($this->getElementPaths($child) as $elementPath) {
                             $relativePath = $basePath . '/' . $elementPath;
-                            $map[] = array($relativePath, $relativePath);
+                            $map[] = [$relativePath, $relativePath];
                         }
                     }
 
@@ -116,7 +116,7 @@ class PackageXmlParser implements ParserInterface
     {
         $type = $element->getName();
         $name = (string) $element->attributes()->name;
-        $elementPaths = array();
+        $elementPaths = [];
 
         switch ($type) {
             case 'dir':

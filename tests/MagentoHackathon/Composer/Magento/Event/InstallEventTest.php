@@ -16,7 +16,7 @@ class InstallEventTest extends PHPUnit_Framework_TestCase
 {
     public function testGetters()
     {
-        $packages   = new ArrayObject(array(new Package('some/package', '1.0.0', 'some/package')));
+        $packages   = new ArrayObject([new Package('some/package', '1.0.0', 'some/package')]);
         $event      = new InstallEvent('pre-install', $packages);
 
         $this->assertEquals('pre-install', $event->getName());

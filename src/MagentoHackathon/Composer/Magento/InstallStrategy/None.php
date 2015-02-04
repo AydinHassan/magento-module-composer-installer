@@ -24,7 +24,7 @@ class None implements InstallStrategyInterface
      */
     public function resolve($source, $destination, $absoluteSource, $absoluteDestination)
     {
-        return array();
+        return [];
     }
 
     /**

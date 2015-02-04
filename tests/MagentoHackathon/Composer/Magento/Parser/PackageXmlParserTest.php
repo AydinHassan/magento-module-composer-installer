@@ -26,40 +26,40 @@ class PackageXmlParserTest extends \PHPUnit_Framework_TestCase
     {
         $parser = new PackageXmlParser(vfsStream::url('root/PackageXmlValid.xml'));
 
-        $expected = array (
-            array(
+        $expected = [
+            [
                 './app/code/community/Some/Module/Block/Block.php',
                 './app/code/community/Some/Module/Block/Block.php'
-            ),
-            array(
+            ],
+            [
                 './app/code/community/Some/Module/Helper/Data.php',
                 './app/code/community/Some/Module/Helper/Data.php'
-            ),
-            array(
+            ],
+            [
                 './app/code/community/Some/Module/Model/Model.php',
                 './app/code/community/Some/Module/Model/Model.php'
-            ),
-            array(
+            ],
+            [
                 './app/code/community/Some/Module/etc',
                 './app/code/community/Some/Module/etc'
-            ),
-            array(
+            ],
+            [
                 './app/design/adminhtml/default/default/layout/layout.xml',
                 './app/design/adminhtml/default/default/layout/layout.xml'
-            ),
-            array(
+            ],
+            [
                 './app/design/adminhtml/default/default/template/module/template.phtml',
                 './app/design/adminhtml/default/default/template/module/template.phtml'
-            ),
-            array(
+            ],
+            [
                 './app/etc/modules/Some_Module.xml',
                 './app/etc/modules/Some_Module.xml'
-            ),
-            array(
+            ],
+            [
                 './skin/frontend/base/default/images/somemodule/image.png',
                 './skin/frontend/base/default/images/somemodule/image.png'
-            ),
-        );
+            ],
+        ];
 
         $this->assertSame($expected, $parser->getMappings());
     }
@@ -75,12 +75,12 @@ class PackageXmlParserTest extends \PHPUnit_Framework_TestCase
     public function testInvalidTargetTypeContinuesToProcess()
     {
         $parser = new PackageXmlParser(vfsStream::url('root/PackageXmlInvalidTarget.xml'));
-        $expected = array (
-            array(
+        $expected = [
+            [
                 './app/code/community/Some/Module/Block/Block.php',
                 './app/code/community/Some/Module/Block/Block.php'
-            ),
-        );
+            ],
+        ];
 
         $this->assertSame($expected, $parser->getMappings());
     }
@@ -88,12 +88,12 @@ class PackageXmlParserTest extends \PHPUnit_Framework_TestCase
     public function testInvalidPathTypeContinuesToProcess()
     {
         $parser = new PackageXmlParser(vfsStream::url('root/PackageXmlInvalidPath.xml'));
-        $expected = array (
-            array(
+        $expected = [
+            [
                 './app/code/community/Some/Module/Block/Block.php',
                 './app/code/community/Some/Module/Block/Block.php'
-            ),
-        );
+            ],
+        ];
 
         $this->assertSame($expected, $parser->getMappings());
     }

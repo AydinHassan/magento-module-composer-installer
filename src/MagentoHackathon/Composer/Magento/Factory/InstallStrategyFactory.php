@@ -28,21 +28,21 @@ class InstallStrategyFactory
     /**
      * @var array
      */
-    protected static $priorityMap = array(
+    protected static $priorityMap = [
         'symlink'   => 100,
         'link'      => 100,
         'copy'      => 101,
-    );
+    ];
 
     /**
      * @var array
      */
-    protected static $strategies = array(
+    protected static $strategies = [
         'copy'      => '\MagentoHackathon\Composer\Magento\InstallStrategy\Copy',
         'symlink'   => '\MagentoHackathon\Composer\Magento\InstallStrategy\Symlink',
         'link'      => '\MagentoHackathon\Composer\Magento\InstallStrategy\Link',
         'none'      => '\MagentoHackathon\Composer\Magento\InstallStrategy\None',
-    );
+    ];
 
     /**
      * @param ProjectConfig $config

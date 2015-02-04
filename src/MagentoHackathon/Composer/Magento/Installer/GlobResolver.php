@@ -28,7 +28,7 @@ final class GlobResolver
     public function resolve(MapCollection $maps)
     {
 
-        $updatedMappings = array();
+        $updatedMappings = [];
         foreach ($maps as $mapping) {
             /** @var Map $mapping */
             if (file_exists($mapping->getAbsoluteSource())) {

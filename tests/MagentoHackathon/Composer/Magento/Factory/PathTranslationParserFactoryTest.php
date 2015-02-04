@@ -20,8 +20,8 @@ class PathTranslationParserFactoryTest extends \PHPUnit_Framework_TestCase
 
         $package = new Package('module-package', '1.0.0', 'module-package');
 
-        $extra = array('path-mapping-translations' => array());
-        $config = new ProjectConfig($extra, array());
+        $extra = ['path-mapping-translations' => []];
+        $config = new ProjectConfig($extra, []);
 
         $mockParserFactory = $this->getMock('MagentoHackathon\Composer\Magento\Factory\ParserFactoryInterface');
         $mockParserFactory
@@ -39,7 +39,7 @@ class PathTranslationParserFactoryTest extends \PHPUnit_Framework_TestCase
     public function testFactoryReturnsEmbeddedParserIfNoTranslationsFoundInConfig()
     {
         $package = new Package('module-package', '1.0.0', 'module-package');
-        $config = new ProjectConfig(array(), array());
+        $config = new ProjectConfig([], []);
 
         $parser = $this->getMock('MagentoHackathon\Composer\Magento\Parser\ParserInterface');
 

@@ -90,14 +90,14 @@ class Plugin implements PluginInterface, EventSubscriberInterface
      */
     public static function getSubscribedEvents()
     {
-        return array(
-            ScriptEvents::POST_INSTALL_CMD => array(
-                array('onNewCodeEvent', 0),
-            ),
-            ScriptEvents::POST_UPDATE_CMD  => array(
-                array('onNewCodeEvent', 0),
-            ),
-        );
+        return [
+            ScriptEvents::POST_INSTALL_CMD => [
+                ['onNewCodeEvent', 0],
+            ],
+            ScriptEvents::POST_UPDATE_CMD  => [
+                ['onNewCodeEvent', 0],
+            ],
+        ];
     }
 
     /**

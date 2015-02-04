@@ -35,15 +35,15 @@ class FileSystemTest extends PHPUnit_Framework_TestCase
 
     public function relativePathProvider()
     {
-        return array(
-            array(
+        return [
+            [
                 '/source/one/two/local.xml', '/destination/one/two/local.xml',
                 '../../../destination/one/two/local.xml'
-            ),
-            array('local.xml', 'destination.xml', './destination.xml'),
-            array('/source/local.xml', '/destination/local.xml', '../destination/local.xml'),
-            array('/source/local.xml', '/destination/file.xml', '../destination/file.xml'),
-        );
+            ],
+            ['local.xml', 'destination.xml', './destination.xml'],
+            ['/source/local.xml', '/destination/local.xml', '../destination/local.xml'],
+            ['/source/local.xml', '/destination/file.xml', '../destination/file.xml'],
+        ];
     }
 
 

@@ -50,7 +50,7 @@ class InstallerTest extends PHPUnit_Framework_TestCase
     {
         $this->projectLocation      = sprintf('%s/%s/project', realpath(sys_get_temp_dir()), $this->getName(false));
         $this->moduleLocation       = sprintf('%s/%s/module', realpath(sys_get_temp_dir()), $this->getName(false));
-        $this->config               = new ProjectConfig(array('magento-root-dir' => $this->projectLocation), array());
+        $this->config               = new ProjectConfig(['magento-root-dir' => $this->projectLocation], []);
         $this->factory              = new InstallerFactory;
         $this->installer            = $this->factory->make($this->config, new EventManager);
         $this->fileSystem           = new Filesystem;
@@ -75,7 +75,7 @@ class InstallerTest extends PHPUnit_Framework_TestCase
     {
         $package = new Package('some/package', '1.0.0', 'some/package');
 
-        $extra = array('map' => array());
+        $extra = ['map' => []];
         $package->setExtra($extra);
 
         $mappings = $this->installer->install($package, vfsStream::url('root'));
@@ -86,7 +86,7 @@ class InstallerTest extends PHPUnit_Framework_TestCase
     {
         $package = new Package('some/package', '1.0.0', 'some/package');
 
-        $extra = array('map' => array(array('app/etc/modules/*.xml', 'app/etc/modules')));
+        $extra = ['map' => [['app/etc/modules/*.xml', 'app/etc/modules']]];
         $package->setExtra($extra);
 
         mkdir(sprintf('%s/app/etc/modules', $this->moduleLocation), 0777, true);
@@ -94,13 +94,13 @@ class InstallerTest extends PHPUnit_Framework_TestCase
         touch(sprintf('%s/app/etc/modules/SomeOtherPackage.xml', $this->moduleLocation));
 
         $installer = $this->getInstaller(
-            array(
-                'magento-deploy-ignore' => array(
-                    'some/package' => array(
+            [
+                'magento-deploy-ignore' => [
+                    'some/package' => [
                         'app/etc/modules/SomePackage.xml'
-                    ),
-                ),
-            )
+                    ],
+                ],
+            ]
         );
 
         $installer->install($package, $this->moduleLocation);
@@ -112,10 +112,10 @@ class InstallerTest extends PHPUnit_Framework_TestCase
     {
         $package = new Package('some/package', '1.0.0', 'some/package');
 
-        $extra = array('map' => array(
-            array('app/etc/modules/local.xml', 'app/etc/modules/'),
-            array('app/etc/modules/local2.xml', 'app/etc/modules/'),
-        ));
+        $extra = ['map' => [
+            ['app/etc/modules/local.xml', 'app/etc/modules/'],
+            ['app/etc/modules/local2.xml', 'app/etc/modules/'],
+        ]];
         $package->setExtra($extra);
 
         mkdir(sprintf('%s/app/etc/modules', $this->moduleLocation), 0777, true);
@@ -132,10 +132,10 @@ class InstallerTest extends PHPUnit_Framework_TestCase
     {
         $package = new Package('some/package', '1.0.0', 'some/package');
 
-        $extra = array('map' => array(
-            array('app/etc/modules/local.xml', 'app/etc/modules/'),
-            array('app/etc/modules/local2.xml', 'app/etc/modules/'),
-        ));
+        $extra = ['map' => [
+            ['app/etc/modules/local.xml', 'app/etc/modules/'],
+            ['app/etc/modules/local2.xml', 'app/etc/modules/'],
+        ]];
         $package->setExtra($extra);
 
         mkdir(sprintf('%s/app/etc/modules', $this->moduleLocation), 0777, true);
@@ -160,9 +160,9 @@ class InstallerTest extends PHPUnit_Framework_TestCase
     {
         $package = new Package('some/package', '1.0.0', 'some/package');
 
-        $extra = array('map' => array(
-            array('app/etc/modules/local.xml', 'app/etc/modules/'),
-        ));
+        $extra = ['map' => [
+            ['app/etc/modules/local.xml', 'app/etc/modules/'],
+        ]];
         $package->setExtra($extra);
 
         mkdir(sprintf('%s/app/etc/modules', $this->moduleLocation), 0777, true);
@@ -179,10 +179,10 @@ class InstallerTest extends PHPUnit_Framework_TestCase
      * @param array $config
      * @return Installer
      */
-    protected function getInstaller(array $config = array())
+    protected function getInstaller(array $config = [])
     {
         $config['magento-root-dir'] = $this->projectLocation;
-        $config       = new ProjectConfig($config, array());
+        $config       = new ProjectConfig($config, []);
         $factory      = new InstallerFactory;
         $installer    = $factory->make($config, new EventManager);
         return $installer;

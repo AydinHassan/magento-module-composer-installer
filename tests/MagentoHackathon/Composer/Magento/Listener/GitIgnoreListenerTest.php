@@ -42,7 +42,7 @@ class GitIgnoreListenerTest extends \PHPUnit_Framework_TestCase
         $map1       = new Map('file1', 'file1', '/tmp/', '/tmp/');
         $map2       = new Map('file2', 'file2', '/tmp/', '/tmp/');
         $map3       = new Map('folder/file3', 'folder/file3', '/tmp/', '/tmp/');
-        $collection = new MapCollection(array($map1, $map2, $map3));
+        $collection = new MapCollection([$map1, $map2, $map3]);
         $package    = new Package('some/package', '1.0.0', 'some/package');
         $installedP = new InstalledPackage('some/package', '1.0.0', $collection);
         $event      = new PackagePostInstallEvent($package, $installedP);
@@ -50,7 +50,7 @@ class GitIgnoreListenerTest extends \PHPUnit_Framework_TestCase
         $this->gitIgnore
             ->expects($this->once())
             ->method('addMultipleEntries')
-            ->with(array('/file1', '/file2', '/folder/file3'));
+            ->with(['/file1', '/file2', '/folder/file3']);
 
         $this->gitIgnore
             ->expects($this->once())
@@ -64,14 +64,14 @@ class GitIgnoreListenerTest extends \PHPUnit_Framework_TestCase
         $map1       = new Map('file1', 'file1', '/tmp/', '/tmp/');
         $map2       = new Map('file2', 'file2', '/tmp/', '/tmp/');
         $map3       = new Map('folder/file3', 'folder/file3', '/tmp/', '/tmp/');
-        $collection = new MapCollection(array($map1, $map2, $map3));
+        $collection = new MapCollection([$map1, $map2, $map3]);
         $package    = new InstalledPackage('some/package', '1.0.0', $collection);
         $event      = new PackageUnInstallEvent('package-uninstall', $package);
 
         $this->gitIgnore
             ->expects($this->once())
             ->method('removeMultipleEntries')
-            ->with(array('/file1', '/file2', '/folder/file3'));
+            ->with(['/file1', '/file2', '/folder/file3']);
 
         $this->gitIgnore
             ->expects($this->once())

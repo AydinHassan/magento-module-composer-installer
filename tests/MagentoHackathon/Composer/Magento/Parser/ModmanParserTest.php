@@ -26,11 +26,11 @@ class ModmanParserTest extends \PHPUnit_Framework_TestCase
     {
         $parser = new ModmanParser(vfsStream::url('root/ModmanValid'));
 
-        $expected = array(
-            array('line/with/tab', 'record/one'),
-            array('line/with/space', 'record/two'),
-            array('line/with/space/and/tab', 'record/three')
-        );
+        $expected = [
+            ['line/with/tab', 'record/one'],
+            ['line/with/space', 'record/two'],
+            ['line/with/space/and/tab', 'record/three']
+        ];
         $this->assertSame($expected, $parser->getMappings());
     }
 

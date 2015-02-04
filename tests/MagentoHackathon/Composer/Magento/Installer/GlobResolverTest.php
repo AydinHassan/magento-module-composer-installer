@@ -43,10 +43,10 @@ class GlobResolverTest extends \PHPUnit_Framework_TestCase
 
     public function testGlobsAreExpanded()
     {
-        $mappings = array(
+        $mappings = [
             new Map('*.php', '/', sprintf('%s/source', $this->root), sprintf('%s/destination', $this->root)),
             new Map('/directory/*', '/dir', sprintf('%s/source', $this->root), sprintf('%s/destination', $this->root)),
-        );
+        ];
 
         $mappings = new MapCollection($mappings);
 
@@ -60,32 +60,32 @@ class GlobResolverTest extends \PHPUnit_Framework_TestCase
         $this->assertContainsOnlyInstancesOf('\MagentoHackathon\Composer\Magento\Map\Map', $resolvedMappings);
         $this->assertCount(4, $resolvedMappings);
 
-        $expected = array(
-            array(
+        $expected = [
+            [
                 '1.php',
                 '1.php',
                 sprintf('%s/source/1.php', $this->root),
                 sprintf('%s/destination/1.php', $this->root)
-            ),
-            array(
+            ],
+            [
                 '2.php',
                 '2.php',
                 sprintf('%s/source/2.php', $this->root),
                 sprintf('%s/destination/2.php', $this->root)
-            ),
-            array(
+            ],
+            [
                 'directory/1.txt',
                 'dir/1.txt',
                 sprintf('%s/source/directory/1.txt', $this->root),
                 sprintf('%s/destination/dir/1.txt', $this->root)
-            ),
-            array(
+            ],
+            [
                 'directory/2.txt',
                 'dir/2.txt',
                 sprintf('%s/source/directory/2.txt', $this->root),
                 sprintf('%s/destination/dir/2.txt', $this->root)
-            ),
-        );
+            ],
+        ];
 
         $maps = $resolvedMappings->all();
 
@@ -101,34 +101,34 @@ class GlobResolverTest extends \PHPUnit_Framework_TestCase
         touch(sprintf('%s/source/sourcedir/test1.xml', $this->root));
         touch(sprintf('%s/source/sourcedir/test2.xml', $this->root));
 
-        $mappings = array(
+        $mappings = [
             new Map(
                 'sourcedir/*',
                 'targetdir',
                 sprintf('%s/source', $this->root),
                 sprintf('%s/destination', $this->root)
             ),
-        );
+        ];
         $mappings = new MapCollection($mappings);
 
         $resolvedMappings = $this->globResolver->resolve($mappings);
         $this->assertContainsOnlyInstancesOf('\MagentoHackathon\Composer\Magento\Map\Map', $resolvedMappings);
         $this->assertCount(2, $resolvedMappings);
 
-        $expected = array(
-            array(
+        $expected = [
+            [
                 'sourcedir/test1.xml',
                 'targetdir/test1.xml',
                 sprintf('%s/source/sourcedir/test1.xml', $this->root),
                 sprintf('%s/destination/targetdir/test1.xml', $this->root)
-            ),
-            array(
+            ],
+            [
                 'sourcedir/test2.xml',
                 'targetdir/test2.xml',
                 sprintf('%s/source/sourcedir/test2.xml', $this->root),
                 sprintf('%s/destination/targetdir/test2.xml', $this->root)
-            ),
-        );
+            ],
+        ];
 
         $maps = $resolvedMappings->all();
 
@@ -140,14 +140,14 @@ class GlobResolverTest extends \PHPUnit_Framework_TestCase
     {
         mkdir(sprintf('%s/source/sourcedir', $this->root), 0777, true);
 
-        $mappings = array(
+        $mappings = [
             new Map(
                 'sourcedir/*',
                 'targetdir',
                 sprintf('%s/source', $this->root),
                 sprintf('%s/destination', $this->root)
             ),
-        );
+        ];
         $collection = new MapCollection($mappings);
 
         $resolved = $this->globResolver->resolve($collection)->all();
@@ -160,28 +160,28 @@ class GlobResolverTest extends \PHPUnit_Framework_TestCase
         touch(sprintf('%s/source/sourcedir/test1.xml', $this->root));
         touch(sprintf('%s/source/sourcedir/test2.xml', $this->root));
 
-        $mappings = array(
+        $mappings = [
             new Map(
                 'sourcedir/test1.xml',
                 'targetdir',
                 sprintf('%s/source', $this->root),
                 sprintf('%s/destination', $this->root)
             ),
-        );
+        ];
         $mappings = new MapCollection($mappings);
 
         $resolvedMappings = $this->globResolver->resolve($mappings);
         $this->assertContainsOnlyInstancesOf('\MagentoHackathon\Composer\Magento\Map\Map', $resolvedMappings);
         $this->assertCount(1, $resolvedMappings);
 
-        $expected = array(
-            array(
+        $expected = [
+            [
                 'sourcedir/test1.xml',
                 'targetdir',
                 sprintf('%s/source/sourcedir/test1.xml', $this->root),
                 sprintf('%s/destination/targetdir', $this->root)
-            ),
-        );
+            ],
+        ];
 
         $maps = $resolvedMappings->all();
         $this->assertSame($expected[0], $this->mapToArray($maps[0]));
@@ -195,12 +195,12 @@ class GlobResolverTest extends \PHPUnit_Framework_TestCase
      */
     protected function mapToArray(Map $map)
     {
-        return array(
+        return [
             $map->getSource(),
             $map->getDestination(),
             $map->getAbsoluteSource(),
             $map->getAbsoluteDestination()
-        );
+        ];
     }
 
     public function tearDown()

@@ -17,15 +17,15 @@ class ParserTest extends PHPUnit_Framework_TestCase
 {
     public function testParserReturnsMapCollection()
     {
-        $extra = array('map' => array(
-            array('file1', 'file1'),
-            array('file2', 'file2'),
-            array('file3', 'file3'),
-        ));
+        $extra = ['map' => [
+            ['file1', 'file1'],
+            ['file2', 'file2'],
+            ['file3', 'file3'],
+        ]];
 
         $package    = new Package('some/package', '1.0.0', 'some/package');
         $package->setExtra($extra);
-        $parser     = new Parser(new ParserFactory(new ProjectConfig(array(), array())));
+        $parser     = new Parser(new ParserFactory(new ProjectConfig([], [])));
         $result     = $parser->getMappings($package, '/package/source', '/install/directory');
 
         $this->assertInstanceOf('MagentoHackathon\Composer\Magento\Map\MapCollection', $result);
