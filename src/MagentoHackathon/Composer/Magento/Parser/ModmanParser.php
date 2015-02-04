@@ -8,7 +8,7 @@ namespace MagentoHackathon\Composer\Magento\Parser;
 /**
  * Parsers modman files
  */
-class ModmanParser implements Parser
+class ModmanParser implements ParserInterface
 {
 
     /**

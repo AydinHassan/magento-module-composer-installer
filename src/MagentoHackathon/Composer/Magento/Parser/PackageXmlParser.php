@@ -11,7 +11,7 @@ namespace MagentoHackathon\Composer\Magento\Parser;
  * Class PackageXmlParser
  * @package MagentoHackathon\Composer\Magento\Parser
  */
-class PackageXmlParser implements Parser
+class PackageXmlParser implements ParserInterface
 {
 
     /**
@@ -115,12 +115,12 @@ class PackageXmlParser implements Parser
     protected function getElementPaths(\SimpleXMLElement $element)
     {
         $type = $element->getName();
-        $name = $element->attributes()->name;
+        $name = (string) $element->attributes()->name;
         $elementPaths = array();
 
         switch ($type) {
             case 'dir':
-                if ($element->children()) {
+                if ($element->count()) {
                     foreach ($element->children() as $child) {
                         foreach ($this->getElementPaths($child) as $elementPath) {
                             $elementPaths[] = $name == '.' ? $elementPath : $name . '/' . $elementPath;

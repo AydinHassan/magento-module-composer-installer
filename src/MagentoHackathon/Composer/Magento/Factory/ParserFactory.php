@@ -6,7 +6,7 @@ use Composer\Package\PackageInterface;
 use MagentoHackathon\Composer\Magento\Parser\MapParser;
 use MagentoHackathon\Composer\Magento\Parser\ModmanParser;
 use MagentoHackathon\Composer\Magento\Parser\PackageXmlParser;
-use MagentoHackathon\Composer\Magento\Parser\Parser;
+use MagentoHackathon\Composer\Magento\Parser\ParserInterface;
 use MagentoHackathon\Composer\Magento\ProjectConfig;
 
 /**
@@ -32,7 +32,7 @@ class ParserFactory implements ParserFactoryInterface
     /**
      * @param PackageInterface $package
      * @param string $sourceDir
-     * @return Parser
+     * @return ParserInterface
      * @throws \ErrorException
      */
     public function make(PackageInterface $package, $sourceDir)

@@ -21,14 +21,14 @@ class PathTranslationParserFactoryTest extends \PHPUnit_Framework_TestCase
         $package = new Package('module-package', '1.0.0', 'module-package');
 
         $extra = array('path-mapping-translations' => array());
-        $config = new ProjectConfig($extra);
+        $config = new ProjectConfig($extra, array());
 
         $mockParserFactory = $this->getMock('MagentoHackathon\Composer\Magento\Factory\ParserFactoryInterface');
         $mockParserFactory
             ->expects($this->once())
             ->method('make')
             ->with($package, vfsStream::url('root'))
-            ->will($this->returnValue($this->getMock('MagentoHackathon\Composer\Magento\Parser\Parser')));
+            ->will($this->returnValue($this->getMock('MagentoHackathon\Composer\Magento\Parser\ParserInterface')));
 
         $factory = new PathTranslationParserFactory($mockParserFactory, $config);
         $instance = $factory->make($package, vfsStream::url('root'));
@@ -39,9 +39,9 @@ class PathTranslationParserFactoryTest extends \PHPUnit_Framework_TestCase
     public function testFactoryReturnsEmbeddedParserIfNoTranslationsFoundInConfig()
     {
         $package = new Package('module-package', '1.0.0', 'module-package');
-        $config = new ProjectConfig(array());
+        $config = new ProjectConfig(array(), array());
 
-        $parser = $this->getMock('MagentoHackathon\Composer\Magento\Parser\Parser');
+        $parser = $this->getMock('MagentoHackathon\Composer\Magento\Parser\ParserInterface');
 
         $mockParserFactory = $this->getMock('MagentoHackathon\Composer\Magento\Factory\ParserFactoryInterface');
         $mockParserFactory

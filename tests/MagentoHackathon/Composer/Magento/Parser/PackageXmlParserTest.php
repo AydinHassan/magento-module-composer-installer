@@ -40,8 +40,8 @@ class PackageXmlParserTest extends \PHPUnit_Framework_TestCase
                 './app/code/community/Some/Module/Model/Model.php'
             ),
             array(
-                './app/code/community/Some/Module/etc/config.xml',
-                './app/code/community/Some/Module/etc/config.xml'
+                './app/code/community/Some/Module/etc',
+                './app/code/community/Some/Module/etc'
             ),
             array(
                 './app/design/adminhtml/default/default/layout/layout.xml',
@@ -97,4 +97,8 @@ class PackageXmlParserTest extends \PHPUnit_Framework_TestCase
 
         $this->assertSame($expected, $parser->getMappings());
     }
+
+//    public function testDirectoryWith(){
+//
+//    }
 }
