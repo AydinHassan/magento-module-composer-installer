@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/magento-hackathon/magento-composer-installer.png)](https://travis-ci.org/magento-hackathon/magento-composer-installer)
+[![Build Status](https://travis-ci.org/AydinHassan/magento-module-composer-installer.svg?branch=master)](https://travis-ci.org/AydinHassan/magento-module-composer-installer)
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/AydinHassan/magento-module-composer-installer/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/AydinHassan/magento-module-composer-installer/?branch=master)
 [![Code Coverage](https://scrutinizer-ci.com/g/AydinHassan/magento-module-composer-installer/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/AydinHassan/magento-module-composer-installer/?branch=master)
 
