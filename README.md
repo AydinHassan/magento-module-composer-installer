@@ -319,19 +319,3 @@ php bin/composer.phar install
 * David Fuhr
 * Amir Tchavoshinia
 * Vinai Kopp (Maintainer)
-
-
-## Thank You
-
-There are a few companies we want to thank for supporting this project in one way or another.
-
-#####[digital.manufaktur GmbH](https://www.digitalmanufaktur.com/)
-
-Teached me(Flyingmana) most I know about Magento and
-paid my participation for the hackathon were the installer got created.
-
-#####[melovely](http://www.melovely.de/)
-
-Support me(Flyingmana) as my current employer very much in my work on everything composer related.
-
-
