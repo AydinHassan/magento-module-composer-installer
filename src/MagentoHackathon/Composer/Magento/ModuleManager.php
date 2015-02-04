@@ -194,7 +194,7 @@ class ModuleManager
      */
     private function getPackageSourceDirectory(PackageInterface $package)
     {
-        $path = sprintf("%s/%s", $this->config->getVendorDir(), $package->getPrettyName());
+        $path = sprintf("%s/%s", realpath($this->config->getVendorDir()), $package->getPrettyName());
         $targetDir = $package->getTargetDir();
 
         if ($targetDir) {
