@@ -24,7 +24,7 @@ class PathTranslationParser implements ParserInterface
     protected $pathPrefixTranslations = array();
 
     /**
-     * @var Parser
+     * @var ParserInterface
      */
     protected $parser;
 

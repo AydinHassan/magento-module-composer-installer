@@ -1,9 +1,8 @@
 [![Build Status](https://travis-ci.org/magento-hackathon/magento-composer-installer.png)](https://travis-ci.org/magento-hackathon/magento-composer-installer)
-[![Dependency Status](https://www.versioneye.com/php/magento-hackathon:magento-composer-installer/2.0.0/badge.svg)](https://www.versioneye.com/php/magento-hackathon:magento-composer-installer/2.0.0)
-[![Reference Status](https://www.versioneye.com/php/magento-hackathon:magento-composer-installer/reference_badge.svg)](https://www.versioneye.com/php/magento-hackathon:magento-composer-installer/references)
-[![Bountysource](https://www.bountysource.com/badge/tracker?tracker_id=284872)](https://www.bountysource.com/trackers/284872-magento-hackathon-magento-composer-installer?utm_source=284872&utm_medium=shield&utm_campaign=TRACKER_BADGE)
+[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/AydinHassan/magento-module-composer-installer/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/AydinHassan/magento-module-composer-installer/?branch=master)
+[![Code Coverage](https://scrutinizer-ci.com/g/AydinHassan/magento-module-composer-installer/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/AydinHassan/magento-module-composer-installer/?branch=master)
 
-# Magento Composer Installer 
+# Magento Composer Installer
 [![Gitter](https://badges.gitter.im/Join Chat.svg)](https://gitter.im/magento-hackathon/magento-composer-installer?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 <img src="https://getcomposer.org/img/logo-composer-transparent.png" itemprop="image" alt="Dart Mosaic" style="height:50px;">
