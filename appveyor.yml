@@ -1,0 +1,24 @@
+build: false
+shallow_clone: true
+platform: 'x86'
+clone_folder: C:\projects\magento-composer-installer
+branches:
+  except:
+    - gh-pages
+
+install:
+  - SET PATH=C:\Program Files\OpenSSL;%PATH%
+  - cinst php
+  - cd c:\tools\php
+  - copy php.ini-production php.ini
+  - echo date.timezone="UTC" >> php.ini
+  - echo extension_dir=ext >> php.ini
+  - echo extension=php_openssl.dll >> php.ini
+  - SET PATH=C:\tools\php;%PATH%
+  - cd C:\projects\magento-composer-installer
+  - php -r "readfile('http://getcomposer.org/installer');" | php
+  - php composer.phar install --prefer-dist --no-interaction
+
+test_script:
+  - cd C:\projects\magento-composer-installer
+  - vendor\bin\phpunit.bat tests
